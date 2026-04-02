@@ -19,6 +19,7 @@ env/
 venv/
 ENV/
 .venv/
+secrets/
 
 # =========================
 # 🧱 Django
