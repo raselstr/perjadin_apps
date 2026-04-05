@@ -36,9 +36,11 @@ COPY . .
 # =========================
 # COLLECT STATIC (optional nanti)
 # =========================
-# RUN python manage.py collectstatic --noinput
+RUN python manage.py collectstatic --noinput
 
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 # =========================
 # RUN APP
 # =========================
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["/entrypoint.sh"]
