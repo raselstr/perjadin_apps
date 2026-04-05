@@ -42,13 +42,58 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
 INSTALLED_APPS = [
     'unfold',
+    'accounts.apps.AccountsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'menus',
 ]
+INSTALLED_APPS = [
+    "unfold",
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+
+    "accounts",
+    "menus",
+    "dashboard",
+]
+
+# 🔥 LETAKKAN DI SINI
+UNFOLD = {
+    "SITE_TITLE": "Perjadin Apps",
+    "SITE_HEADER": "Dashboard Perjadin",
+    "SITE_SYMBOL": "dashboard",
+
+    "NAVIGATION": [
+        {
+            "title": "Manajemen",
+            "items": [
+                {
+                    "title": "OPD",
+                    "icon": "apartment",
+                    "link": "/admin/accounts/opd/",
+                },
+                {
+                    "title": "Role",
+                    "icon": "group",
+                    "link": "/admin/accounts/role/",
+                },
+                {
+                    "title": "Menu",
+                    "icon": "menu",
+                    "link": "/admin/menus/menu/",
+                },
+            ],
+        },
+    ],
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -66,10 +111,11 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],  # 👈 INI PENTING
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -77,7 +123,6 @@ TEMPLATES = [
         },
     },
 ]
-
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
@@ -132,7 +177,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 # TAMBAHKAN INI 👇
@@ -141,10 +186,10 @@ STATICFILES_DIRS = [
 ]
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
-UNFOLD = {
-    "SITE_TITLE": "Perjadin Admin",
-    "SITE_HEADER": "Perjadin Dashboard",
-    "SITE_SYMBOL": "dashboard",
-    "THEME": "dark",
-}
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
+
