@@ -1,6 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
+from django.db import transaction
+from django.contrib.auth.models import User
+from .models import UserProfile
+from .forms import UserWithProfileForm
 
 def login_view(request):
     # Jika user sudah login, langsung arahkan ke dashboard
@@ -50,3 +54,86 @@ def login_view(request):
             return render(request, 'auth/login.html', {'error_message': True})
 
     return render(request, 'auth/login.html')
+
+
+# ========================
+# LIST
+# ========================
+def user_list(request):
+    data = User.objects.all().select_related('userprofile')
+
+    if request.htmx:
+        return render(request, 'auth/partials/user_list.html', {'data': data})
+
+    return render(request, 'auth/user_list.html', {'data': data})
+
+
+# ========================
+# CREATE
+# ========================
+@transaction.atomic
+def user_create(request):
+    if request.method == 'POST':
+        form = UserWithProfileForm(request.POST)
+
+        if form.is_valid():
+            user = User.objects.create_user(
+                username=form.cleaned_data['username'],
+                password=form.cleaned_data['password'],
+                first_name=form.cleaned_data['first_name'],
+                last_name=form.cleaned_data['last_name'],
+            )
+
+            profile = form.save(commit=False)
+            profile.user = user
+            profile.save()
+
+            messages.success(request, "User berhasil ditambahkan")
+            return redirect('user_list')
+    else:
+        form = UserWithProfileForm()
+
+    return render(request, 'auth/user_form.html', {'form': form})
+
+
+# ========================
+# UPDATE
+# ========================
+@transaction.atomic
+def user_update(request, id):
+    user = get_object_or_404(User, id=id)
+    profile, created = UserProfile.objects.get_or_create(user=user)
+
+    if request.method == 'POST':
+        form = UserWithProfileForm(request.POST, instance=profile, user_instance=user)
+
+        if form.is_valid():
+            user.username = form.cleaned_data['username']
+            user.first_name = form.cleaned_data['first_name']
+            user.last_name = form.cleaned_data['last_name']
+
+            if form.cleaned_data['password']:
+                user.set_password(form.cleaned_data['password'])
+
+            user.save()
+
+            profile = form.save(commit=False)
+            profile.user = user
+            profile.save()
+
+            messages.success(request, "User berhasil diupdate")
+            return redirect('user_list')
+    else:
+        form = UserWithProfileForm(instance=profile, user_instance=user)
+
+    return render(request, 'auth/user_form.html', {'form': form})
+
+
+# ========================
+# DELETE
+# ========================
+def user_delete(request, id):
+    user = get_object_or_404(User, id=id)
+    user.delete()
+    messages.success(request, "User berhasil dihapus")
+    return redirect('user_list')

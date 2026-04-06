@@ -40,7 +40,7 @@
                         {% if user.userprofile.role %}
                             {{ user.userprofile.role.nama }}
                         {% else %}
-                            Guest
+                            {{ user.is_superuser|yesno:"Super User,User" }}
                         {% endif %}
                     </small>
                 </div>

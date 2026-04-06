@@ -13,4 +13,5 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='/login/'), name='logout'),
 
     path('dashboard/', include('dashboard.urls')),
+    path('accounts/', include('accounts.urls')),
 ]
