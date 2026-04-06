@@ -1,0 +1,75 @@
+<style>
+    /* Animasi Panah: Berputar saat menu terbuka */
+    .menu-toggle .arrow {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0.5;
+    }
+    
+    /* Class .open ditambahkan via JavaScript toggleMenu */
+    .menu-toggle.open .arrow {
+        transform: rotate(90deg);
+        opacity: 1;
+    }
+
+    /* Icon Bullet Default untuk Submenu */
+    .submenu i-icon svg {
+        fill: var(--primary-color);
+        opacity: 0.6;
+        transition: var(--transition);
+    }
+
+    .submenu a:hover i-icon svg {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+</style>
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <h5 class="m-0 fw-bold text-white">🚀 Admin Pro</h5>
+        <button class="btn btn-sm text-white d-lg-none" onclick="toggleSidebar()">
+            <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="sidebar-menu">
+        <!-- Dashboard Link -->
+        <a href="/" class="active">
+            <i-icon>
+                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                </svg>
+            </i-icon>
+            <span class="menu-text"><strong>Dashboard</strong></span>
+        </a>
+
+        <!-- Dynamic Menu Data -->
+        {% for item in menu_data %}
+            <div>
+                <a href="javascript:void(0)" class="menu-toggle" onclick="toggleMenu('{{ item.menu.id }}', this)">
+                    <i-icon>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                        </svg>
+                    </i-icon>
+                    <span class="menu-text">{{ item.menu.nama }}</span>
+                    {% if item.submenus %}
+                    <svg class="arrow ms-auto" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    {% endif %}
+                </a>
+
+                <div id="submenu-{{ item.menu.id }}" class="submenu">
+                    {% for sub in item.submenus %}
+                        <a hx-get="{{ sub.url }}" hx-target="#main-content" hx-push-url="true" onclick="handleSubmenuClick(this)">
+                            <i-icon>•</i-icon>
+                            <span class="menu-text">{{ sub.nama }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>

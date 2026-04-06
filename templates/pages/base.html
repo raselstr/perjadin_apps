@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Dashboard Modern{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Google Fonts & CSS Frameworks -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --sidebar-collapsed-width: 80px;
+            --primary-color: #3b82f6;
+            --bg-slate-900: #0f172a;
+            --bg-slate-800: #1e293b;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body { 
+            margin: 0; padding: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR STYLES --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            left: 0; top: 0;
+            background: var(--bg-slate-900);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            z-index: 1100;
+            transition: var(--transition);
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .sidebar.collapsed { width: var(--sidebar-collapsed-width); }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        .sidebar.collapsed .sidebar-header h5, .sidebar.collapsed .sidebar-header button { display: none; }
+        .sidebar.collapsed .sidebar-header::after { content: "🚀"; font-size: 1.5rem; margin: 0 auto; }
+
+        .sidebar-menu { flex-grow: 1; overflow-y: auto; padding: 15px 10px; }
+        .sidebar-menu::-webkit-scrollbar { width: 4px; }
+        .sidebar-menu::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+
+        .sidebar a {
+            color: #94a3b8; text-decoration: none;
+            display: flex; align-items: center;
+            padding: 12px 15px; margin-bottom: 4px;
+            border-radius: 10px; transition: var(--transition);
+            white-space: nowrap;
+        }
+        .sidebar i-icon { min-width: 24px; display: flex; justify-content: center; margin-right: 15px; }
+        .sidebar.collapsed i-icon { margin-right: 0; width: 100%; }
+        .sidebar.collapsed .menu-text, .sidebar.collapsed .badge-counter, .sidebar.collapsed .arrow { display: none; }
+        .sidebar a:hover, .sidebar a.active { background: var(--bg-slate-800); color: #ffffff; }
+        .sidebar a.active { color: var(--primary-color); background: rgba(59, 130, 246, 0.1); }
+
+        .submenu { display: none; background: rgba(0, 0, 0, 0.2); border-radius: 10px; margin: 5px 0 10px 0; }
+        .submenu a { padding-left: 50px; font-size: 0.9rem; }
+        .submenu.show { display: block; }
+
+        /* --- MAIN WRAPPER --- */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            display: flex; flex-direction: column;
+            height: 100vh; transition: var(--transition);
+        }
+        .main-wrapper.expanded { margin-left: var(--sidebar-collapsed-width); }
+        .topbar { background: #ffffff; padding: 8px 0; border-bottom: 1px solid #e2e8f0; z-index: 1000; }
+        .content-scrollable { flex-grow: 1; overflow-y: auto; padding: 25px 0; }
+        .footer { background: #ffffff; padding: 15px 0; text-align: center; font-size: 0.85rem; color: #64748b; border-top: 1px solid #e2e8f0; }
+
+        /* Mobile Overlay */
+        .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1090; }
+        @media (max-width: 991.98px) {
+            .sidebar { left: -260px; width: var(--sidebar-width) !important; }
+            .sidebar.show { left: 0; }
+            .main-wrapper { margin-left: 0 !important; }
+            .sidebar-overlay.active { display: block; }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+{% include 'pages/sidebar.html' %}
+
+<div class="main-wrapper" id="mainWrapper">
+    {% include 'pages/topbar.html' %}
+
+    <main class="content-scrollable">
+        <div class="container-fluid px-4">
+            <div id="main-content">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </main>
+
+    {% include 'pages/footer.html' %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        sidebar.classList.toggle('show');
+        overlay.classList.toggle('active');
+    }
+
+    function collapseSidebar() {
+        if (window.innerWidth < 992) {
+            toggleSidebar();
+        } else {
+            const sidebar = document.getElementById('sidebar');
+            const wrapper = document.getElementById('mainWrapper');
+            sidebar.classList.toggle('collapsed');
+            wrapper.classList.toggle('expanded');
+        }
+    }
+
+    function toggleMenu(id, el) {
+        const sidebar = document.getElementById('sidebar');
+        if (!sidebar.classList.contains('collapsed')) {
+            let submenu = document.getElementById('submenu-' + id);
+            submenu.classList.toggle('show');
+            el.classList.toggle('open');
+        }
+    }
+
+    function handleSubmenuClick(el) {
+        document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+        el.classList.add('active');
+        if (window.innerWidth < 992) toggleSidebar();
+    }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

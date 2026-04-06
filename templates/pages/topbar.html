@@ -1,0 +1,70 @@
+<header class="topbar">
+    <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-light" onclick="collapseSidebar()">
+                <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div class="d-none d-md-block">
+                <!-- Tampilkan OPD di Header -->
+                <h6 class="m-0 text-dark fw-bold">
+                    {% if user.userprofile.opd %}
+                        {{ user.userprofile.opd.nama }}
+                    {% else %}
+                        Sistem Administrator
+                    {% endif %}
+                </h6>
+                <small class="text-muted">Panel Kendali Utama</small>
+            </div>
+        </div>
+
+        <!-- User Menu -->
+        <div class="dropdown">
+            <div class="d-flex align-items-center gap-3" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                
+                <!-- TAMPILAN TAHUN DARI SESSION -->
+                <div class="d-none d-lg-flex align-items-center bg-light px-3 py-1 rounded-pill border me-2">
+                    <i class="bi bi-calendar3 me-2 text-primary" style="font-size: 0.85rem;"></i>
+                    <span class="fw-bold text-dark" style="font-size: 0.85rem;">
+                        {{ request.session.tahun_anggaran|default:"-" }}
+                    </span>
+                </div>
+
+                <div class="text-end d-none d-sm-block">
+                    <!-- Tampilkan First Name dan Role -->
+                    <div class="fw-bold text-dark lh-1">
+                        {{ user.first_name|default:user.username }}
+                    </div>
+                    <small class="text-primary fw-medium">
+                        {% if user.userprofile.role %}
+                            {{ user.userprofile.role.nama }}
+                        {% else %}
+                            Guest
+                        {% endif %}
+                    </small>
+                </div>
+                <img src="https://ui-avatars.com/api/?name={{ user.first_name|default:user.username }}&background=3b82f6&color=fff" 
+                     style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #f1f5f9;" alt="User">
+            </div>
+            
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2" aria-labelledby="userMenu" style="border-radius: 12px; min-width: 220px;">
+                <li><h6 class="dropdown-header">Informasi Sesi</h6></li>
+                <li class="px-3 py-1">
+                    <small class="text-muted d-block">Tahun: <strong>{{ request.session.tahun_anggaran|default:"-" }}</strong></small>
+                    <small class="text-muted d-block">OPD: {{ user.userprofile.opd.nama|default:"-" }}</small>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="#">Profil Saya</a></li>
+                <li><a class="dropdown-item" href="#">Pengaturan</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li class="px-2 pb-1">
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button class="btn btn-danger btn-sm w-100 rounded-3">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>

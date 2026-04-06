@@ -17,6 +17,7 @@ def halaman_contoh(request):
 
 @login_required
 def dashboard_view(request):
+    opd = request.session.get('session_opd_nama')
     user = request.user
 
     menus = get_user_menus(user)
@@ -32,6 +33,7 @@ def dashboard_view(request):
     context = {
         "menu_data": menu_data,
         "user": user,
+        "opd": opd,
     }
 
     return render(request, "dashboard/index.html", context)
