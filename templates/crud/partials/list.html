@@ -1,0 +1,46 @@
+{% load custom_tags %}
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between">
+        <h5>{{ title }}</h5>
+
+        <button class="btn btn-primary btn-sm"
+            hx-get="{{ create_url }}"
+            hx-target="#main-content">
+            + Tambah
+        </button>
+    </div>
+
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    {% for f in fields %}
+                        <th>{{ f|title }}</th>
+                    {% endfor %}
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for item in data %}
+                <tr>
+                    {% for f in fields %}
+                        <td>{{ item|get_attr:f }}</td>
+                    {% endfor %}
+                    <td>
+                        <button class="btn btn-warning btn-sm"
+                            hx-get="{{ update_url }}{{ item.id }}/"
+                            hx-target="#main-content">Edit</button>
+
+                        <button class="btn btn-danger btn-sm"
+                            hx-get="{{ delete_url }}{{ item.id }}/"
+                            hx-confirm="Yakin?"
+                            hx-target="#main-content">Hapus</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>

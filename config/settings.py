@@ -41,7 +41,9 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 # Application definition
 
 INSTALLED_APPS = [
+    'admin_berry',
     'django_htmx',
+    'django_tables2',
     "unfold",
     "django.contrib.admin",
     "django.contrib.auth",
@@ -50,7 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
 
-    'accounts.apps.AccountsConfig',
+    'profiles.apps.ProfilesConfig',
     "menus",
     "dashboard",
 ]
@@ -68,12 +70,12 @@ UNFOLD = {
                 {
                     "title": "OPD",
                     "icon": "apartment",
-                    "link": "/admin/accounts/opd/",
+                    "link": "/admin/profiles/opd/",
                 },
                 {
                     "title": "Role",
                     "icon": "group",
-                    "link": "/admin/accounts/role/",
+                    "link": "/admin/profiles/role/",
                 },
                 {
                     "title": "Menu",
@@ -110,7 +112,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'accounts.context_processors.menu_context',
+                'profiles.context_processors.menu_context',
             ],
         },
     },
@@ -171,17 +173,18 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = '/app/staticfiles'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/app/media'
+
 # TAMBAHKAN INI 👇
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
-
-
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 
-LOGIN_URL = '/login/'
+LOGIN_URL = '/masuk/'
 LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/login/'
+LOGOUT_REDIRECT_URL = '/profiles/masuk/'
 

@@ -1,5 +1,5 @@
 from django.db import models
-from accounts.models import Role
+from profiles.models import Role
 
 
 class Menu(models.Model):

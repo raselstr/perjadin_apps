@@ -2,14 +2,14 @@ from django.contrib.auth.models import User
 from django.db import models
 
 class OPD(models.Model):
-    nama = models.CharField(max_length=255)
+    nama = models.CharField(max_length=255, unique=True)
 
     def __str__(self):
         return self.nama
 
 
 class Role(models.Model):
-    nama = models.CharField(max_length=100)
+    nama = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.nama

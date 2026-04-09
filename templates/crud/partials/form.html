@@ -1,0 +1,52 @@
+<div class="modal-header border-0 pb-0">
+    <h5 class="modal-title fw-semibold">{{ title }}</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form 
+    hx-post="{{ request.path }}"
+    hx-target="#main-content"
+    hx-swap="innerHTML"
+    hx-indicator="#formLoader"
+    class="ux-form"
+>
+    <div class="modal-body pt-2">
+
+        {% csrf_token %}
+
+        <div class="row g-3 form-dynamic">
+
+            {% for field in form %}
+                <div class="{% if form|length <= 2 %}col-12{% else %}col-md-6 col-12{% endif %}">
+
+                    <div class="form-floating custom-floating">
+                        {{ field }}
+                        <label>{{ field.label }}</label>
+                    </div>
+
+                    {% if field.errors %}
+                        <div class="form-error">
+                            {{ field.errors|striptags }}
+                        </div>
+                    {% endif %}
+
+                </div>
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div class="modal-footer border-0 pt-0 d-flex justify-content-end gap-2">
+
+        <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+            Batal
+        </button>
+
+        <button type="submit" class="btn btn-primary px-4 btn-submit">
+            <span class="btn-text">Simpan</span>
+            <span class="spinner-border spinner-border-sm d-none"></span>
+        </button>
+
+    </div>
+</form>

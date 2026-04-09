@@ -6,14 +6,7 @@ from django.http import HttpResponse
 def home_redirect(request):
     if request.user.is_authenticated:
         return redirect('/dashboard/')
-    return redirect('/login/')
-
-@login_required
-def halaman_contoh(request):
-    return HttpResponse("""
-        <h4>Halaman HTMX</h4>
-        <p>Ini dimuat tanpa reload 🚀</p>
-    """)
+    return redirect('/profiles/masuk/')
 
 @login_required
 def dashboard_view(request):
