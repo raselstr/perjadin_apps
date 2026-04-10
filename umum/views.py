@@ -34,3 +34,4 @@ class PegawaiView(BaseCRUDView):
             'status',
             'opd'
         )
+

@@ -72,7 +72,7 @@ class Pegawai(models.Model):
 
 class Penandatangan(models.Model):
     nama = models.CharField(max_length=200)
-    nip = models.CharField(max_length=30)
+    nip = models.CharField(max_length=30, null=True, blank=True)
 
     pangkat = models.ForeignKey(
         Pangkat,
@@ -101,4 +101,4 @@ class Penandatangan(models.Model):
     )
 
     def __str__(self):
-        return f"{self.nama} - {self.tugas}"
+        return f"{self.nama} - {self.tugas} - {self.opd}"
