@@ -1,4 +1,5 @@
 #!/bin/sh
+set -e
 
 echo "⏳ Waiting for Postgres..."
 until pg_isready -h "$DB_HOST" -p "$DB_PORT"; do
@@ -6,7 +7,7 @@ until pg_isready -h "$DB_HOST" -p "$DB_PORT"; do
 done
 
 echo "🚀 Apply database migrations..."
-python manage.py migrate
+python manage.py migrate --noinput
 
 echo "📦 Collect static files..."
 python manage.py collectstatic --noinput

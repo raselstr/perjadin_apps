@@ -55,8 +55,8 @@ services:
       - "8085:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
-      - static_volume:/app/staticfiles   # 🔥 share static
-      - media_volume:/app/media         # optional
+      - ./staticfiles:/app/staticfiles   # 🔥 INI DI SINI
+      - ./media:/app/media               # optional
     depends_on:
       - web
     networks:
