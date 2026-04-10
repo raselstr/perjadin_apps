@@ -1,0 +1,47 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ title }}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form method="post"
+      action="{{ request.path }}"
+      hx-post="{{ request.path }}"
+      hx-target="#modal-body"
+      hx-swap="innerHTML">
+
+  {% csrf_token %}
+
+  <div class="modal-body">
+    <div class="row g-3">
+
+      {% for field in form %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+
+          {% if field.errors %}
+            <div class="text-danger small">
+              {{ field.errors|striptags }}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-success">
+      💾 Simpan
+    </button>
+
+    <button type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal">
+      Batal
+    </button>
+  </div>
+
+</form>
+
+

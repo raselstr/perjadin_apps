@@ -1,0 +1,27 @@
+<div class="d-flex gap-1 justify-content-center">
+
+    <!-- EDIT -->
+    <button
+        class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center"
+        style="width:32px;height:32px"
+        hx-get="{% url url_pk record.id update_action %}"
+        hx-target="#modal-body"
+        data-bs-toggle="modal"
+        data-bs-target="#modal">
+
+        <i class="ti ti-pencil"></i>
+    </button>
+
+    <!-- DELETE -->
+    <button
+        class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
+        style="width:32px;height:32px"
+        hx-get="{% url url_delete record.id delete_action %}"
+        hx-target="#modal-body"
+        data-bs-toggle="modal"
+        data-bs-target="#modal">
+
+        <i class="ti ti-trash"></i>
+    </button>
+
+</div>

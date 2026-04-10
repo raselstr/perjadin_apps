@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     'profiles.apps.ProfilesConfig',
     "menus",
     "dashboard",
+    'umum',
+    'core',
 ]
 
 # 🔥 LETAKKAN DI SINI
