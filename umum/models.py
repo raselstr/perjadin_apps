@@ -25,7 +25,6 @@ class StatusASN(models.Model):
     def __str__(self):
         return self.nama
 
-
 class Pegawai(models.Model):
     nip = models.CharField(max_length=30, unique=True)
     nama = models.CharField(max_length=200)
@@ -103,6 +102,9 @@ class Penandatangan(models.Model):
         blank=True,
         related_name='penandatangan'
     )
+    
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return f"{self.nama} - {self.tugas} - {self.opd}"

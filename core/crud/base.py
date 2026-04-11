@@ -81,7 +81,7 @@ class BaseCRUDView(ListView):
         if "form" in request.path:
             return self.form_view(request)
         
-        print("HX-Request:", self.request.headers.get("HX-Request"), flush=True)
+        # print("HX-Request:", self.request.headers.get("HX-Request"), flush=True)
 
         return super().dispatch(request, *args, **kwargs)
     
