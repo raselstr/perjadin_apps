@@ -65,9 +65,13 @@ class Pegawai(models.Model):
         blank=True,
         related_name='pegawai'
     )
+    
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return f"{self.nama} ({self.nip})"
+    
 
 
 class Penandatangan(models.Model):

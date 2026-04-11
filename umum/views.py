@@ -8,12 +8,21 @@ from .tables import PegawaiTable
 def umum_view(request):
     context = {
         "title": "Dashboard",
-        "total_pegawai": Pegawai.objects.count()
     }
     if request.headers.get("HX-Request"):
         return render(request, "components/crud/list.html", context)
     return render(request, "pages/page.html", context)
 
+def get_paginate_by(self, queryset):
+    per_page = self.request.GET.get("per_page")
+
+    if per_page == "all":
+        return None  # disable pagination
+
+    try:
+        return int(per_page)
+    except (TypeError, ValueError):
+        return 10
 
 class PegawaiView(BaseCRUDView):
     model = Pegawai
