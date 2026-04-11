@@ -30,9 +30,8 @@ services:
     build: .
     container_name: perjadin_apps
     restart: always
-    # ❌ HAPUS volume ini (biar tidak override build)
-    # volumes:
-    #   - .:/app
+    volumes:
+    - ./staticfiles:/app/staticfiles
     secrets:
       - db_name
       - db_user
