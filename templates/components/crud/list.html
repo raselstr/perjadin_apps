@@ -1,5 +1,5 @@
 <div id="table-container"
-      hx-trigger="load, reloadTable from:body"
+      hx-trigger="load, reloadTable"
       hx-swap="innerHTML">
 
   <!-- 🔥 FORM (HTMX ENABLED) -->
@@ -28,19 +28,15 @@
     <!-- search -->
     <input type="text" name="search"
        class="form-control form-control-sm"
-       placeholder="Cari pegawai..."
+       placeholder="Cari Data..."
        value="{{ request.GET.search }}"
        hx-get="{% url url_list %}"
        hx-trigger="keyup changed delay:500ms"
        hx-target="#table-container"
        hx-include="closest form">
 
-    <a href="{{ url_list }}"
-      hx-get="{% url url_list %}"
-      hx-target="#table-container"
-      class="btn btn-sm btn-secondary">Reset</a>
-
   </form>
+  <hr>
 
   <!-- TABLE -->
   <div class="table-responsive">

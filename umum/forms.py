@@ -1,5 +1,5 @@
 from django import forms
-from .models import Pegawai
+from .models import Pegawai, Penandatangan
 
 class PegawaiForm(forms.ModelForm):
     class Meta:
@@ -18,3 +18,17 @@ class PegawaiForm(forms.ModelForm):
             }),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
         }
+        
+class PenandatanganForm(forms.ModelForm):
+    class Meta:
+        model = Penandatangan
+        fields = '__all__'
+        widgets = {
+            'nama': forms.TextInput(attrs={'class': 'form-control'}),
+            'nip': forms.TextInput(attrs={'class': 'form-control'}),
+            'pangkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Pangkat'}),
+            'tugas': forms.TextInput(attrs={'class': 'form-control'}),
+            'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder':'Jenis Jabatan'}),
+            'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
+        }
+        

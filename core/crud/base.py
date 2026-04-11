@@ -22,22 +22,23 @@ class BaseCRUDView(ListView):
     
 
     def get_queryset(self):
-        qs = self.model.objects.all().order_by('nip')
+        qs = self.model.objects.all().order_by('id')
         search = self.request.GET.get("search")
+        print("SEARCH RAW:", search)
 
         if search:
             qs = qs.filter(
                 Q(nama__icontains=search) |
                 Q(nip__icontains=search) |
-                Q(jabatan__icontains=search)
+                Q(jabatan__nama__icontains=search)
             )
-
+        print("QS COUNT:", qs.count()) 
         return qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        table = self.table_class(self.object_list, request=self.request)
+        qs = self.get_queryset() 
+        table = self.table_class(qs, request=self.request)
         per_page = self.request.GET.get("per_page", 10)
         if per_page == "all":
             paginate_config = False
@@ -63,8 +64,9 @@ class BaseCRUDView(ListView):
         return context
 
     def get_template_names(self):
-        if self.request.headers.get("HX-Request"):
+        if self.request.headers.get("HX-Request") == "true":
             return [self.template_list]  # partial (HTMX)
+        
         return [self.template_name]  # full page
     
     def dispatch(self, request, *args, **kwargs):
@@ -78,13 +80,16 @@ class BaseCRUDView(ListView):
 
         if "form" in request.path:
             return self.form_view(request)
+        
+        print("HX-Request:", self.request.headers.get("HX-Request"), flush=True)
 
         return super().dispatch(request, *args, **kwargs)
     
     def list_view(self, request):
-        table = self.table_class(self.model.objects.all())
+        qs = self.get_queryset()
+        table = self.table_class(qs, request=request)
 
-        return render(request, self.template_name, {
+        return render(request, self.template_list, {
             "table": table,
             "url_list": self.url_list,
         })

@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.urls import reverse
 from core.crud.base import BaseCRUDView
-from .models import Pegawai
-from .forms import PegawaiForm
-from .tables import PegawaiTable
+from .models import Pegawai, Penandatangan
+from .forms import PegawaiForm, PenandatanganForm
+from .tables import PegawaiTable, PenandatanganTable
 
 def umum_view(request):
     context = {
@@ -43,4 +43,21 @@ class PegawaiView(BaseCRUDView):
             'status',
             'opd'
         )
+class PenandatanganView(BaseCRUDView):
+    model = Penandatangan
+    form_class = PenandatanganForm
+    table_class = PenandatanganTable
 
+    title = "Daftar Penandatangan"
+
+    # URL NAME (WAJIB SESUAI urls.py)
+    url_list = "penandatangan_list"
+    url_action = "penandatangan_action"
+    url_action_pk = "penandatangan_action_pk"
+    
+    def get_queryset(self):
+        return Penandatangan.objects.select_related(
+            'pangkat',
+            'jenis_jabatan',
+            'opd'
+        )
