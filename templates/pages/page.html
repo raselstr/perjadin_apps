@@ -61,6 +61,7 @@
 
     {% endblock content %}
 
+
 {% block extrastyle %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
@@ -84,22 +85,9 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
-  function initSelect2() {
-    destroySelect2();
-    $('.select2, .select2-ajax').select2({
-      width: '100%',
-      dropdownParent: $('#modal'),
-      theme: 'bootstrap-5'
-    });
-  }
-  function destroySelect2() {
-    $('.select2, .select2-ajax').each(function () {
-      if ($(this).hasClass("select2-hidden-accessible")) {
-        $(this).select2('destroy');
-      }
-    });
-  }
+  
 
   function forceCloseModal() {
     const modalEl = document.getElementById('modal');
@@ -143,6 +131,29 @@
           target: '#table-container',
           swap: 'innerHTML'
       });
+  });
+
+  function initSelect2() {
+    destroySelect2();
+    if (window.jQuery) {
+      $('.select2, .select2-ajax').select2({
+        width: '100%',
+        dropdownParent: $('#modal'),
+        theme: 'bootstrap-5'
+      });
+    }
+  }
+  function destroySelect2() {
+    if (!window.jQuery) return;
+    $('.select2, .select2-ajax').each(function () {
+      if ($(this).hasClass("select2-hidden-accessible")) {
+        $(this).select2('destroy');
+      }
+    });
+  }
+
+  document.addEventListener('shown.bs.modal', function () {
+    initSelect2();
   });
 
 </script>

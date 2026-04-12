@@ -37,7 +37,7 @@ class BaseCRUDView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        qs = self.get_queryset() 
+        qs = list(self.get_queryset())  # 🔥 FORCE EVALUATION (IMPORTANT)
         table = self.table_class(qs, request=self.request)
         per_page = self.request.GET.get("per_page", 10)
         if per_page == "all":
