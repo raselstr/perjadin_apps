@@ -36,8 +36,7 @@
                 <button class="btn btn-primary"
                         hx-get="{% url url_action %}"
                         hx-target="#modal-body"
-                        data-bs-toggle="modal"
-                        data-bs-target="#modal">
+                        hx-trigger="click">
                   + Tambah
                 </button>
               </div>
@@ -155,6 +154,27 @@
   document.addEventListener('shown.bs.modal', function () {
     initSelect2();
   });
+
+document.body.addEventListener('htmx:afterSwap', function (evt) {
+    if (evt.detail.target.id === "modal-body") {
+        const modalEl = document.getElementById('modal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+});
+
+document.body.addEventListener('htmx:responseError', function (evt) {
+    if (evt.detail.xhr.status === 403) {
+
+        // inject response ke modal
+        document.getElementById('modal-body').innerHTML = evt.detail.xhr.responseText;
+
+        // paksa buka modal
+        const modalEl = document.getElementById('modal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+});
 
 </script>
 {% endblock %}
