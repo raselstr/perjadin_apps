@@ -1,8 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
-from .models import Role, Menu, SubMenu, RolePermission
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
+
+from core.crud.base import BaseCRUDView
+from .models import Role, Menu, SubMenu, RolePermission
+from .forms import MenuForm, SubMenuForm
+from .tables import MenuTable, SubMenuTable
 
 
 @login_required
@@ -70,3 +75,31 @@ def update_permission(request):
     perm.save()
 
     return JsonResponse({"status": "ok"})
+
+
+class MenuView(LoginRequiredMixin, BaseCRUDView):
+    model = Menu
+    form_class = MenuForm
+    table_class = MenuTable
+
+    title = "Daftar Menu"
+    url_list = "menu_list"
+    url_action = "menu_action"
+    url_action_pk = "menu_action_pk"
+
+    def get_queryset(self):
+        return super().get_queryset().order_by('urutan')
+
+
+class SubMenuView(LoginRequiredMixin, BaseCRUDView):
+    model = SubMenu
+    form_class = SubMenuForm
+    table_class = SubMenuTable
+
+    title = "Daftar Submenu"
+    url_list = "submenu_list"
+    url_action = "submenu_action"
+    url_action_pk = "submenu_action_pk"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('menu').order_by('urutan')

@@ -1,5 +1,34 @@
 from django import forms
-from .models import Pegawai, Penandatangan
+from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN
+
+class PangkatForm(forms.ModelForm):
+    class Meta:
+        model = Pangkat
+        fields = '__all__'
+        widgets = {
+            'pangkat': forms.TextInput(attrs={'class': 'form-control'}),
+            'golongan': forms.TextInput(attrs={'class': 'form-control'}),
+            'ruang': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+class JenisJabatanForm(forms.ModelForm):
+    class Meta:
+        model = JenisJabatan
+        fields = '__all__'
+        widgets = {
+            'nama': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+class StatusASNForm(forms.ModelForm):
+    class Meta:
+        model = StatusASN
+        fields = '__all__'
+        widgets = {
+            'nama': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
 
 class PegawaiForm(forms.ModelForm):
     class Meta:

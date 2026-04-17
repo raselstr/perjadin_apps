@@ -86,6 +86,12 @@ class BaseCRUDView(ListView):
             filters |= Q(jenis_jabatan__nama__icontains=search)
         if 'tugas' in field_names:
             filters |= Q(tugas__icontains=search)
+        if 'url' in field_names:
+            filters |= Q(url__icontains=search)
+        if 'menu' in field_names:
+            filters |= Q(menu__nama__icontains=search)
+        if 'icon' in field_names:
+            filters |= Q(icon__icontains=search)
 
         if filters:
             qs = qs.filter(filters)
@@ -97,6 +103,9 @@ class BaseCRUDView(ListView):
         qs = list(self.get_queryset())
 
         table = self.table_class(qs, request=self.request)
+        table.extra_context = {
+            'url_list': self.url_list,
+        }
 
         per_page = self.request.GET.get("per_page", 10)
         if per_page == "all":
@@ -116,6 +125,7 @@ class BaseCRUDView(ListView):
             "url_list": self.url_list,
             "url_action": self.url_action,
             "url_action_pk": self.url_action_pk,
+            "initial_url": self.url_list,
         })
 
         return context

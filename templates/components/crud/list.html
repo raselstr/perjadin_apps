@@ -1,4 +1,5 @@
 <div id="table-container"
+      data-url="{% url url_list %}"
       hx-trigger="load, reloadTable"
       hx-swap="innerHTML">
 
@@ -39,11 +40,33 @@
   <hr>
 
   <!-- TABLE -->
-  <div class="table-responsive">
+  <div class="table-responsive"
+       hx-boost="true"
+       hx-target="#table-container"
+       hx-swap="innerHTML"
+       hx-include="[name='search'],[name='per_page']">
     {% load django_tables2 %}
     {% render_table table %}
   </div>
 
 </div>
+
+<script>
+// HTMX boost for table pagination and sorting
+document.addEventListener('DOMContentLoaded', function() {
+    // Intercept pagination and sorting links in the table
+    document.getElementById('table-container').addEventListener('click', function(e) {
+        const link = e.target.closest('a');
+        if (link && link.href && link.href.includes('?')) {
+            e.preventDefault();
+            htmx.ajax('GET', link.href, {
+                target: '#table-container',
+                swap: 'innerHTML',
+                include: '[name="search"],[name="per_page"]'
+            });
+        }
+    });
+});
+</script>
 
 {% include 'components/crud/modal.html'%}
