@@ -3,6 +3,7 @@ from django.views.generic import ListView
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django_tables2 import RequestConfig
+from types import SimpleNamespace
 
 
 class BaseCRUDView(ListView):
@@ -31,6 +32,14 @@ class BaseCRUDView(ListView):
 
         if not user.is_authenticated:
             return None
+
+        if user.is_superuser:
+            return SimpleNamespace(
+                can_view=True,
+                can_add=True,
+                can_edit=True,
+                can_delete=True
+            )
 
         try:
             profile = UserProfile.objects.get(user=user)
@@ -61,12 +70,26 @@ class BaseCRUDView(ListView):
         qs = self.model.objects.all().order_by('id')
         search = self.request.GET.get("search")
 
-        if search:
-            qs = qs.filter(
-                Q(nama__icontains=search) |
-                Q(nip__icontains=search) |
-                Q(jabatan__nama__icontains=search)
-            )
+        if not search:
+            return qs
+
+        field_names = {field.name for field in self.model._meta.get_fields()}
+        filters = Q()
+
+        if 'nama' in field_names:
+            filters |= Q(nama__icontains=search)
+        if 'nip' in field_names:
+            filters |= Q(nip__icontains=search)
+        if 'jabatan' in field_names:
+            filters |= Q(jabatan__icontains=search)
+        if 'jenis_jabatan' in field_names:
+            filters |= Q(jenis_jabatan__nama__icontains=search)
+        if 'tugas' in field_names:
+            filters |= Q(tugas__icontains=search)
+
+        if filters:
+            qs = qs.filter(filters)
+
         return qs
 
     def get_context_data(self, **kwargs):

@@ -37,7 +37,7 @@ class PegawaiView(BaseCRUDView):
     url_action_pk = "pegawai_action_pk"
 
     def get_queryset(self):
-        return Pegawai.objects.select_related(
+        return super().get_queryset().select_related(
             'pangkat',
             'jenis_jabatan',
             'status',
@@ -56,7 +56,7 @@ class PenandatanganView(BaseCRUDView):
     url_action_pk = "penandatangan_action_pk"
     
     def get_queryset(self):
-        return Penandatangan.objects.select_related(
+        return super().get_queryset().select_related(
             'pangkat',
             'jenis_jabatan',
             'opd'
