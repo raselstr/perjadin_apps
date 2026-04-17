@@ -11,7 +11,7 @@ urlpatterns = [
     path('', home_redirect),
     # Perbaikan: login_view adalah fungsi, panggil langsung namanya
     path('logout/', auth_views.LogoutView.as_view(next_page='/profiles/masuk/'), name='logout'),
-
+    path('menus/', include('menus.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('profiles/', include('profiles.urls')),
     path('umum/', include('umum.urls')),
