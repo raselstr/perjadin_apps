@@ -100,7 +100,7 @@ class BaseCRUDView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        qs = list(self.get_queryset())
+        qs = self.get_queryset()  # Don't convert to list - use QuerySet for pagination
 
         table = self.table_class(qs, request=self.request)
         table.extra_context = {
@@ -108,6 +108,8 @@ class BaseCRUDView(ListView):
         }
 
         per_page = self.request.GET.get("per_page", 10)
+        page = self.request.GET.get("page", 1)
+
         if per_page == "all":
             paginate_config = False
         else:
@@ -182,8 +184,11 @@ class BaseCRUDView(ListView):
             form.save()
 
             if request.headers.get("HX-Request"):
-                response = JsonResponse({"success": True})
-                response["HX-Trigger"] = "formSuccess,reloadTable"
+                # Return 204 No Content to prevent HTMX from swapping
+                # The client will handle modal close and table reload via JavaScript
+                from django.http import HttpResponse
+                response = HttpResponse(status=204)
+                response["HX-Trigger"] = "tableShouldReload"
                 return response
 
             return redirect(self.url_list)
@@ -209,8 +214,11 @@ class BaseCRUDView(ListView):
             obj.delete()
 
             if request.headers.get("HX-Request"):
-                response = JsonResponse({"ok": True})
-                response["HX-Trigger"] = "formSuccess,reloadTable"
+                # Return 204 No Content to prevent HTMX from swapping
+                # The client will handle modal close and table reload via JavaScript
+                from django.http import HttpResponse
+                response = HttpResponse(status=204)
+                response["HX-Trigger"] = "tableShouldReload"
                 return response
 
             return redirect(self.url_list)

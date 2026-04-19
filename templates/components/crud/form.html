@@ -7,7 +7,7 @@
       action="{{ request.path }}"
       hx-post="{{ request.path }}"
       hx-target="#modal-body"
-      hx-swap="innerHTML">
+      hx-swap="none">
 
   {% csrf_token %}
 
