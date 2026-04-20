@@ -5,7 +5,9 @@ django-environ==0.13.0
 django-htmx==1.27.0
 django-tables2==2.9.0
 django-unfold==0.87.0
+et_xmlfile==2.0.0
 gunicorn==25.3.0
+openpyxl==3.1.5
 packaging==26.0
 psycopg2-binary==2.9.11
 sqlparse==0.5.5

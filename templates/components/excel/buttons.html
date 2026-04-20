@@ -1,0 +1,21 @@
+<!-- Excel Export/Import Buttons -->
+<!-- Digunakan di CRUD list view -->
+
+<div class="d-flex gap-2">
+  {% if export_url %}
+  <a href="{{ export_url }}" class="btn btn-sm btn-outline-primary" title="Download data sebagai Excel">
+    📥 Download Excel
+  </a>
+  {% endif %}
+  
+  {% if import_url %}
+  <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#excelImportModal" title="Upload dan import data dari Excel">
+    📤 Upload Excel
+  </button>
+  {% endif %}
+</div>
+
+<!-- Include modal template jika import_url ada -->
+{% if import_url %}
+  {% include "components/excel/import.html" with model_name=model_name %}
+{% endif %}

@@ -1,0 +1,249 @@
+{% load static %}
+
+<div class="modal fade" id="excelImportModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">📊 Import {{ model_name }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form id="excelImportForm" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        <!-- Step 1: Upload -->
+        <div id="uploadStep" class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Pilih file Excel</label>
+            <input type="file" name="file" id="excelFile" class="form-control" accept=".xlsx,.xls,.csv" required>
+            <small class="text-muted d-block mt-2">
+              Format: .xlsx, .xls, atau .csv<br>
+              Pastikan kolom header sesuai dengan data yang akan di-import
+            </small>
+          </div>
+
+          <div id="uploadProgress" class="progress" style="display: none;">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
+              Loading...
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Preview -->
+        <div id="previewStep" class="modal-body" style="display: none; max-height: 600px; overflow-y: auto;">
+          <div id="previewContent"></div>
+        </div>
+
+        <div class="modal-footer">
+          <!-- Upload button -->
+          <button type="button" class="btn btn-primary" id="previewBtn" onclick="previewExcel(event)">
+            👁️ Preview
+          </button>
+
+          <!-- Import button (hidden until preview) -->
+          <button type="button" class="btn btn-success" id="importBtn" onclick="importExcel(event)" style="display: none;">
+            ✅ Import Sekarang
+          </button>
+
+          <!-- Cancel -->
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Global function untuk preview
+window.previewExcel = async function(e) {
+  e.preventDefault();
+  
+  const fileInput = document.getElementById('excelFile');
+  const file = fileInput.files[0];
+  
+  if (!file) {
+    alert('Pilih file terlebih dahulu');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('action', 'preview');
+  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  
+  // Show progress
+  document.getElementById('uploadProgress').style.display = 'block';
+  document.getElementById('previewBtn').disabled = true;
+  
+  try {
+    const response = await fetch('', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === 'preview') {
+      // Render preview
+      renderPreview(result);
+      
+      // Show preview step
+      document.getElementById('uploadStep').style.display = 'none';
+      document.getElementById('previewStep').style.display = 'block';
+      document.getElementById('previewBtn').style.display = 'none';
+      document.getElementById('importBtn').style.display = 'inline-block';
+      
+    } else if (result.status === 'error') {
+      showErrors(result.errors);
+      document.getElementById('uploadProgress').style.display = 'none';
+      document.getElementById('previewBtn').disabled = false;
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error: ' + error.message);
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('previewBtn').disabled = false;
+  }
+};
+
+// Global function untuk import
+window.importExcel = async function(e) {
+  e.preventDefault();
+  
+  const fileInput = document.getElementById('excelFile');
+  const file = fileInput.files[0];
+  
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('action', 'import');
+  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  
+  document.getElementById('uploadProgress').style.display = 'block';
+  document.getElementById('importBtn').disabled = true;
+  
+  try {
+    const response = await fetch('', {
+      method: 'POST',
+      body: formData
+    });
+    
+    const result = await response.json();
+    
+    if (result.status === 'success') {
+      // Success - close modal dan redirect
+      const notification = `
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          ✅ Berhasil import ${result.imported} data
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      `;
+      document.body.insertAdjacentHTML('afterbegin', notification);
+      
+      setTimeout(() => {
+        window.location.href = result.redirect || '/';
+      }, 1500);
+      
+    } else {
+      showErrors(result.errors);
+      document.getElementById('uploadProgress').style.display = 'none';
+      document.getElementById('importBtn').disabled = false;
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error: ' + error.message);
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('importBtn').disabled = false;
+  }
+};
+
+// Render preview table
+function renderPreview(result) {
+  const container = document.getElementById('previewContent');
+  
+  if (result.has_errors) {
+    const errorHtml = `
+      <div class="alert alert-warning">
+        <strong>⚠️ Ada ${result.errors.length} baris dengan error</strong>
+        <ul class="mt-2 mb-0">
+          ${result.errors.map(err => `<li>${err}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+    container.insertAdjacentHTML('afterbegin', errorHtml);
+  }
+  
+  // Build table
+  const table = document.createElement('table');
+  table.className = 'table table-sm table-bordered';
+  
+  // Header
+  const thead = document.createElement('thead');
+  const headerRow = document.createElement('tr');
+  headerRow.innerHTML = `
+    <th style="width: 60px; background-color: #f8f9fa;">No</th>
+    <th style="background-color: #f8f9fa;">Status</th>
+    <th style="background-color: #f8f9fa;">Data</th>
+  `;
+  thead.appendChild(headerRow);
+  table.appendChild(thead);
+  
+  // Body
+  const tbody = document.createElement('tbody');
+  result.preview.forEach(item => {
+    const row = document.createElement('tr');
+    const statusBadge = item.status === 'valid'
+      ? '<span class="badge bg-success">✓ Valid</span>'
+      : '<span class="badge bg-danger">✗ Error</span>';
+    
+    const dataHtml = Object.entries(item.data)
+      .map(([k, v]) => `<div><strong>${k}:</strong> ${v || '-'}</div>`)
+      .join('');
+    
+    const errorHtml = item.errors.length > 0
+      ? `<div class="text-danger small mt-2"><strong>Error:</strong> ${item.errors.join('; ')}</div>`
+      : '';
+    
+    row.innerHTML = `
+      <td align="center">${item.row}</td>
+      <td>${statusBadge}</td>
+      <td>${dataHtml}${errorHtml}</td>
+    `;
+    row.style.backgroundColor = item.status === 'error' ? '#fff5f5' : '#f9fff9';
+    tbody.appendChild(row);
+  });
+  table.appendChild(tbody);
+  
+  container.appendChild(table);
+}
+
+// Show error messages
+function showErrors(errors) {
+  const errorHtml = `
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+      <strong>❌ Error saat import:</strong>
+      <ul class="mt-2 mb-0">
+        ${errors.map(err => `<li>${err}</li>`).join('')}
+      </ul>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('afterbegin', errorHtml);
+}
+
+// Reset form saat modal ditutup
+document.addEventListener('hidden.bs.modal', function(e) {
+  if (e.target.id === 'excelImportModal') {
+    document.getElementById('excelImportForm').reset();
+    document.getElementById('uploadStep').style.display = 'block';
+    document.getElementById('previewStep').style.display = 'none';
+    document.getElementById('previewBtn').style.display = 'inline-block';
+    document.getElementById('importBtn').style.display = 'none';
+    document.getElementById('uploadProgress').style.display = 'none';
+    document.getElementById('previewContent').innerHTML = '';
+    document.getElementById('previewBtn').disabled = false;
+    document.getElementById('importBtn').disabled = false;
+  }
+}, true);
+</script>

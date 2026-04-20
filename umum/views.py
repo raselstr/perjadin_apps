@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.urls import reverse
 from core.crud.base import BaseCRUDView
+from core.views_excel import ExcelExportView, ExcelImportView
 from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN
 from .forms import PegawaiForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm
 from .tables import PegawaiTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable
@@ -103,3 +104,101 @@ class PenandatanganView(BaseCRUDView):
             'jenis_jabatan',
             'opd'
         )
+
+
+# ===========================
+# 📊 EXCEL EXPORT/IMPORT
+# ===========================
+
+class PegawaiExportView(ExcelExportView):
+    """Download Pegawai data sebagai Excel"""
+    model = Pegawai
+    
+    # Custom columns untuk export (sesuai dengan PegawaiTable)
+    columns = [
+        ('nip', 'NIP'),
+        ('nama', 'Nama Pegawai'),
+        ('email', 'Email'),
+        ('no_hp', 'No HP'),
+        ('jenis_jabatan', 'Jenis Jabatan'),
+        ('pangkat', 'Pangkat'),
+        ('status', 'Status ASN'),
+    ]
+    
+    def get_queryset(self):
+        """Filter & select_related untuk performance"""
+        return Pegawai.objects.all().select_related(
+            'pangkat',
+            'jenis_jabatan',
+            'status',
+            'opd'
+        ).order_by('-created_at')
+
+
+class PegawaiImportView(ExcelImportView):
+    """Upload & import Pegawai data dari Excel"""
+    model = Pegawai
+    success_url = '/umum/pegawai/'
+    
+    # Column mapping untuk import
+    columns = ['nip', 'nama', 'email', 'no_hp', 'jenis_jabatan', 'pangkat', 'status']
+
+
+class PangkatExportView(ExcelExportView):
+    """Download Pangkat data sebagai Excel"""
+    model = Pangkat
+    columns = [
+        ('golongan', 'Golongan'),
+        ('ruang', 'Ruang'),
+        ('nama_pangkat', 'Nama Pangkat'),
+    ]
+
+
+class PangkatImportView(ExcelImportView):
+    """Upload & import Pangkat data dari Excel"""
+    model = Pangkat
+    success_url = '/umum/pangkat/'
+    columns = ['golongan', 'ruang', 'nama_pangkat']
+
+
+class JenisJabatanExportView(ExcelExportView):
+    """Download Jenis Jabatan data sebagai Excel"""
+    model = JenisJabatan
+    columns = [('nama', 'Nama Jenis Jabatan')]
+
+
+class JenisJabatanImportView(ExcelImportView):
+    """Upload & import Jenis Jabatan data dari Excel"""
+    model = JenisJabatan
+    success_url = '/umum/jenis-jabatan/'
+    columns = ['nama']
+
+
+class StatusASNExportView(ExcelExportView):
+    """Download Status ASN data sebagai Excel"""
+    model = StatusASN
+    columns = [('nama', 'Nama Status ASN')]
+
+
+class StatusASNImportView(ExcelImportView):
+    """Upload & import Status ASN data dari Excel"""
+    model = StatusASN
+    success_url = '/umum/status-asn/'
+    columns = ['nama']
+
+
+class PenandatanganExportView(ExcelExportView):
+    """Download Penandatangan data sebagai Excel"""
+    model = Penandatangan
+    columns = [
+        ('nama', 'Nama'),
+        ('nip', 'NIP'),
+        ('jabatan', 'Jabatan'),
+    ]
+
+
+class PenandatanganImportView(ExcelImportView):
+    """Upload & import Penandatangan data dari Excel"""
+    model = Penandatangan
+    success_url = '/umum/penandatangan/'
+    columns = ['nama', 'nip', 'jabatan']

@@ -1,0 +1,35 @@
+<!-- 
+CONTOH: Tambahkan Excel buttons ke Pegawai list view
+Letakkan di atas tabel atau di mana pun yang cocok
+-->
+
+<div class="mb-3 d-flex gap-2">
+  <!-- Download Excel Button -->
+  <a href="{% url 'pegawai_export' %}" class="btn btn-sm btn-outline-primary">
+    📥 Download Excel
+  </a>
+  
+  <!-- Upload Excel Button -->
+  <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#excelImportModal">
+    📤 Upload Excel
+  </button>
+</div>
+
+<!-- Import Modal (akan di-include via template tag) -->
+{% include "components/excel/import.html" with model_name="Pegawai" %}
+
+
+<!-- 
+IMPLEMENTASI LENGKAP:
+
+Jika menggunakan page layout biasa, edit template yang menampilkan table dan:
+
+1. Add buttons di atas table:
+   {% include "templates/umum/components/pegawai_excel_buttons.html" %}
+
+2. Atau gunakan template override untuk list view
+
+3. Buttons akan mengarah ke:
+   - Download: /umum/pegawai/export/
+   - Upload: /umum/pegawai/import/
+-->
