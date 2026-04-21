@@ -34,6 +34,8 @@ class PangkatView(BaseCRUDView):
     url_list = "pangkat_list"
     url_action = "pangkat_action"
     url_action_pk = "pangkat_action_pk"
+    url_export = "pangkat_export"
+    url_import = "pangkat_import"
 
     def get_queryset(self):
         return super().get_queryset().order_by('golongan', 'ruang')
@@ -48,6 +50,8 @@ class JenisJabatanView(BaseCRUDView):
     url_list = "jenis_jabatan_list"
     url_action = "jenis_jabatan_action"
     url_action_pk = "jenis_jabatan_action_pk"
+    url_export = "jenis_jabatan_export"
+    url_import = "jenis_jabatan_import"
 
     def get_queryset(self):
         return super().get_queryset().order_by('nama')
@@ -62,6 +66,8 @@ class StatusASNView(BaseCRUDView):
     url_list = "status_asn_list"
     url_action = "status_asn_action"
     url_action_pk = "status_asn_action_pk"
+    url_export = "status_asn_export"
+    url_import = "status_asn_import"
 
     def get_queryset(self):
         return super().get_queryset().order_by('nama')
@@ -78,6 +84,8 @@ class PegawaiView(BaseCRUDView):
     url_list = "pegawai_list"
     url_action = "pegawai_action"
     url_action_pk = "pegawai_action_pk"
+    url_import = "pegawai_import"
+    url_export = "pegawai_export"
 
     def get_queryset(self):
         return super().get_queryset().select_related(
@@ -97,6 +105,8 @@ class PenandatanganView(BaseCRUDView):
     url_list = "penandatangan_list"
     url_action = "penandatangan_action"
     url_action_pk = "penandatangan_action_pk"
+    url_import = "penandatangan_import"
+    url_export = "penandatangan_export"
     
     def get_queryset(self):
         return super().get_queryset().select_related(
@@ -118,11 +128,12 @@ class PegawaiExportView(ExcelExportView):
     columns = [
         ('nip', 'NIP'),
         ('nama', 'Nama Pegawai'),
-        ('email', 'Email'),
-        ('no_hp', 'No HP'),
-        ('jenis_jabatan', 'Jenis Jabatan'),
         ('pangkat', 'Pangkat'),
+        ('jabatan', 'Jabatan'),
+        ('jenis_jabatan', 'Jenis Jabatan'),
         ('status', 'Status ASN'),
+        ('tgl_lahir', 'Tanggal Lahir'),
+        ('opd', 'OPD'),
     ]
     
     def get_queryset(self):
@@ -132,7 +143,7 @@ class PegawaiExportView(ExcelExportView):
             'jenis_jabatan',
             'status',
             'opd'
-        ).order_by('-created_at')
+        ).order_by('-id')
 
 
 class PegawaiImportView(ExcelImportView):

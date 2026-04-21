@@ -19,6 +19,8 @@ class BaseCRUDView(ListView):
     url_list = None
     url_action = None
     url_action_pk = None
+    url_import = None
+    url_export = None
     paginate_by = 10
 
     # =========================
@@ -127,6 +129,8 @@ class BaseCRUDView(ListView):
             "url_list": self.url_list,
             "url_action": self.url_action,
             "url_action_pk": self.url_action_pk,
+            "url_import": self.url_import,
+            "url_export": self.url_export,
             "initial_url": self.url_list,
         })
 

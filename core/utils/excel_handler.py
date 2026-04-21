@@ -28,16 +28,14 @@ class ExcelExporter:
         self.columns = columns or self._get_default_columns()
     
     def _get_default_columns(self):
-        """Get semua field dari model kecuali ForeignKey & ManyToMany relations"""
+        """Get semua field dari model kecuali ManyToMany relations"""
         columns = []
         for field in self.model._meta.get_fields():
-            # Skip relations
-            if field.many_to_one or field.one_to_many or field.many_to_many:
+            # Skip many-to-many dan one-to-many relations
+            if field.one_to_many or field.many_to_many:
                 continue
-            # Skip auto fields yang tidak penting
-            if field.name in ['id']:
-                continue
-            label = field.verbose_name.title() if hasattr(field, 'verbose_name') else field.name
+            # Include semua field lainnya, termasuk foreign keys
+            label = getattr(field, 'verbose_name', field.name).title()
             columns.append((field.name, label))
         return columns
     

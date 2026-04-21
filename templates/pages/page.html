@@ -42,12 +42,23 @@
                     + Tambah User Baru
                   </button>
                   {% endif %}
+
                   <button class="btn btn-primary"
                           hx-get="{% url url_action %}"
                           hx-target="#modal-body"
                           hx-trigger="click">
                     + Tambah
                   </button>
+                  <button class="btn btn-danger"
+                          hx-get="{% url url_import %}"
+                          hx-target="#modal-body"
+                          hx-trigger="click">
+                    + Import Excel
+                  </button>
+                  <a href="{% url url_export %}" class="btn btn-danger">
+                    + Export Excel
+                  </a>
+                  
                 </div>
               </div>
             </div>
@@ -68,7 +79,9 @@
   </div>
   <!-- [ Main Content ] end -->
 
-    {% endblock content %}
+  {% include 'components/crud/modal.html' %}
+
+{% endblock content %}
 
 
 {% block extrastyle %}

@@ -31,13 +31,53 @@ class ExcelExportView(View):
         return self.model.objects.all()
     
     def get(self, request, *args, **kwargs):
-        """Handle GET request - download Excel"""
+        """Handle GET request - langsung download Excel dengan semua kolom"""
+        return self.download_view(request)
+    
+    def form_view(self, request):
+        """Tampilkan form untuk memilih opsi export"""
+        fields = []
+        for field in self.model._meta.get_fields():
+            if not field.is_relation and not field.many_to_many:
+                fields.append({
+                    'name': field.name,
+                    'verbose_name': field.verbose_name,
+                    'selected': True  # Default semua selected
+                })
+        
+        return render(request, 'components/excel/export.html', {
+            'model_name': self.model._meta.verbose_name_plural,
+            'fields': fields,
+        })
+    
+    def download_view(self, request):
+        """Download Excel dengan opsi yang dipilih"""
         queryset = self.get_queryset()
+        
+        # Filter berdasarkan q
+        q = request.GET.get('q')
+        if q:
+            # Simple search, bisa di-override
+            search_fields = []
+            for field in self.model._meta.get_fields():
+                if not field.is_relation and not field.many_to_many and field.__class__.__name__ in ['CharField', 'TextField']:
+                    search_fields.append(f"{field.name}__icontains")
+            if search_fields:
+                from django.db.models import Q
+                query = Q()
+                for field in search_fields:
+                    query |= Q(**{field: q})
+                queryset = queryset.filter(query)
+        
+        # Pilih kolom
+        columns = request.GET.getlist('columns')
+        if not columns:
+            columns = None  # Semua kolom
         
         exporter = ExcelExporter(
             model=self.model,
             queryset=queryset,
-            columns=self.columns,
+            columns=columns,
             title=self.model._meta.verbose_name_plural
         )
         

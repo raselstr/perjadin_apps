@@ -1,57 +1,49 @@
-{% load static %}
+<div class="modal-header">
+  <h5 class="modal-title">📊 Import {{ model_name }}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
 
-<div class="modal fade" id="excelImportModal" tabindex="-1">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">📊 Import {{ model_name }}</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<form id="excelImportForm" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  <!-- Step 1: Upload -->
+  <div id="uploadStep" class="modal-body">
+    <div class="mb-3">
+      <label class="form-label">Pilih file Excel</label>
+      <input type="file" name="file" id="excelFile" class="form-control" accept=".xlsx,.xls,.csv" required>
+      <small class="text-muted d-block mt-2">
+        Format: .xlsx, .xls, atau .csv<br>
+        Pastikan kolom header sesuai dengan data yang akan di-import
+      </small>
+    </div>
+
+    <div id="uploadProgress" class="progress" style="display: none;">
+      <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
+        Loading...
       </div>
-
-      <form id="excelImportForm" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <!-- Step 1: Upload -->
-        <div id="uploadStep" class="modal-body">
-          <div class="mb-3">
-            <label class="form-label">Pilih file Excel</label>
-            <input type="file" name="file" id="excelFile" class="form-control" accept=".xlsx,.xls,.csv" required>
-            <small class="text-muted d-block mt-2">
-              Format: .xlsx, .xls, atau .csv<br>
-              Pastikan kolom header sesuai dengan data yang akan di-import
-            </small>
-          </div>
-
-          <div id="uploadProgress" class="progress" style="display: none;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%">
-              Loading...
-            </div>
-          </div>
-        </div>
-
-        <!-- Step 2: Preview -->
-        <div id="previewStep" class="modal-body" style="display: none; max-height: 600px; overflow-y: auto;">
-          <div id="previewContent"></div>
-        </div>
-
-        <div class="modal-footer">
-          <!-- Upload button -->
-          <button type="button" class="btn btn-primary" id="previewBtn" onclick="previewExcel(event)">
-            👁️ Preview
-          </button>
-
-          <!-- Import button (hidden until preview) -->
-          <button type="button" class="btn btn-success" id="importBtn" onclick="importExcel(event)" style="display: none;">
-            ✅ Import Sekarang
-          </button>
-
-          <!-- Cancel -->
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-        </div>
-      </form>
     </div>
   </div>
-</div>
+
+  <!-- Step 2: Preview -->
+  <div id="previewStep" class="modal-body" style="display: none; max-height: 600px; overflow-y: auto;">
+    <div id="previewContent"></div>
+  </div>
+
+  <div class="modal-footer">
+    <!-- Upload button -->
+    <button type="button" class="btn btn-primary" id="previewBtn" onclick="previewExcel(event)">
+      👁️ Preview
+    </button>
+
+    <!-- Import button (hidden until preview) -->
+    <button type="button" class="btn btn-success" id="importBtn" onclick="importExcel(event)" style="display: none;">
+      ✅ Import Sekarang
+    </button>
+
+    <!-- Cancel -->
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+  </div>
+</form>
 
 <script>
 // Global function untuk preview
