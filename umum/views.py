@@ -154,24 +154,19 @@ class PegawaiImportView(ExcelImportView):
     # Column mapping untuk import
     columns = ['nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd']
 
-
 class PangkatExportView(ExcelExportView):
     """Download Pangkat data sebagai Excel"""
     model = Pangkat
-
 
 class PangkatImportView(ExcelImportView):
     """Upload & import Pangkat data dari Excel"""
     model = Pangkat
     success_url = '/umum/pangkat/'
-    columns = ['golongan', 'ruang', 'nama_pangkat']
-
+    columns = ['pangkat','golongan', 'ruang']
 
 class JenisJabatanExportView(ExcelExportView):
     """Download Jenis Jabatan data sebagai Excel"""
     model = JenisJabatan
-    columns = [('nama', 'Nama Jenis Jabatan')]
-
 
 class JenisJabatanImportView(ExcelImportView):
     """Upload & import Jenis Jabatan data dari Excel"""
@@ -183,8 +178,6 @@ class JenisJabatanImportView(ExcelImportView):
 class StatusASNExportView(ExcelExportView):
     """Download Status ASN data sebagai Excel"""
     model = StatusASN
-    columns = [('nama', 'Nama Status ASN')]
-
 
 class StatusASNImportView(ExcelImportView):
     """Upload & import Status ASN data dari Excel"""
@@ -196,15 +189,9 @@ class StatusASNImportView(ExcelImportView):
 class PenandatanganExportView(ExcelExportView):
     """Download Penandatangan data sebagai Excel"""
     model = Penandatangan
-    columns = [
-        ('nama', 'Nama'),
-        ('nip', 'NIP'),
-        ('jabatan', 'Jabatan'),
-    ]
-
 
 class PenandatanganImportView(ExcelImportView):
     """Upload & import Penandatangan data dari Excel"""
     model = Penandatangan
     success_url = '/umum/penandatangan/'
-    columns = ['nama', 'nip', 'jabatan']
+    columns = ['nama', 'nip', 'pangkat','tugas', 'jenis_jabatan', 'opd']
