@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    PegawaiView, PenandatanganView, PangkatView, JenisJabatanView, StatusASNView, umum_view,
+    PegawaiView, PenandatanganView, PangkatView, JenisJabatanView, StatusASNView, TingkatExportView, TingkatImportView, TingkatView, umum_view,
     PegawaiExportView, PegawaiImportView,
     PangkatExportView, PangkatImportView,
     JenisJabatanExportView, JenisJabatanImportView,
@@ -45,4 +45,11 @@ urlpatterns = [
     path("penandatangan/delete/<int:pk>/<str:action>/", PenandatanganView.as_view(), name="penandatangan_delete"),
     path("penandatangan/export/", PenandatanganExportView.as_view(), name="penandatangan_export"),
     path("penandatangan/import/", PenandatanganImportView.as_view(), name="penandatangan_import"),
+
+    path("tingkat/", TingkatView.as_view(), name="tingkat_list"),
+    path("tingkat/form/", TingkatView.as_view(), name="tingkat_action"),
+    path("tingkat/form/<int:pk>/<str:action>/", TingkatView.as_view(), name="tingkat_action_pk"),
+    path("tingkat/delete/<int:pk>/<str:action>/", TingkatView.as_view(), name="tingkat_delete"),
+    path("tingkat/export/", TingkatExportView.as_view(), name="tingkat_export"),
+    path("tingkat/import/", TingkatImportView.as_view(), name="tingkat_import"),
 ]

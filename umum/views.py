@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from core.crud.base import BaseCRUDView
 from core.views_excel import ExcelExportView, ExcelImportView
-from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN
-from .forms import PegawaiForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm
-from .tables import PegawaiTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable
+from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .forms import PegawaiForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
+from .tables import PegawaiTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
 
 def umum_view(request):
     context = {
@@ -115,6 +115,20 @@ class PenandatanganView(BaseCRUDView):
             'opd'
         )
 
+class TingkatView(BaseCRUDView):
+    model = Tingkat
+    form_class = TingkatForm
+    table_class = TingkatTable
+
+    title = "Daftar Tingkat"
+    url_list = "tingkat_list"
+    url_action = "tingkat_action"
+    url_action_pk = "tingkat_action_pk"
+    url_export = "tingkat_export"
+    url_import = "tingkat_import"
+
+    def get_queryset(self):
+        return super().get_queryset().order_by('id')
 
 # ===========================
 # 📊 EXCEL EXPORT/IMPORT
@@ -123,18 +137,6 @@ class PenandatanganView(BaseCRUDView):
 class PegawaiExportView(ExcelExportView):
     """Download Pegawai data sebagai Excel"""
     model = Pegawai
-    
-    # Custom columns untuk export (sesuai dengan PegawaiTable)
-    columns = [
-        ('nip', 'NIP'),
-        ('nama', 'Nama'),
-        ('pangkat', 'Pangkat'),
-        ('jabatan', 'Jabatan'),
-        ('jenis_jabatan', 'Jenis Jabatan'),
-        ('status', 'Status'),
-        ('tgl_lahir', 'Tgl Lahir'),
-        ('opd', 'Opd'),
-    ]
     
     def get_queryset(self):
         """Filter & select_related untuk performance"""
@@ -152,7 +154,7 @@ class PegawaiImportView(ExcelImportView):
     success_url = '/umum/pegawai/'
     
     # Column mapping untuk import
-    columns = ['nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd']
+    columns = ['nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat']
 
 class PangkatExportView(ExcelExportView):
     """Download Pangkat data sebagai Excel"""
@@ -196,3 +198,13 @@ class PenandatanganImportView(ExcelImportView):
     success_url = '/umum/penandatangan/'
     columns = ['nama', 'nip', 'pangkat','tugas', 'jenis_jabatan', 'opd']
     match_fields = [('nama', 'jenis_jabatan'), ('nip',), ('nama', 'tugas', 'opd')]
+
+class TingkatExportView(ExcelExportView):
+    """Download Tingkat data sebagai Excel"""
+    model = Tingkat
+
+class TingkatImportView(ExcelImportView):
+    """Upload & import Tingkat data dari Excel"""
+    model = Tingkat
+    success_url = '/umum/tingkat/'
+    columns = ['tingkat','ket']

@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     "dashboard",
     'umum',
     'core',
+    'spd',
 ]
 
 # 🔥 LETAKKAN DI SINI

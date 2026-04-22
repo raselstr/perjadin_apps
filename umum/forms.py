@@ -1,5 +1,5 @@
 from django import forms
-from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN
+from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
 
 class PangkatForm(forms.ModelForm):
     class Meta:
@@ -29,6 +29,14 @@ class StatusASNForm(forms.ModelForm):
             'nama': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+class TingkatForm(forms.ModelForm):
+    class Meta:
+        model = Tingkat
+        fields = '__all__'
+        widgets = {
+            'tingkat': forms.TextInput(attrs={'class': 'form-control'}),
+            'ket': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class PegawaiForm(forms.ModelForm):
     class Meta:
@@ -46,6 +54,7 @@ class PegawaiForm(forms.ModelForm):
                 'type': 'date'
             }),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
+            'tingkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tingkat'}),
         }
         
 class PenandatanganForm(forms.ModelForm):
@@ -60,4 +69,6 @@ class PenandatanganForm(forms.ModelForm):
             'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder':'Jenis Jabatan'}),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
         }
+
+
         

@@ -25,6 +25,17 @@ class StatusASN(models.Model):
     def __str__(self):
         return self.nama
 
+class Tingkat(models.Model):
+    tingkat = models.CharField(max_length=100, unique=True)
+    ket = models.CharField(max_length=200, null=True, blank=True)
+    pesawat = models.CharField(max_length=100, null=True, blank=True)
+    kapal = models.CharField(max_length=100, null=True, blank=True)
+    keteraapian = models.CharField(max_length=200, null=True, blank=True)
+    lainnya = models.CharField(max_length=200, null=True, blank=True)
+    
+    def __str__(self):
+        return f"{self.tingkat} - {self.ket}"
+
 class Pegawai(models.Model):
     nip = models.CharField(max_length=30, unique=True)
     nama = models.CharField(max_length=200)
@@ -64,7 +75,16 @@ class Pegawai(models.Model):
         blank=True,
         related_name='pegawai'
     )
-    
+
+    tingkat = models.ForeignKey(
+        Tingkat,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pegawai'
+    )
+
+
     class Meta:
         ordering = ['id']
 
@@ -114,3 +134,4 @@ class Penandatangan(models.Model):
 
     def __str__(self):
         return f"{self.nama} - {self.tugas} - {self.opd}"
+

@@ -1,5 +1,5 @@
 import django_tables2 as tables
-from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN
+from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
 
 
 def action_column(url_pk, url_delete):
@@ -59,17 +59,25 @@ class StatusASNTable(BaseTable):
         model = StatusASN
         fields = ('no', 'nama', 'aksi')
 
+class TingkatTable(BaseTable):
+    aksi = action_column("tingkat_action_pk", "tingkat_delete")
+
+    class Meta(BaseTable.Meta):
+        model = Tingkat
+        fields = ('no', 'tingkat', 'ket', 'aksi')
 
 class PegawaiTable(BaseTable):
     aksi = action_column("pegawai_action_pk", "pegawai_delete")
 
     class Meta(BaseTable.Meta):
         model = Pegawai
-        fields = ('no', 'nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd')
+        fields = ('no', 'nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd','tingkat', 'aksi')
 
 class PenandatanganTable(BaseTable):
     aksi = action_column("penandatangan_action_pk", "penandatangan_delete")
 
     class Meta(BaseTable.Meta):
         model = Penandatangan
-        fields = ('no', 'nama', 'nip', 'pangkat', 'tugas', 'jenis_jabatan', 'opd')
+        fields = ('no', 'nama', 'nip', 'pangkat', 'tugas', 'jenis_jabatan', 'opd','aksi')
+
+
