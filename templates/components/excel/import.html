@@ -151,6 +151,7 @@ window.importExcel = async function(e) {
             <div style="font-size: 14px; color: #155724;">
               <div style="margin-bottom: 8px;"><strong>📊 ${result.imported || 0} data baru</strong> berhasil ditambahkan</div>
               <div style="margin-bottom: 8px;"><strong>🔄 ${result.updated || 0} data</strong> berhasil diperbarui</div>
+              <div><strong>⏭️ ${result.skipped || 0} data</strong> dilewati karena sudah ada</div>
             </div>
           </div>
         </div>
@@ -186,6 +187,12 @@ window.importExcel = async function(e) {
 // Render preview table
 function renderPreview(result) {
   const container = document.getElementById('previewContent');
+  container.innerHTML = '';
+
+  const summary = result.preview.reduce((acc, item) => {
+    acc[item.status] = (acc[item.status] || 0) + 1;
+    return acc;
+  }, {});
   
   if (result.has_errors) {
     const errorHtml = `
@@ -198,6 +205,17 @@ function renderPreview(result) {
     `;
     container.insertAdjacentHTML('afterbegin', errorHtml);
   }
+
+  const summaryHtml = `
+    <div class="alert alert-info">
+      <strong>Ringkasan Preview:</strong><br>
+      <span class="badge bg-success me-1">Baru: ${summary.new || 0}</span>
+      <span class="badge bg-primary me-1">Update: ${summary.update || 0}</span>
+      <span class="badge bg-secondary me-1">Sudah Ada: ${summary.exists || 0}</span>
+      <span class="badge bg-danger">Error: ${summary.error || 0}</span>
+    </div>
+  `;
+  container.insertAdjacentHTML('beforeend', summaryHtml);
   
   // Build table
   const table = document.createElement('table');
@@ -218,13 +236,30 @@ function renderPreview(result) {
   const tbody = document.createElement('tbody');
   result.preview.forEach(item => {
     const row = document.createElement('tr');
-    const statusBadge = item.status === 'valid'
-      ? '<span class="badge bg-success">✓ Valid</span>'
-      : '<span class="badge bg-danger">✗ Error</span>';
+    let statusBadge = '<span class="badge bg-secondary">-</span>';
+    let rowColor = '#f9fff9';
+
+    if (item.status === 'new') {
+      statusBadge = '<span class="badge bg-success">+ Baru</span>';
+      rowColor = '#f0fff4';
+    } else if (item.status === 'update') {
+      statusBadge = '<span class="badge bg-primary">↻ Update</span>';
+      rowColor = '#eef6ff';
+    } else if (item.status === 'exists') {
+      statusBadge = '<span class="badge bg-secondary">= Sudah Ada</span>';
+      rowColor = '#f8f9fa';
+    } else if (item.status === 'error') {
+      statusBadge = '<span class="badge bg-danger">✗ Error</span>';
+      rowColor = '#fff5f5';
+    }
     
     const dataHtml = Object.entries(item.data)
       .map(([k, v]) => `<div><strong>${k}:</strong> ${v || '-'}</div>`)
       .join('');
+
+    const infoHtml = item.message
+      ? `<div class="small mt-2 text-muted"><strong>Keterangan:</strong> ${item.message}</div>`
+      : '';
     
     const errorHtml = item.errors.length > 0
       ? `<div class="text-danger small mt-2"><strong>Error:</strong> ${item.errors.join('; ')}</div>`
@@ -233,9 +268,9 @@ function renderPreview(result) {
     row.innerHTML = `
       <td align="center">${item.row}</td>
       <td>${statusBadge}</td>
-      <td>${dataHtml}${errorHtml}</td>
+      <td>${dataHtml}${infoHtml}${errorHtml}</td>
     `;
-    row.style.backgroundColor = item.status === 'error' ? '#fff5f5' : '#f9fff9';
+    row.style.backgroundColor = rowColor;
     tbody.appendChild(row);
   });
   table.appendChild(tbody);

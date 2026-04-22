@@ -1,7 +1,7 @@
 from django.db import models
 
 class Pangkat(models.Model):
-    pangkat = models.CharField(max_length=100)
+    pangkat = models.CharField(max_length=100, unique=True)
     golongan = models.CharField(max_length=10)
     ruang = models.CharField(max_length=10)
 
@@ -13,14 +13,14 @@ class Pangkat(models.Model):
 
 
 class JenisJabatan(models.Model):
-    nama = models.CharField(max_length=150)
+    nama = models.CharField(max_length=150, unique=True)
 
     def __str__(self):
         return self.nama
 
 
 class StatusASN(models.Model):
-    nama = models.CharField(max_length=100)
+    nama = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         return self.nama
@@ -105,6 +105,12 @@ class Penandatangan(models.Model):
     
     class Meta:
         ordering = ['id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['nama', 'jenis_jabatan'],
+                name='uniq_penandatangan_nama_jenis_jabatan',
+            ),
+        ]
 
     def __str__(self):
         return f"{self.nama} - {self.tugas} - {self.opd}"

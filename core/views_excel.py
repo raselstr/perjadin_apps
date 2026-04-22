@@ -99,6 +99,7 @@ class ExcelImportView(TemplateView):
     template_name = 'components/excel/import.html'
     success_url = None
     columns = None  # Jika None, ambil dari model fields
+    match_fields = None
     
     def _get_default_columns(self):
         """Get default columns dari model"""
@@ -133,7 +134,8 @@ class ExcelImportView(TemplateView):
             importer = ExcelImporter(
                 model=self.model,
                 file_stream=file.read(),
-                columns=self.columns
+                columns=self.columns,
+                match_fields=self.match_fields,
             )
             
             # Step 1: Preview
@@ -153,13 +155,23 @@ class ExcelImportView(TemplateView):
                 result = importer.import_data()
                 
                 if result['success']:
+                    message_parts = [f"{result['imported']} data ditambahkan"]
+                    if result.get('updated'):
+                        message_parts.append(f"{result['updated']} data diperbarui")
+                    if result.get('skipped'):
+                        message_parts.append(f"{result['skipped']} data dilewati")
+
+                    success_message = "✅ Proses import selesai: " + ', '.join(message_parts)
+
                     messages.success(
                         request,
-                        f"✅ Berhasil import {result['imported']} data"
+                        success_message
                     )
                     return JsonResponse({
                         'status': 'success',
                         'imported': result['imported'],
+                        'updated': result['updated'],
+                        'skipped': result.get('skipped', 0),
                         'redirect': self.get_success_url()
                     })
                 else:
@@ -167,7 +179,9 @@ class ExcelImportView(TemplateView):
                         'status': 'error',
                         'errors': result['errors'],
                         'preview': result['preview'],
-                        'imported': result['imported']
+                        'imported': result['imported'],
+                        'updated': result.get('updated', 0),
+                        'skipped': result.get('skipped', 0),
                     })
         
         except Exception as e:

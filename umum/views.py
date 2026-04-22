@@ -195,3 +195,4 @@ class PenandatanganImportView(ExcelImportView):
     model = Penandatangan
     success_url = '/umum/penandatangan/'
     columns = ['nama', 'nip', 'pangkat','tugas', 'jenis_jabatan', 'opd']
+    match_fields = [('nama', 'jenis_jabatan'), ('nip',), ('nama', 'tugas', 'opd')]
