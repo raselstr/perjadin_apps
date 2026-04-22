@@ -21,7 +21,11 @@
   {% block extrastyle %}{% endblock extrastyle %}
 
 </head>
-<body>
+<body
+  data-is-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
+  data-login-url="{% url 'masuk' %}"
+  data-logout-url="{% url 'logout' %}"
+  data-idle-timeout-ms="300000">
   {% block loader %}
     {% include 'includes/loader.html' %}
   {% endblock loader %}
@@ -37,6 +41,88 @@
   {% endblock footer %}
 
   {% include 'includes/scripts.html' %}
+
+  <script>
+    (function () {
+      const body = document.body;
+      if (!body || body.dataset.isAuthenticated !== 'true') {
+        return;
+      }
+
+      const idleTimeoutMs = Number(body.dataset.idleTimeoutMs || 300000);
+      const loginUrl = body.dataset.loginUrl;
+      const logoutUrl = body.dataset.logoutUrl;
+      const activityEvents = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+      let idleTimer = null;
+      let isHandlingTimeout = false;
+
+      function getCookie(name) {
+        const cookie = document.cookie
+          .split(';')
+          .map((item) => item.trim())
+          .find((item) => item.startsWith(`${name}=`));
+
+        return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '';
+      }
+
+      function clearClientStorage() {
+        try {
+          localStorage.clear();
+        } catch (error) {
+          console.warn('Gagal membersihkan localStorage.', error);
+        }
+
+        try {
+          sessionStorage.clear();
+        } catch (error) {
+          console.warn('Gagal membersihkan sessionStorage.', error);
+        }
+      }
+
+      function redirectToLogin() {
+        window.location.replace(`${loginUrl}?expired=1`);
+      }
+
+      function handleIdleTimeout() {
+        if (isHandlingTimeout) {
+          return;
+        }
+
+        isHandlingTimeout = true;
+        clearClientStorage();
+
+        fetch(logoutUrl, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          credentials: 'same-origin',
+        }).finally(redirectToLogin);
+      }
+
+      function resetIdleTimer() {
+        if (isHandlingTimeout) {
+          return;
+        }
+
+        window.clearTimeout(idleTimer);
+        idleTimer = window.setTimeout(handleIdleTimeout, idleTimeoutMs);
+      }
+
+      activityEvents.forEach(function (eventName) {
+        document.addEventListener(eventName, resetIdleTimer, { passive: true });
+      });
+
+      document.addEventListener('visibilitychange', function () {
+        if (document.visibilityState === 'visible') {
+          resetIdleTimer();
+        }
+      });
+
+      resetIdleTimer();
+    })();
+  </script>
 
   {% block extra_js %}{% endblock extra_js %}
 </body>

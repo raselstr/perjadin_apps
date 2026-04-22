@@ -49,15 +49,8 @@
                           hx-trigger="click">
                     + Tambah
                   </button>
-                  <button class="btn btn-danger"
-                          hx-get="{% url url_import %}"
-                          hx-target="#modal-body"
-                          hx-trigger="click">
-                    + Import Excel
-                  </button>
-                  <a href="{% url url_export %}" class="btn btn-danger">
-                    + Export Excel
-                  </a>
+                  
+                  {% include "components/excel/buttons.html" %}
                   
                 </div>
               </div>
@@ -109,10 +102,113 @@
 {% block extra_js %}
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
-  
+  function getToastContainer() {
+    let container = document.getElementById('toastContainer');
+
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'toastContainer';
+      container.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 2000;
+        width: 100%;
+        max-width: 420px;
+      `;
+      document.body.appendChild(container);
+    }
+
+    return container;
+  }
+
+  function escapeToastText(value) {
+    const text = document.createElement('div');
+    text.textContent = value || '';
+    return text.innerHTML;
+  }
+
+  function normalizeToastVariant(level) {
+    const normalizedLevel = (level || '').toLowerCase();
+
+    if (normalizedLevel.includes('error') || normalizedLevel.includes('danger')) {
+      return {
+        accent: '#dc3545',
+        text: '#721c24',
+        icon: '❌',
+      };
+    }
+
+    if (normalizedLevel.includes('warning')) {
+      return {
+        accent: '#fd7e14',
+        text: '#7a4b00',
+        icon: '⚠️',
+      };
+    }
+
+    if (normalizedLevel.includes('info')) {
+      return {
+        accent: '#0dcaf0',
+        text: '#055160',
+        icon: 'ℹ️',
+      };
+    }
+
+    return {
+      accent: '#198754',
+      text: '#0f5132',
+      icon: '✅',
+    };
+  }
+
+  function showAppToast(options = {}) {
+    const {
+      title = 'Berhasil',
+      message = 'Perubahan berhasil disimpan.',
+      level = 'success',
+      delay = 3500,
+    } = options;
+
+    const variant = normalizeToastVariant(level);
+    const toastContainer = getToastContainer();
+    const toastId = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = 'toast border-0 shadow-sm';
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+    toast.setAttribute('aria-atomic', 'true');
+    toast.innerHTML = `
+      <div class="toast-header" style="border-left: 4px solid ${variant.accent};">
+        <span style="margin-right: 8px;">${variant.icon}</span>
+        <strong class="me-auto" style="color: ${variant.text};">${escapeToastText(title)}</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+      <div class="toast-body" style="color: ${variant.text};">
+        ${escapeToastText(message)}
+      </div>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    const toastInstance = bootstrap.Toast.getOrCreateInstance(toast, {
+      autohide: true,
+      delay,
+    });
+    toastInstance.show();
+
+    toast.addEventListener('hidden.bs.toast', function () {
+      toast.remove();
+    }, { once: true });
+  }
+
+  window.showAppToast = showAppToast;
 
   function forceCloseModal() {
     const modalEl = document.getElementById('modal');
+    if (!modalEl) return;
 
     // 🔥 paksa hide bootstrap
     const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
@@ -201,7 +297,7 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
     }
 });
 
-document.body.addEventListener('htmx:responseError', function (evt) {
+  document.body.addEventListener('htmx:responseError', function (evt) {
     if (evt.detail.xhr.status === 403) {
 
         // inject response ke modal
@@ -212,7 +308,11 @@ document.body.addEventListener('htmx:responseError', function (evt) {
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
     }
-});
+  });
+
+  document.body.addEventListener('crudSuccess', function (evt) {
+    showAppToast(evt.detail || {});
+  });
 
 // Trigger formSuccess event ketika form sukses disubmit
 document.body.addEventListener('htmx:xhr:loadend', function (evt) {
@@ -220,5 +320,18 @@ document.body.addEventListener('htmx:xhr:loadend', function (evt) {
         document.body.dispatchEvent(new Event('formSuccess'));
     }
 });
+
+  const initialMessages = [
+    {% for message in messages %}
+      {
+        level: "{{ message.tags|escapejs }}",
+        message: "{{ message|escapejs }}",
+      },
+    {% endfor %}
+  ];
+
+  initialMessages.forEach(function (message) {
+    showAppToast(message);
+  });
 </script>
 {% endblock %}

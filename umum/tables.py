@@ -65,7 +65,7 @@ class PegawaiTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = Pegawai
-        fields = ('no', 'nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'opd')
+        fields = ('no', 'nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd')
 
 class PenandatanganTable(BaseTable):
     aksi = action_column("penandatangan_action_pk", "penandatangan_delete")

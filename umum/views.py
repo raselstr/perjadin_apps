@@ -127,13 +127,13 @@ class PegawaiExportView(ExcelExportView):
     # Custom columns untuk export (sesuai dengan PegawaiTable)
     columns = [
         ('nip', 'NIP'),
-        ('nama', 'Nama Pegawai'),
+        ('nama', 'Nama'),
         ('pangkat', 'Pangkat'),
         ('jabatan', 'Jabatan'),
         ('jenis_jabatan', 'Jenis Jabatan'),
-        ('status', 'Status ASN'),
-        ('tgl_lahir', 'Tanggal Lahir'),
-        ('opd', 'OPD'),
+        ('status', 'Status'),
+        ('tgl_lahir', 'Tgl Lahir'),
+        ('opd', 'Opd'),
     ]
     
     def get_queryset(self):
@@ -152,17 +152,12 @@ class PegawaiImportView(ExcelImportView):
     success_url = '/umum/pegawai/'
     
     # Column mapping untuk import
-    columns = ['nip', 'nama', 'email', 'no_hp', 'jenis_jabatan', 'pangkat', 'status']
+    columns = ['nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd']
 
 
 class PangkatExportView(ExcelExportView):
     """Download Pangkat data sebagai Excel"""
     model = Pangkat
-    columns = [
-        ('golongan', 'Golongan'),
-        ('ruang', 'Ruang'),
-        ('nama_pangkat', 'Nama Pangkat'),
-    ]
 
 
 class PangkatImportView(ExcelImportView):

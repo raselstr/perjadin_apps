@@ -100,6 +100,12 @@ class ExcelImportView(TemplateView):
     success_url = None
     columns = None  # Jika None, ambil dari model fields
     
+    def _get_default_columns(self):
+        """Get default columns dari model"""
+        from core.utils.excel_handler import ExcelImporter
+        importer = ExcelImporter(model=self.model, file_stream=b'')
+        return importer._get_default_columns()
+    
     def get_success_url(self):
         """Redirect URL setelah import sukses"""
         if self.success_url:
@@ -110,6 +116,8 @@ class ExcelImportView(TemplateView):
         context = super().get_context_data(**kwargs)
         context['model'] = self.model
         context['model_name'] = self.model._meta.verbose_name_plural
+        context['columns'] = self.columns or self._get_default_columns()
+        context['import_url'] = self.request.build_absolute_uri()
         return context
     
     def post(self, request, *args, **kwargs):
@@ -169,6 +177,26 @@ class ExcelImportView(TemplateView):
             })
 
 
+class GenericExcelExportView(ExcelExportView):
+    """Generic view untuk export berdasarkan app.model"""
+    
+    def dispatch(self, request, app_label, model_name, *args, **kwargs):
+        # Set model dynamically
+        from django.apps import apps
+        self.model = apps.get_model(app_label, model_name)
+        return super().dispatch(request, *args, **kwargs)
+
+
+class GenericExcelImportView(ExcelImportView):
+    """Generic view untuk import berdasarkan app.model"""
+    
+    def dispatch(self, request, app_label, model_name, *args, **kwargs):
+        # Set model dynamically
+        from django.apps import apps
+        self.model = apps.get_model(app_label, model_name)
+        return super().dispatch(request, *args, **kwargs)
+
+
 class ExcelMixin:
     """Mixin untuk menambah export/import ke CRUD view"""
     
@@ -191,8 +219,22 @@ class ExcelMixin:
     
     def get_export_url(self):
         """Override untuk set custom export URL"""
-        return f"{self.url_list}export/"
+        if hasattr(self, 'url_export') and self.url_export:
+            from django.urls import reverse
+            return reverse(self.url_export)
+        # Fallback to generic URL
+        from django.urls import reverse
+        app_label = self.model._meta.app_label
+        model_name = self.model._meta.model_name
+        return reverse('core:generic_excel_export', kwargs={'app_label': app_label, 'model_name': model_name})
     
     def get_import_url(self):
         """Override untuk set custom import URL"""
-        return f"{self.url_list}import/"
+        if hasattr(self, 'url_import') and self.url_import:
+            from django.urls import reverse
+            return reverse(self.url_import)
+        # Fallback to generic URL
+        from django.urls import reverse
+        app_label = self.model._meta.app_label
+        model_name = self.model._meta.model_name
+        return reverse('core:generic_excel_import', kwargs={'app_label': app_label, 'model_name': model_name})

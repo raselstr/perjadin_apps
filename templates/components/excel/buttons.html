@@ -3,19 +3,43 @@
 
 <div class="d-flex gap-2">
   {% if export_url %}
-  <a href="{{ export_url }}" class="btn btn-sm btn-outline-primary" title="Download data sebagai Excel">
-    📥 Download Excel
+  <a href="{{ export_url }}" 
+     class="btn btn-sm btn-outline-primary" 
+     title="Download data sebagai Excel"
+     onclick="showExportLoading(this)">
+    <span class="export-text">📥 Download Excel</span>
+    <span class="export-spinner d-none">
+      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      Downloading...
+    </span>
   </a>
   {% endif %}
   
   {% if import_url %}
-  <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#excelImportModal" title="Upload dan import data dari Excel">
+  <button type="button" class="btn btn-sm btn-outline-success" 
+          hx-get="{{ import_url }}"
+          hx-target="#modal-body"
+          hx-trigger="click"
+          title="Upload dan import data dari Excel">
     📤 Upload Excel
   </button>
   {% endif %}
 </div>
 
-<!-- Include modal template jika import_url ada -->
-{% if import_url %}
-  {% include "components/excel/import.html" with model_name=model_name %}
-{% endif %}
+<script>
+function showExportLoading(button) {
+  const textSpan = button.querySelector('.export-text');
+  const spinnerSpan = button.querySelector('.export-spinner');
+  
+  textSpan.classList.add('d-none');
+  spinnerSpan.classList.remove('d-none');
+  
+  // Re-enable after 5 seconds (in case download doesn't start)
+  setTimeout(() => {
+    textSpan.classList.remove('d-none');
+    spinnerSpan.classList.add('d-none');
+  }, 5000);
+}
+</script>
+
+<!-- Modal akan diisi oleh HTMX -->

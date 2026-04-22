@@ -1,12 +1,16 @@
+import json
+
+from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import ListView
 from django.shortcuts import render, get_object_or_404, redirect
 from django.db.models import Q
 from django_tables2 import RequestConfig
 from types import SimpleNamespace
+from core.views_excel import ExcelMixin
 
 
-class BaseCRUDView(ListView):
+class BaseCRUDView(ExcelMixin, ListView):
     model = None
     form_class = None
     table_class = None
@@ -21,7 +25,7 @@ class BaseCRUDView(ListView):
     url_action_pk = None
     url_import = None
     url_export = None
-    paginate_by = 10
+    paginate_by = None
 
     # =========================
     # 🔥 PERMISSION
@@ -67,6 +71,32 @@ class BaseCRUDView(ListView):
             return response
         return render(request, "components/crud/403.html", status=403)
 
+    def _get_success_notification(self, action):
+        action_labels = {
+            "add": "ditambahkan",
+            "update": "diperbarui",
+            "delete": "dihapus",
+        }
+        model_name = self.model._meta.verbose_name
+
+        return {
+            "title": "Berhasil",
+            "message": f"Data {model_name} berhasil {action_labels[action]}.",
+            "level": "success",
+            "action": action,
+        }
+
+    def _add_success_message(self, request, action):
+        notification = self._get_success_notification(action)
+        messages.success(request, notification["message"])
+
+    def _build_htmx_success_response(self, action):
+        response = HttpResponse(status=204)
+        response["HX-Trigger"] = json.dumps({
+            "crudSuccess": self._get_success_notification(action),
+        })
+        return response
+
     # =========================
     def get_queryset(self):
         qs = self.model.objects.all().order_by('id')
@@ -110,15 +140,20 @@ class BaseCRUDView(ListView):
         }
 
         per_page = self.request.GET.get("per_page", 10)
-        page = self.request.GET.get("page", 1)
 
         if per_page == "all":
             paginate_config = False
         else:
             try:
-                paginate_config = {"per_page": int(per_page)}
+                paginate_config = {
+                    "per_page": int(per_page),
+                    "silent": True,
+                }
             except ValueError:
-                paginate_config = {"per_page": 10}
+                paginate_config = {
+                    "per_page": 10,
+                    "silent": True,
+                }
 
         RequestConfig(self.request, paginate=paginate_config).configure(table)
 
@@ -185,16 +220,13 @@ class BaseCRUDView(ListView):
         form = self.form_class(request.POST or None, instance=instance)
 
         if request.method == "POST" and form.is_valid():
+            action = "update" if instance else "add"
             form.save()
 
             if request.headers.get("HX-Request"):
-                # Return 204 No Content to prevent HTMX from swapping
-                # The client will handle modal close and table reload via JavaScript
-                from django.http import HttpResponse
-                response = HttpResponse(status=204)
-                response["HX-Trigger"] = "tableShouldReload"
-                return response
+                return self._build_htmx_success_response(action)
 
+            self._add_success_message(request, action)
             return redirect(self.url_list)
 
         return render(request, self.template_form, {
@@ -218,13 +250,9 @@ class BaseCRUDView(ListView):
             obj.delete()
 
             if request.headers.get("HX-Request"):
-                # Return 204 No Content to prevent HTMX from swapping
-                # The client will handle modal close and table reload via JavaScript
-                from django.http import HttpResponse
-                response = HttpResponse(status=204)
-                response["HX-Trigger"] = "tableShouldReload"
-                return response
+                return self._build_htmx_success_response("delete")
 
+            self._add_success_message(request, "delete")
             return redirect(self.url_list)
 
         return render(request, "components/crud/delete.html", {

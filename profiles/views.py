@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.models import User
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from types import SimpleNamespace
 
 from core.crud.base import BaseCRUDView
@@ -19,6 +20,8 @@ from .tables import OPDTable, RoleTable, UserProfileTable
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+
+    next_url = request.POST.get('next') or request.GET.get('next')
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -44,11 +47,31 @@ def login_view(request):
                     request.session['session_opd_id'] = None
 
             messages.success(request, f"Selamat datang {user.username}")
+            if next_url and url_has_allowed_host_and_scheme(
+                next_url,
+                allowed_hosts={request.get_host()},
+                require_https=request.is_secure(),
+            ):
+                return redirect(next_url)
             return redirect('dashboard')
 
         messages.error(request, "Login gagal")
 
-    return render(request, 'auth/login.html')
+    return render(request, 'auth/login.html', {
+        'next_url': next_url,
+        'idle_timeout_minutes': 5,
+    })
+
+
+def logout_view(request):
+    logout(request)
+
+    if request.headers.get("HX-Request"):
+        response = HttpResponse(status=204)
+        response["HX-Redirect"] = "/profiles/masuk/"
+        return response
+
+    return redirect('masuk')
 
 
 # ========================

@@ -227,11 +227,7 @@
               <span>Social Profile</span>
             </a>
             {% if request.user.is_authenticated %}
-              {% if request.user.is_superuser %}
-                <form action="{% url 'admin:logout' %}" method="post" id="logout-form" style="display:none;">
-              {% else %}
                 <form action="{% url 'logout' %}" method="post" id="logout-form" style="display:none;">
-              {% endif %}
                   {% csrf_token %}
                 </form>
 
