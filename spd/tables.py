@@ -1,5 +1,5 @@
 import django_tables2 as tables
-from .models import DasarPeraturan, JenisSPD, JenisKegiatan, Lokasi, StandardPenginapan
+from .models import DasarPeraturan, JenisSPD, JenisKegiatan, Lokasi
 
 def action_column(url_pk, url_delete):
     return tables.TemplateColumn(
@@ -39,3 +39,25 @@ class DasarPeraturanTable(BaseTable):
     class Meta(BaseTable.Meta):
         model = DasarPeraturan
         fields = ('no', 'nama_peraturan', 'nomor_peraturan', 'tanggal_peraturan', 'keterangan', 'aktif', 'aksi')
+
+class JenisSPDTable(BaseTable):
+    aksi = action_column("jenis_spd_action_pk", "jenis_spd_delete")
+
+    class Meta(BaseTable.Meta):
+        model = JenisSPD
+        fields = ('no', 'nama', 'aksi')
+
+class JenisKegiatanTable(BaseTable):
+    aksi = action_column("jenis_kegiatan_action_pk", "jenis_kegiatan_delete")
+
+    class Meta(BaseTable.Meta):
+        model = JenisKegiatan
+        fields = ('no', 'nama', 'aksi')
+
+class LokasiTable(BaseTable):
+    aksi = action_column("lokasi_kegiatan_action_pk", "lokasi_kegiatan_delete")
+
+    class Meta(BaseTable.Meta):
+        model = Lokasi
+        fields = ('no', 'lokasi', 'jenis_spd', 'aksi')
+

@@ -89,7 +89,7 @@ class Lokasi(models.Model):
     )
 
     class Meta:
-        ordering = ["lokasi"]
+        ordering = ["jenis_spd", "lokasi"]
         verbose_name = "Lokasi"
         verbose_name_plural = "Lokasi"
 
