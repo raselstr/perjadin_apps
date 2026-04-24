@@ -124,6 +124,23 @@ class BaseCRUDView(ExcelMixin, ListView):
             filters |= Q(menu__nama__icontains=search)
         if 'icon' in field_names:
             filters |= Q(icon__icontains=search)
+        if 'lokasi' in field_names:
+            filters |= Q(lokasi__icontains=search)
+        if 'kota' in field_names:
+            filters |= Q(kota__icontains=search)
+        if 'jenis_spd' in field_names:
+            filters |= Q(jenis_spd__nama__icontains=search)
+        if 'jenis_kegiatan' in field_names:
+            filters |= Q(jenis_kegiatan__nama__icontains=search)
+        if 'jenis_transportasi' in field_names:
+            filters |= Q(jenis_transportasi__nama__icontains=search)
+        if 'biaya' in field_names:
+            try:
+                biaya_value = float(search)
+                filters |= Q(biaya=biaya_value)
+            except ValueError:
+                pass
+        
 
         if filters:
             qs = qs.filter(filters)

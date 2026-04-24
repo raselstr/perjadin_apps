@@ -64,7 +64,7 @@ class TingkatTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = Tingkat
-        fields = ('no', 'tingkat', 'ket', 'aksi')
+        fields = ('no', 'tingkat', 'ket', 'pesawat','kapal','keretaapian','lainnya','aksi')
 
 class PegawaiTable(BaseTable):
     aksi = action_column("pegawai_action_pk", "pegawai_delete")

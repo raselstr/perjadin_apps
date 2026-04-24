@@ -1,5 +1,5 @@
 import django_tables2 as tables
-from .models import DasarPeraturan, JenisSPD, JenisKegiatan, Lokasi
+from .models import DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardRepresentasi, StandardTransportasi, StandardUangHarian, StandardPesawat
 
 def action_column(url_pk, url_delete):
     return tables.TemplateColumn(
@@ -59,5 +59,48 @@ class LokasiTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = Lokasi
-        fields = ('no', 'lokasi', 'jenis_spd', 'aksi')
+        fields = ('no', 'lokasi', 'kota', 'jenis_spd', 'aksi')
+
+class StandardPenginapanTable(BaseTable):
+    aksi = action_column("standard_penginapan_action_pk", "standard_penginapan_delete")
+
+    class Meta(BaseTable.Meta):
+        model = StandardPenginapan
+        fields = ('no', 'lokasi', 'tingkat', 'biaya', 'aksi')
+
+class StandardPesawatTable(BaseTable):
+    aksi = action_column("standard_pesawat_action_pk", "standard_pesawat_delete")
+
+    class Meta(BaseTable.Meta):
+        model = StandardPesawat
+        fields = ('no', 'kota_asal', 'kota_tujuan','tingkat','biaya', 'aksi')
+
+class StandardUangHarianTable(BaseTable):
+    aksi = action_column("standard_uang_harian_action_pk", "standard_uang_harian_delete")
+
+    class Meta(BaseTable.Meta):
+        model = StandardUangHarian
+        fields = ('no', 'jenis_kegiatan', 'standar_uang_harian', 'aksi')
+
+class JenisTransportasiTable(BaseTable):
+    aksi = action_column("jenis_transportasi_action_pk", "jenis_transportasi_delete")
+
+    class Meta(BaseTable.Meta):
+        model = JenisTransportasi
+        fields = ('no', 'nama', 'aksi')
+
+class StandardTransportasiTable(BaseTable):
+    aksi = action_column("standard_transportasi_action_pk", "standard_transportasi_delete")
+
+    class Meta(BaseTable.Meta):
+        model = StandardTransportasi
+        fields = ('no', 'jenis_kegiatan', 'jenis_transportasi', 'standar_transportasi', 'aksi')
+
+class StandardRepresentasiTable(BaseTable):
+    aksi = action_column("standard_representasi_action_pk", "standard_representasi_delete")
+
+    class Meta(BaseTable.Meta):
+        model = StandardRepresentasi
+        fields = ('no', 'jenis_kegiatan', 'standar_representasi', 'aksi')
+        
 

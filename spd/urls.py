@@ -1,18 +1,15 @@
 from django.urls import path
 from .views import (
-    DasarPeraturanView,
-    JenisKegiatanView,
-    JenisSPDView,
-    LokasiView,
-    DasarPeraturanExportView,
-    DasarPeraturanImportView,
-    JenisKegiatanExportView,
-    JenisKegiatanImportView,
-    JenisSPDExportView,
-    JenisSPDImportView,
-    LokasiExportView,
-    LokasiImportView,
-    
+    DasarPeraturanView,DasarPeraturanExportView,DasarPeraturanImportView,
+    JenisSPDView,JenisSPDExportView,JenisSPDImportView,
+    JenisKegiatanView,JenisKegiatanExportView,JenisKegiatanImportView,
+    LokasiView,LokasiExportView,LokasiImportView,
+    StandardPenginapanView,StandardPenginapanExportView,StandardPenginapanImportView,
+    StandardPesawatView,StandardPesawatExportView,StandardPesawatImportView,
+    StandardUangHarianView,StandardUangHarianExportView,StandardUangHarianImportView,
+    JenisTransportasiView,JenisTransportasiExportView,JenisTransportasiImportView,
+    StandardTransportasiView,StandardTransportasiExportView,StandardTransportasiImportView,
+    StandardRepresentasiView,StandardRepresentasiExportView,StandardRepresentasiImportView,
 )
 
 urlpatterns = [
@@ -43,4 +40,46 @@ urlpatterns = [
     path("lokasi-kegiatan/delete/<int:pk>/<str:action>/", LokasiView.as_view(), name="lokasi_kegiatan_delete"),
     path("lokasi-kegiatan/export/", LokasiExportView.as_view(), name="lokasi_kegiatan_export"),
     path("lokasi-kegiatan/import/", LokasiImportView.as_view(), name="lokasi_kegiatan_import"),
+
+    path("standard-penginapan/", StandardPenginapanView.as_view(), name="standard_penginapan_list"),
+    path("standard-penginapan/form/", StandardPenginapanView.as_view(), name="standard_penginapan_action"),
+    path("standard-penginapan/form/<int:pk>/<str:action>/", StandardPenginapanView.as_view(), name="standard_penginapan_action_pk"),
+    path("standard-penginapan/delete/<int:pk>/<str:action>/", StandardPenginapanView.as_view(), name="standard_penginapan_delete"),
+    path("standard-penginapan/export/", StandardPenginapanExportView.as_view(), name="standard_penginapan_export"),
+    path("standard-penginapan/import/", StandardPenginapanImportView.as_view(), name="standard_penginapan_import"),
+
+    path("standard-pesawat/", StandardPesawatView.as_view(), name="standard_pesawat_list"),
+    path("standard-pesawat/form/", StandardPesawatView.as_view(), name="standard_pesawat_action"),
+    path("standard-pesawat/form/<int:pk>/<str:action>/", StandardPesawatView.as_view(), name="standard_pesawat_action_pk"),
+    path("standard-pesawat/delete/<int:pk>/<str:action>/", StandardPesawatView.as_view(), name="standard_pesawat_delete"),
+    path("standard-pesawat/export/", StandardPesawatExportView.as_view(), name="standard_pesawat_export"),
+    path("standard-pesawat/import/", StandardPesawatImportView.as_view(), name="standard_pesawat_import"),
+
+    path("standard-uang-harian/", StandardUangHarianView.as_view(), name="standard_uang_harian_list"),
+    path("standard-uang-harian/form/", StandardUangHarianView.as_view(), name="standard_uang_harian_action"),
+    path("standard-uang-harian/form/<int:pk>/<str:action>/", StandardUangHarianView.as_view(), name="standard_uang_harian_action_pk"),
+    path("standard-uang-harian/delete/<int:pk>/<str:action>/", StandardUangHarianView.as_view(), name="standard_uang_harian_delete"),
+    path("standard-uang-harian/export/", StandardUangHarianExportView.as_view(), name="standard_uang_harian_export"),
+    path("standard-uang-harian/import/", StandardUangHarianImportView.as_view(), name="standard_uang_harian_import"),
+
+    path("jenis-transportasi/", JenisTransportasiView.as_view(), name="jenis_transportasi_list"),
+    path("jenis-transportasi/form/", JenisTransportasiView.as_view(), name="jenis_transportasi_action"),
+    path("jenis-transportasi/form/<int:pk>/<str:action>/", JenisTransportasiView.as_view(), name="jenis_transportasi_action_pk"),
+    path("jenis-transportasi/delete/<int:pk>/<str:action>/", JenisTransportasiView.as_view(), name="jenis_transportasi_delete"),
+    path("jenis-transportasi/export/", JenisTransportasiExportView.as_view(), name="jenis_transportasi_export"),
+    path("jenis-transportasi/import/", JenisTransportasiImportView.as_view(), name="jenis_transportasi_import"),
+
+    path("standard-transportasi/", StandardTransportasiView.as_view(), name="standard_transportasi_list"),
+    path("standard-transportasi/form/", StandardTransportasiView.as_view(), name="standard_transportasi_action"),
+    path("standard-transportasi/form/<int:pk>/<str:action>/", StandardTransportasiView.as_view(), name="standard_transportasi_action_pk"),
+    path("standard-transportasi/delete/<int:pk>/<str:action>/", StandardTransportasiView.as_view(), name="standard_transportasi_delete"),
+    path("standard-transportasi/export/", StandardTransportasiExportView.as_view(), name="standard_transportasi_export"),
+    path("standard-transportasi/import/", StandardTransportasiImportView.as_view(), name="standard_transportasi_import"),
+
+    path("standard-representasi/", StandardRepresentasiView.as_view(), name="standard_representasi_list"),
+    path("standard-representasi/form/", StandardRepresentasiView.as_view(), name="standard_representasi_action"),
+    path("standard-representasi/form/<int:pk>/<str:action>/", StandardRepresentasiView.as_view(), name="standard_representasi_action_pk"),
+    path("standard-representasi/delete/<int:pk>/<str:action>/", StandardRepresentasiView.as_view(), name="standard_representasi_delete"),
+    path("standard-representasi/export/", StandardRepresentasiExportView.as_view(), name="standard_representasi_export"),
+    path("standard-representasi/import/", StandardRepresentasiImportView.as_view(), name="standard_representasi_import"),
 ]

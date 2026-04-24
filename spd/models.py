@@ -46,7 +46,6 @@ class BaseMasterModel(models.Model):
         on_delete=models.PROTECT,
         related_name="%(class)s_items",
     )
-    aktif = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -80,6 +79,7 @@ class JenisKegiatan(models.Model):
 
 class Lokasi(models.Model):
     lokasi = models.CharField(max_length=150, unique=True)
+    kota = models.CharField(max_length=100, blank=True, null=True)
     jenis_spd = models.ForeignKey(
         JenisSPD,
         on_delete=models.PROTECT,
@@ -89,7 +89,7 @@ class Lokasi(models.Model):
     )
 
     class Meta:
-        ordering = ["jenis_spd", "lokasi"]
+        ordering = ["jenis_spd_id", "lokasi"]
         verbose_name = "Lokasi"
         verbose_name_plural = "Lokasi"
 

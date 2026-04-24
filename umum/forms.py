@@ -36,6 +36,10 @@ class TingkatForm(forms.ModelForm):
         widgets = {
             'tingkat': forms.TextInput(attrs={'class': 'form-control'}),
             'ket': forms.TextInput(attrs={'class': 'form-control'}),
+            'pesawat': forms.TextInput(attrs={'class': 'form-control'}),
+            'kapal': forms.TextInput(attrs={'class': 'form-control'}),
+            'keteraapian': forms.TextInput(attrs={'class': 'form-control'}),
+            'lainnya': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 class PegawaiForm(forms.ModelForm):

@@ -30,7 +30,7 @@ class Tingkat(models.Model):
     ket = models.CharField(max_length=200, null=True, blank=True)
     pesawat = models.CharField(max_length=100, null=True, blank=True)
     kapal = models.CharField(max_length=100, null=True, blank=True)
-    keteraapian = models.CharField(max_length=200, null=True, blank=True)
+    keretaapian = models.CharField(max_length=200, null=True, blank=True)
     lainnya = models.CharField(max_length=200, null=True, blank=True)
     
     def __str__(self):
