@@ -48,6 +48,7 @@ class StandardPenginapanForm(forms.ModelForm):
             'dasar_peraturan': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Dasar Peraturan'}),
             'lokasi': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Lokasi'}),
             'tingkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tingkat'}),
+            'satuan': forms.TextInput(attrs={'class': 'form-control'}),
             'biaya': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 

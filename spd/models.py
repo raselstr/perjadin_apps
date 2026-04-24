@@ -108,6 +108,7 @@ class StandardPenginapan(BaseMasterModel):
         on_delete=models.PROTECT,
         related_name="standard_penginapan",
     )
+    satuan = models.CharField(max_length=50)
     biaya = models.DecimalField(max_digits=14, decimal_places=2)
 
     class Meta:

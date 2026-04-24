@@ -66,7 +66,7 @@ class StandardPenginapanTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = StandardPenginapan
-        fields = ('no', 'lokasi', 'tingkat', 'biaya', 'aksi')
+        fields = ('no', 'lokasi', 'tingkat', 'satuan', 'biaya', 'aksi')
 
 class StandardPesawatTable(BaseTable):
     aksi = action_column("standard_pesawat_action_pk", "standard_pesawat_delete")
@@ -80,7 +80,7 @@ class StandardUangHarianTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = StandardUangHarian
-        fields = ('no', 'jenis_kegiatan', 'standar_uang_harian', 'aksi')
+        fields = ('no', 'lokasi', 'jenis_kegiatan', 'satuan', 'biaya', 'aksi')
 
 class JenisTransportasiTable(BaseTable):
     aksi = action_column("jenis_transportasi_action_pk", "jenis_transportasi_delete")
@@ -94,13 +94,13 @@ class StandardTransportasiTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = StandardTransportasi
-        fields = ('no', 'jenis_kegiatan', 'jenis_transportasi', 'standar_transportasi', 'aksi')
+        fields = ('no','jenis_transportasi', 'kota_tujuan', 'satuan', 'biaya', 'aksi')
 
 class StandardRepresentasiTable(BaseTable):
     aksi = action_column("standard_representasi_action_pk", "standard_representasi_delete")
 
     class Meta(BaseTable.Meta):
         model = StandardRepresentasi
-        fields = ('no', 'jenis_kegiatan', 'standar_representasi', 'aksi')
+        fields = ('no', 'jenis_jabatan', 'jenis_spd', 'biaya', 'aksi')
         
 

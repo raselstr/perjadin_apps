@@ -150,7 +150,7 @@ class StandardPenginapanImportView(ExcelImportView):
     success_url = '/spd/standard-penginapan/'
     
     # Column mapping untuk import
-    columns = ('dasar_peraturan', 'lokasi', 'tingkat', 'biaya')
+    columns = ('dasar_peraturan', 'lokasi', 'tingkat', 'satuan', 'biaya')
 
 class StandardPesawatView(BaseCRUDView):
     model = StandardPesawat
@@ -204,7 +204,7 @@ class StandardUangHarianImportView(ExcelImportView):
     success_url = '/spd/standard-uang-harian/'
     
     # Column mapping untuk import
-    columns = ('dasar_peraturan', 'jenis_kegiatan', 'lokasi', 'biaya')
+    columns = ('dasar_peraturan', 'jenis_kegiatan', 'lokasi', 'satuan', 'biaya')
 
 class JenisTransportasiView(BaseCRUDView):
     model = JenisTransportasi
