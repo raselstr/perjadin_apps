@@ -204,7 +204,7 @@ class StandardUangHarianImportView(ExcelImportView):
     success_url = '/spd/standard-uang-harian/'
     
     # Column mapping untuk import
-    columns = ('dasar_peraturan', 'jenis_kegiatan', 'lokasi', 'satuan', 'biaya')
+    columns = ('dasar_peraturan', 'lokasi', 'jenis_kegiatan', 'satuan', 'biaya')
 
 class JenisTransportasiView(BaseCRUDView):
     model = JenisTransportasi

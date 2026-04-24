@@ -103,7 +103,7 @@ class StandardRepresentasiForm(forms.ModelForm):
         widgets = {
             'dasar_peraturan': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Dasar Peraturan'}),
             'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Jenis Jabatan'}),
-            'jenis_spds': forms.SelectMultiple(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Jenis SPD'}),   
+            'jenis_spd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Jenis SPD'}),   
             'biaya': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
