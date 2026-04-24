@@ -1,6 +1,7 @@
 import json
 
 from django.contrib import messages
+from django.db import models
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import ListView
 from django.shortcuts import render, get_object_or_404, redirect
@@ -8,6 +9,7 @@ from django.db.models import Q
 from django_tables2 import RequestConfig
 from types import SimpleNamespace
 from core.views_excel import ExcelMixin
+from core.utils.formatting import is_money_identifier, parse_localized_decimal
 
 
 class BaseCRUDView(ExcelMixin, ListView):
@@ -134,11 +136,28 @@ class BaseCRUDView(ExcelMixin, ListView):
             filters |= Q(jenis_kegiatan__nama__icontains=search)
         if 'jenis_transportasi' in field_names:
             filters |= Q(jenis_transportasi__nama__icontains=search)
-        if 'biaya' in field_names:
+        money_field_types = (
+            models.DecimalField,
+            models.FloatField,
+            models.IntegerField,
+            models.BigIntegerField,
+            models.PositiveBigIntegerField,
+            models.PositiveIntegerField,
+            models.PositiveSmallIntegerField,
+            models.SmallIntegerField,
+        )
+        money_field_names = [
+            field.name
+            for field in self.model._meta.fields
+            if isinstance(field, money_field_types) and is_money_identifier(field.name)
+        ]
+
+        if money_field_names:
             try:
-                biaya_value = float(search)
-                filters |= Q(biaya=biaya_value)
-            except ValueError:
+                money_value = parse_localized_decimal(search)
+                for field_name in money_field_names:
+                    filters |= Q(**{field_name: money_value})
+            except (TypeError, ValueError):
                 pass
         
 
