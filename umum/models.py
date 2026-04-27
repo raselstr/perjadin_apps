@@ -123,7 +123,7 @@ class Pegawai(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.nama} ({self.nip})"
+        return f"{self.nama} ({self.jabatan})"
     
 
 

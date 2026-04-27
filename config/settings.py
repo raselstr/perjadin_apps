@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'umum',
     'core',
     'spd',
+    'perintah',
 ]
 
 # 🔥 LETAKKAN DI SINI
