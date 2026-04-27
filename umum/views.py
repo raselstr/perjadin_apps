@@ -2,9 +2,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from core.crud.base import BaseCRUDView
 from core.views_excel import ExcelExportView, ExcelImportView
-from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
-from .forms import PegawaiForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
-from .tables import PegawaiTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
+from .models import Eselon, Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .forms import EselonForm, PegawaiForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
+from .tables import EselonTable, PegawaiTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
 
 def umum_view(request):
     context = {
@@ -154,7 +154,8 @@ class PegawaiImportView(ExcelImportView):
     success_url = '/umum/pegawai/'
     
     # Column mapping untuk import
-    columns = ['nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat']
+    columns = ['nip', 'nama', 'pangkat',  'jabatan', 'eselon','jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat']
+    match_fields = [('nip', 'nama', 'pangkat', 'jabatan', 'eselon', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat')]
 
 class PangkatExportView(ExcelExportView):
     """Download Pangkat data sebagai Excel"""
@@ -175,8 +176,31 @@ class JenisJabatanImportView(ExcelImportView):
     """Upload & import Jenis Jabatan data dari Excel"""
     model = JenisJabatan
     success_url = '/umum/jenis-jabatan/'
-    columns = ['nama']
+    columns = ['nama', 'keterangan', 'fungsi']
 
+class EselonView(BaseCRUDView):
+    model = Eselon
+    form_class = EselonForm
+    table_class = EselonTable
+
+    title = "Daftar Eselon"
+    url_list = "eselon_list"
+    url_action = "eselon_action"
+    url_action_pk = "eselon_action_pk"
+    url_export = "eselon_export"
+    url_import = "eselon_import"
+
+
+class EselonExportView(ExcelExportView):
+    """Download Eselon data sebagai Excel"""
+    model = Eselon  
+
+class EselonImportView(ExcelImportView):
+    """Upload & import Eselon data dari Excel"""
+    model = Eselon
+    success_url = '/umum/eselon/'
+    columns = ['eselon', 'keterangan']
+    match_fields = [('eselon','keterangan')] 
 
 class StatusASNExportView(ExcelExportView):
     """Download Status ASN data sebagai Excel"""

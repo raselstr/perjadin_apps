@@ -1,5 +1,5 @@
 from django import forms
-from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .models import Eselon, Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
 
 class PangkatForm(forms.ModelForm):
     class Meta:
@@ -18,6 +18,17 @@ class JenisJabatanForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'nama': forms.TextInput(attrs={'class': 'form-control'}),
+            'keterangan': forms.TextInput(attrs={'class': 'form-control'}),
+            'fungsi': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+class EselonForm(forms.ModelForm):
+    class Meta:
+        model = Eselon
+        fields = '__all__'
+        widgets = {
+            'eselon': forms.TextInput(attrs={'class': 'form-control'}),
+            'keterangan': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 

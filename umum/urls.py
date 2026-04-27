@@ -1,11 +1,12 @@
 from django.urls import path
 from .views import (
-    PegawaiView, PenandatanganView, PangkatView, JenisJabatanView, StatusASNView, TingkatExportView, TingkatImportView, TingkatView, umum_view,
+    EselonImportView, EselonView, PegawaiView, PenandatanganView, PangkatView, JenisJabatanView, StatusASNView, TingkatExportView, TingkatImportView, TingkatView, umum_view,
     PegawaiExportView, PegawaiImportView,
     PangkatExportView, PangkatImportView,
     JenisJabatanExportView, JenisJabatanImportView,
     StatusASNExportView, StatusASNImportView,
     PenandatanganExportView, PenandatanganImportView,
+    EselonExportView
 )
 
 urlpatterns = [
@@ -24,6 +25,13 @@ urlpatterns = [
     path("jenis-jabatan/delete/<int:pk>/<str:action>/", JenisJabatanView.as_view(), name="jenis_jabatan_delete"),
     path("jenis-jabatan/export/", JenisJabatanExportView.as_view(), name="jenis_jabatan_export"),
     path("jenis-jabatan/import/", JenisJabatanImportView.as_view(), name="jenis_jabatan_import"),
+
+    path("eselon/", EselonView.as_view(), name="eselon_list"),
+    path("eselon/form/", EselonView.as_view(), name="eselon_action"),
+    path("eselon/form/<int:pk>/<str:action>/", EselonView.as_view(), name="eselon_action_pk"),
+    path("eselon/delete/<int:pk>/<str:action>/", EselonView.as_view(), name="eselon_delete"),
+    path("eselon/export/", EselonExportView.as_view(), name="eselon_export"),
+    path("eselon/import/", EselonImportView.as_view(), name="eselon_import"),
 
     path("status-asn/", StatusASNView.as_view(), name="status_asn_list"),
     path("status-asn/form/", StatusASNView.as_view(), name="status_asn_action"),

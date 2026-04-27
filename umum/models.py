@@ -23,9 +23,18 @@ class Pangkat(models.Model):
             return f"{self.pangkat} ({self.golongan}/{self.ruang})"
         return f"{self.pangkat} ({self.golongan})"
 
+class Eselon(models.Model):
+    eselon = models.CharField(max_length=100, unique=True)
+    keterangan = models.CharField(max_length=200, null=True, blank=True)
+
+    def __str__(self):
+        return self.eselon
+
 
 class JenisJabatan(models.Model):
     nama = models.CharField(max_length=150, unique=True)
+    keterangan= models.CharField(max_length=200, null=True, blank=True)
+    fungsi= models.CharField(max_length=200, null=True, blank=True)
 
     def __str__(self):
         return self.nama
@@ -46,7 +55,7 @@ class Tingkat(models.Model):
     lainnya = models.CharField(max_length=200, null=True, blank=True)
     
     def __str__(self):
-        return f"{self.tingkat} - {self.ket}"
+        return f"{self.tingkat}"
 
 class Pegawai(models.Model):
     nip = models.CharField(max_length=30, unique=True)
@@ -61,6 +70,13 @@ class Pegawai(models.Model):
     )
 
     jabatan = models.CharField(max_length=200)
+    eselon=models.ForeignKey(
+        Eselon,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='pegawai'
+    )
 
     jenis_jabatan = models.ForeignKey(
         JenisJabatan,

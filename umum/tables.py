@@ -1,5 +1,5 @@
 from core.tables import BaseTable, action_column
-from .models import Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .models import Eselon, Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
 
 
 class PangkatTable(BaseTable):
@@ -15,7 +15,14 @@ class JenisJabatanTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = JenisJabatan
-        fields = ('no', 'nama', 'aksi')
+        fields = ('no', 'nama', 'keterangan', 'fungsi', 'aksi')
+
+class EselonTable(BaseTable):
+    aksi = action_column("eselon_action_pk", "eselon_delete")
+
+    class Meta(BaseTable.Meta):
+        model = Eselon
+        fields = ('no', 'eselon', 'keterangan', 'aksi')
 
 
 class StatusASNTable(BaseTable):
@@ -37,7 +44,7 @@ class PegawaiTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = Pegawai
-        fields = ('no', 'nip', 'nama', 'pangkat', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd','tingkat', 'aksi')
+        fields = ('no', 'nip', 'nama', 'pangkat', 'eselon', 'jabatan', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd','tingkat', 'aksi')
 
 class PenandatanganTable(BaseTable):
     aksi = action_column("penandatangan_action_pk", "penandatangan_delete")
