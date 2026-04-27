@@ -157,6 +157,32 @@ class ExcelImporter:
                 pass
         return field_name, False
 
+    def _is_empty_value(self, value):
+        if value is None:
+            return True
+        if isinstance(value, str) and value.strip() == '':
+            return True
+        return False
+
+    def _get_empty_field_value(self, field, is_fk_field=False):
+        if is_fk_field or field.many_to_one or getattr(field, 'null', False):
+            return None
+
+        if isinstance(field, (models.CharField, models.TextField)) and getattr(field, 'blank', False):
+            return ''
+
+        return None
+
+    def _has_matchable_value(self, field_name, value):
+        if value is None:
+            return False
+
+        if value != '':
+            return True
+
+        field = self.model._meta.get_field(field_name)
+        return isinstance(field, (models.CharField, models.TextField))
+
     def _prepare_processed_data(self, row_data):
         """Konversi data excel menjadi format yang siap divalidasi/disimpan"""
         processed_data = {}
@@ -164,12 +190,11 @@ class ExcelImporter:
 
         for field_col_name, value in row_data.items():
             field_name, is_fk_field = self._convert_field_id_to_field(field_col_name)
-
-            if value is None or value == '':
-                processed_data[field_name] = None
-                continue
-
             field = self.model._meta.get_field(field_name)
+
+            if self._is_empty_value(value):
+                processed_data[field_name] = self._get_empty_field_value(field, is_fk_field)
+                continue
 
             if is_fk_field or field.many_to_one:
                 related_model = field.related_model
@@ -242,8 +267,11 @@ class ExcelImporter:
     def _find_existing_instance(self, processed_data):
         """Cari data existing berdasarkan konfigurasi match fields"""
         for group in self._get_match_groups():
+            if not all(field_name in processed_data for field_name in group):
+                continue
+
             if not all(
-                field_name in processed_data and processed_data[field_name] not in (None, '')
+                self._has_matchable_value(field_name, processed_data[field_name])
                 for field_name in group
             ):
                 continue

@@ -1,15 +1,27 @@
 from django.db import models
 
 class Pangkat(models.Model):
-    pangkat = models.CharField(max_length=100, unique=True)
+    pangkat = models.CharField(max_length=100)
     golongan = models.CharField(max_length=10)
-    ruang = models.CharField(max_length=10)
+    ruang = models.CharField(
+        max_length=10,
+        blank=True,
+        default=""
+    )
 
     class Meta:
         ordering = ['golongan', 'ruang']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['pangkat', 'golongan', 'ruang'],
+                name='unique_pangkat_golongan_ruang'
+            )
+        ]
 
     def __str__(self):
-        return f"{self.pangkat} ({self.golongan}/{self.ruang})"
+        if self.ruang:
+            return f"{self.pangkat} ({self.golongan}/{self.ruang})"
+        return f"{self.pangkat} ({self.golongan})"
 
 
 class JenisJabatan(models.Model):

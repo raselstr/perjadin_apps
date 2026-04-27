@@ -165,6 +165,7 @@ class PangkatImportView(ExcelImportView):
     model = Pangkat
     success_url = '/umum/pangkat/'
     columns = ['pangkat','golongan', 'ruang']
+    match_fields = [('pangkat', 'golongan', 'ruang')]
 
 class JenisJabatanExportView(ExcelExportView):
     """Download Jenis Jabatan data sebagai Excel"""
