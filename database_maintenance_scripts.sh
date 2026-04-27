@@ -25,7 +25,7 @@ DB_USER=$(cat ${SECRETS_DIR}/db_user.txt)
 
 DATA_BACKUP_FILE="${BACKUP_DIR}/backup_data_${DATE}.sql"
 FULL_BACKUP_FILE="${BACKUP_DIR}/full_backup_${DATE}.sql"
-LATEST_BACKUP_LINK="${BACKUP_DIR}/latest_backup.sql"
+LATEST_BACKUP_FILE="${BACKUP_DIR}/latest_backup.sql"
 
 # ------------------------------------------------------
 # PRECHECKS
@@ -44,6 +44,13 @@ check_requirements() {
     fi
 
     mkdir -p "$BACKUP_DIR"
+
+    if ! docker ps >/dev/null 2>&1; then
+        echo "ERROR: User tidak memiliki akses ke Docker"
+        echo "Jalankan: sudo usermod -aG docker $USER"
+        echo "Lalu logout/login kembali"
+        exit 1
+    fi
 
     if ! docker ps --format '{{.Names}}' | grep -q "^${DB_CONTAINER}$"; then
         echo "ERROR: Container ${DB_CONTAINER} tidak berjalan"
@@ -68,6 +75,7 @@ setup_permissions() {
     echo "=== Setup permission script & backup folder ==="
 
     chmod +x "$0"
+    mkdir -p "$BACKUP_DIR"
     chmod 700 "$BACKUP_DIR" 2>/dev/null || true
 
     echo "Permission updated"
@@ -89,7 +97,7 @@ backup_data() {
         --disable-triggers \
         > "${DATA_BACKUP_FILE}"
 
-    ln -sf "$(basename ${DATA_BACKUP_FILE})" "${LATEST_BACKUP_LINK}"
+    cp "${DATA_BACKUP_FILE}" "${LATEST_BACKUP_FILE}"
 
     echo "Backup selesai"
     echo "File: ${DATA_BACKUP_FILE}"
@@ -135,7 +143,7 @@ EOF
 # RESTORE LATEST BACKUP
 # ------------------------------------------------------
 restore_latest() {
-    if [ ! -f "${LATEST_BACKUP_LINK}" ]; then
+    if [ ! -f "${LATEST_BACKUP_FILE}" ]; then
         echo "ERROR: latest backup tidak ditemukan"
         exit 1
     fi
@@ -144,7 +152,7 @@ restore_latest() {
 
     echo "=== Restore dimulai ==="
 
-    cat "${LATEST_BACKUP_LINK}" | docker exec -i ${DB_CONTAINER} psql \
+    cat "${LATEST_BACKUP_FILE}" | docker exec -i ${DB_CONTAINER} psql \
         -U ${DB_USER} \
         -d ${DB_NAME}
 
@@ -181,7 +189,7 @@ main_menu() {
     echo "2. Backup Data Only (Recommended)"
     echo "3. Full Backup (Schema + Data)"
     echo "4. Truncate Master Tables"
-    echo "5. Restore Latest Backup"
+    echo "5. Restore latest_backup.sql"
     echo "6. Truncate + Restore"
     echo "7. List Backup Files"
     echo "================================================="
