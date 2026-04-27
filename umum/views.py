@@ -90,9 +90,11 @@ class PegawaiView(BaseCRUDView):
     def get_queryset(self):
         return super().get_queryset().select_related(
             'pangkat',
+            'eselon',
             'jenis_jabatan',
             'status',
-            'opd'
+            'opd',
+            'tingkat',
         )
 class PenandatanganView(BaseCRUDView):
     model = Penandatangan
@@ -142,9 +144,11 @@ class PegawaiExportView(ExcelExportView):
         """Filter & select_related untuk performance"""
         return Pegawai.objects.all().select_related(
             'pangkat',
+            'eselon',
             'jenis_jabatan',
             'status',
-            'opd'
+            'opd',
+            'tingkat',
         ).order_by('-id')
 
 
@@ -155,7 +159,7 @@ class PegawaiImportView(ExcelImportView):
     
     # Column mapping untuk import
     columns = ['nip', 'nama', 'pangkat',  'jabatan', 'eselon','jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat']
-    match_fields = [('nip', 'nama', 'pangkat', 'jabatan', 'eselon', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat')]
+    match_fields = [('nip',)]
 
 class PangkatExportView(ExcelExportView):
     """Download Pangkat data sebagai Excel"""

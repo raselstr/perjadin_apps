@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict 8ahFcm9XNATcDhMkdajnVbk8IaZvXfUX0OLPrSPAVgy1qTaNZMB8VchQKczUSZY
+\restrict 0idOijcgiLLpbDRMM4JKMRO4vmhom0xebadYk6sNMhmIsoAYkQZYs8yleeUN4Uj
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -64,6 +64,7 @@ INSERT INTO public.django_content_type (id, app_label, model) VALUES (25, 'spd',
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (26, 'spd', 'standardpesawat');
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (27, 'spd', 'standardpenginapan');
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (28, 'spd', 'jeniskegiatan');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (52, 'umum', 'eselon');
 
 
 ALTER TABLE public.django_content_type ENABLE TRIGGER ALL;
@@ -186,6 +187,10 @@ INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES 
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (110, 'Can change Jenis Kegiatan', 28, 'change_jeniskegiatan');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (111, 'Can delete Jenis Kegiatan', 28, 'delete_jeniskegiatan');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (112, 'Can view Jenis Kegiatan', 28, 'view_jeniskegiatan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (139, 'Can add eselon', 52, 'add_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (140, 'Can change eselon', 52, 'change_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (141, 'Can delete eselon', 52, 'delete_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (142, 'Can view eselon', 52, 'view_eselon');
 
 
 ALTER TABLE public.auth_permission ENABLE TRIGGER ALL;
@@ -208,7 +213,7 @@ ALTER TABLE public.auth_user DISABLE TRIGGER ALL;
 
 INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (7, 'pbkdf2_sha256$1000000$wg7AGNnGSBS31fd83ENzKP$EGbYWT1boCgGl8Cb/C5cs4rmQAald+1fscIvc391zm4=', '2026-04-17 08:44:12.83494+00', false, 'saleh', '', '', 'saleh@gmail.com', false, true, '2026-04-17 07:44:38.594924+00');
 INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (2, 'pbkdf2_sha256$1000000$pCalk6SdwEP0UO3MkjO0qF$eMt21ThmqHno/Zr/wYqLwEc6TjYFOt0TFFv3xnjuhao=', '2026-04-17 08:44:25.134936+00', false, 'rahmad', 'Rahmad', 'Saleh', '', false, true, '2026-04-16 09:26:10+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (1, 'pbkdf2_sha256$1000000$YjpAletTzOCcfOcwBIRKVV$MKlTJnH71Qd1E5Q+EkrxYxvTyhtD4KtAiktRiIlZPjg=', '2026-04-24 10:15:34.458022+00', true, 'admin', '', '', '', true, true, '2026-04-14 12:08:07.49271+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (1, 'pbkdf2_sha256$1000000$YjpAletTzOCcfOcwBIRKVV$MKlTJnH71Qd1E5Q+EkrxYxvTyhtD4KtAiktRiIlZPjg=', '2026-04-27 07:17:59.957174+00', true, 'admin', '', '', '', true, true, '2026-04-14 12:08:07.49271+00');
 
 
 ALTER TABLE public.auth_user ENABLE TRIGGER ALL;
@@ -323,6 +328,15 @@ INSERT INTO public.django_migrations (id, app, name, applied) VALUES (66, 'umum'
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (67, 'spd', '0004_lokasi_kota', '2026-04-24 04:45:31.651138+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (68, 'spd', '0005_alter_lokasi_options', '2026-04-24 07:53:44.590272+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (69, 'spd', '0006_standardpenginapan_satuan', '2026-04-24 08:14:03.97357+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (70, 'umum', '0012_alter_pangkat_pangkat_alter_pangkat_ruang_and_more', '2026-04-27 03:32:07.45366+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (71, 'umum', '0013_jenisjabatan_fungsi_jenisjabatan_keterangan', '2026-04-27 04:30:47.367395+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (72, 'umum', '0014_eselon', '2026-04-27 04:37:30.435294+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (73, 'umum', '0015_pegawai_eselon', '2026-04-27 04:38:28.293529+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (74, 'umum', '0016_pegawai_unique_pegawai_nip_eselon_jenis_jabatan', '2026-04-27 07:03:26.082337+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (75, 'umum', '0017_alter_pegawai_eselon_alter_pegawai_jenis_jabatan_and_more', '2026-04-27 07:09:33.783868+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (76, 'umum', '0018_alter_pegawai_eselon_alter_pegawai_jenis_jabatan_and_more', '2026-04-27 07:17:47.241321+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (77, 'umum', '0019_alter_pegawai_eselon_alter_pegawai_jenis_jabatan', '2026-04-27 07:29:56.501009+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (78, 'umum', '0020_alter_pegawai_nip', '2026-04-27 07:33:39.147647+00');
 
 
 ALTER TABLE public.django_migrations ENABLE TRIGGER ALL;
@@ -335,6 +349,7 @@ ALTER TABLE public.django_session DISABLE TRIGGER ALL;
 
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('5sk22cga97ptcoidlochvibu64am0oy6', '.eJxVj8tOBCEQRX_FsDYdoHn17HRv4h-QgoJptAcMDxNj_HcZMwtne-69J1XfxMLoux0tVJuQnAgjj_-ZA_8e8jXAN8jnsviSe01uuVaWW9qWl4LheL517wQ7tH2uN7UFD2KLgm64OmqQcaWiQNASHTOOSmGAo0KqUEquqA7RqEi9X5kIcUo77CPbecQZKuTp5JSryVtoLZVsywf-vZDHcdzTDBeY_Se8pJxar9BLfXgdDfqcH9C6Bd_TZ-pf5MS0VmbVK5c_v5SLXuE:1wFQYX:9qeu6TBRE_WjmYq8bLut4Rg21QFcBYwp_eOmg7WTkYo', '2026-04-22 06:00:25.651315+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('302fns8dnckt7oetu3pzflowm68f39yn', '.eJxVj8sOwiAQRX_FsDYNRYqtO92b-AdkYMCidTA8VsZ_F40L3Z5778nMg2moZdY1u6QDsh3r2fqXGbBXR-8AL0Dn2NlIJQXTvSvdN83dMaJbDt_un2CGPLf1pCZnQU5e8gk3ho_YC6W8RNgOaPrR8EGOIFAhVzgMQvGt86Py3NpNL51v0gJzJd2OOEMCak7BhWo8u5xDJB3v-HmB6rL8U4IbtP4eb4FCLglKTKtTzVDY8wX2A1am:1wCcvP:kiRvj7RHZug_eWl2GPU1SJLgj0LiqkK1f0OcezERFeQ', '2026-04-28 12:31:27.911404+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('2m7csykvshhe7911cu5zz3iwjlq6fpue', '.eJxVj8sOwiAQRX_FsDYNRYqtO92b-AdkYMCidTA8VsZ_F40L3Z5778nMg2moZdY1u6QDsh3r2fqXGbBXR-8AL0Dn2NlIJQXTvSvdN83dMaJbDt_un2CGPLf1pCZnQU5e8gk3ho_YC6W8RNgOaPrR8EGOIFAhVzgMQvGt86Py3NpNL51v0gJzJd2OOEMCak7BhWo8u5xDJB3v-HmB6rL8U4IbtP4eb4FCLglKTKtTzVDY8wX2A1am:1wHCcC:_2PhuIR3dv7Nnz3bvy6o4_mejdTl67nsmW2WvcBzQKs', '2026-04-27 03:31:32.046112+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('95bewzflk5fu3t0j0jbzx3fmd806zbtq', '.eJxVj0tuAyEQRK8SsY5GMGZ6wLtkH8k3QA0NHpIxRHwsRVHuHhx5EW9fVT11fzODvW2mV19MJHZkgj3_Zxbdh0-3gN4xnfPkcmol2ulWme5pnd4y-f313n0QbFi3sdagvUOpg-SaDpYrEjNAkITrQlYoyxepcCYgDrQsM_DVBwWBO3cQ0ochbbj1ZMYRZyyYhnPmMwxefa0xJ5M_6e-F1Pf9kSa84Oi_0CWmWFvBlsvTqVdsY75jbQZdi9fYvthRrCsoqQXIn1-UnV7l:1wFTdU:3OkEtVoeaQMdHVA6calSZoQde-TGJVFxHW_YKfCJVSM', '2026-04-22 09:17:44.923415+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('ep4dk2cgevhzpv1hzonw0pt0lzyqhqgq', '.eJxVj0tuAyEQRK8SsY5GwDDAeGfvI-UGqKHBQzKGiE-kKPLdjSMv4u2rqqfuX2Kgt8306ouJSA6Ekdf_zIL79Oke4Aekc55cTq1EO90r0yOt01tGv58e3SfBBnUb61Wu3oFYg6ArzpZqZFzKIBDUgpZpSxehgaNEKnFZuKTKBy0DdW5mwochbbD1ZMYRZyiQhpNTLgevvtaYk8lf-PdC6vv-TBNcYPSPeIkp1lag5fLy3iu0Md-hNgOuxe_YfsiBKSX1rJRQ1xuUpV7p:1wFQfM:JpZZOaHenWGAI4nysBkDCuwnHSwYT6sOnagCFHk5oKQ', '2026-04-22 06:07:28.021175+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('msfd2ysz5iujqraozv57b5kn505zm1ss', '.eJxVj8tqAyEYhV-luC6DGked7Np9IW8gv_6asZ1o8RIoJe8eE7JItt-5cM4_MdDbanr1xUQke8LI-zOz4H58ugn4DemYJ5dTK9FON8v0UOv0ldFvnw_vS8EKdR3pRS7egViCoAvuLNXIuJRBIKgZLdOWzkIDR4lU4jxzSZUPWgbq3I4JH0Zpg7UnM0YcoUAanZxyOXj1tcacTP7F-4XUt-2VJjjB8H_gKaZYW4GWy9uhV2gjvkFtBlyL59j-yJ4pJfUYwNXlCpSNXuI:1wFVDH:eTV8QrYBJjvsr6BlqyZM--fKYRQ8jwLd8AmVvWMEbAE', '2026-04-22 10:58:47.867269+00');
@@ -369,11 +384,27 @@ INSERT INTO public.django_session (session_key, session_data, expire_date) VALUE
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('jiv1jzpck336rk4daux0awgm6kn4gxdg', '.eJxVj0tuAyEQRK8SsY5GgPnMeJfsI_kGqKHBQzKGiI-lKPLdjS0v7O2rqqfuf2Kgt9X06ouJSPaEkfdnZsH9-HQL8BvSMU8up1ainW6V6ZHW6Suj3z4f3RfBCnUd60Ut3oFYgqAL7iydkXGlgkDQEi2bLZViBo4KqUIpuaLah1kF6tyOCR-GtMHakxlHHKFAGk5OuRq8-lpjTib_4v2F1LftlSY4weh_4CmmWFuBlsvboVdoY75BbQZci-fY_sieaa0pU1KIyxWUVl7a:1wGBBB:jWL2cBGVULVeWfzpmEqnICPwIInJrkMUDiEslFNMo2U', '2026-04-24 07:47:25.033522+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('9bxw8zjtza3qmg5n94va3e0ejm9iy3jv', '.eJxVj0FuwyAQRa9Ssa4sIBjs7Np9pdwADQzEtA5UDESqqt69pMqi2b7__9PMN7PQ22Y7hWoTsiMT7Pk_c-A_Qr4F-A75XCZfcqvJTbfKdE9peisY9td790GwAW1jveo1eFBrVHzFg-MLCql1VAhmRicWx2e1gESNXOM8S81NiIuO3PuDUCEOaYOtZzuOOEOFPJySSz04BaJUsi2f-PdC7vv-SDNcYPRf8JJyolahlfp06gRtzHegZsG3dE3tix2FMYYLo436-QWUaF7f:1wGBTO:Onbc_n8C34yEbzK1XZFfqYJh442fYDsUjP6uvK3EgLw', '2026-04-24 08:06:14.854106+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('a1r718qnt0iq9cn4cr6bk5x1sxnhwacg', '.eJxVj0tuAyEQRK8SsY5GDQZmxrtkH8k3QA0NHpIxRHwsRVHuHhx5EW9fVT11fzODvW2mV19MJHZknD3_Zxbdh0-3gN4xnfPkcmol2ulWme5pnd4y-f313n0QbFi3sV716h3KNUhY6WBhIS60DpJwVmT5YkHJBQVpAk1KCQ2zD4sO4NyBSx-GtOHWkxlHnLFgGk4BQg9efa0xJ5M_6e-F1Pf9kSa84Oi_0CWmWFvBlsvTqVdsY75jbQZdi9fYvtiRz_MMAErwn1-UJl7O:1wG70j:RZ_aLNdO2gWv5PMH7lAXfI8saWwBaLGfifrATdHP37A', '2026-04-24 03:20:21.819865+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('df7yd575wi7y5977harwzw2hmahxxrdv', '.eJxVj8tOBCEQRX_FsDYdoHn17HRv4h-QgoJptAcMDxNj_HcZMwtne-69J1XfxMLoux0tVJuQnAgjj_-ZA_8e8jXAN8jnsviSe01uuVaWW9qWl4LheL517wQ7tH2uN7UFD2KLgm64OmqQcaWiQNASHTOOSmGAo0KqUEquqA7RqEi9X5kIcUo77CPbecQZKuTp5JSryVtoLZVsywf-vZDHcdzTDBeY_Se8pJxar9BLfXgdDfqcH9C6Bd_TZ-pf5MS01lyqVZifX5R8XuI:1wHBYy:qhNFt0D4QmqWCPuKyd4PeUaNA-5JxNVQU7lwi0VWaQ8', '2026-04-27 02:24:08.153897+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('eyv3zuhdxpta53md3m0qjs0ngoiveo9h', '.eJxVj0tuAyEQRK8SsY5GgJlmxrtkH8k3QA0NHpIxRHwsRVHuHhx5EW9fVT11fzODvW2mV19MJHZkgj3_Zxbdh0-3gN4xnfPkcmol2ulWme5pnd4y-f313n0QbFi3sV5h9Q7VGhRf6WD5QkICBEWoZ7JisXxWC0oC4kDzLIFrHxYI3LmDUD4MacOtJzOOOGPBNJySSxi8-lpjTiZ_0t8Lqe_7I014wdF_oUtMsbaCLZenU6_YxnzH2gy6Fq-xfbGj0FpzKQDEzy-UR17W:1wGCVh:X4ZiC4XIAp_vbtuQvrjxHkfS0So3OwY_J_a0uto-4C4', '2026-04-24 09:12:41.611433+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('l1o9ddzifb6083esziavdsvqcq91ci7m', '.eJxVj0luAyEQRa8SsY5agBm6vUv2kXwDVFDgJmlDxGApinx3Y8sLe_v-UPX_iYHeVtOrLyYi2RNG3p-ZBffj003Ab0jHPLmcWol2ulmmh1qnr4x--3x4XwpWqOtIL2rxDsQSBF1wZ-mMjCsVBIKWaNlsqRQzcFRIFUrJFdU-zCpQ53ZM-DBKG6w9mfHEEQqk0ckpV4NXX2vMyeRfvE9IfdteaYITDP8HnmKKtRVoubwdeoU24hvUZsC1eI7tj-yZ1npcF1RerpRWXtc:1wHCcP:ZFIqpSm-hSHbM_IYlOylT0IB7ouBlI_ex5OzvjJvxIc', '2026-04-27 03:31:45.544598+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('btk8a77gmjggdhozq9bevonvmioe23s4', '.eJxVj8tuwyAQRX-lYl1ZQDDg7JJ9pf4BGhiIaR2oeFSqqvx7cJVFsz33MXN_iYHeVtOrLyYiORJGXv8zC-7Tp13AD0iXPLmcWol22i3TQ63TW0a_nR_ep4IV6jrSi1y8A7EEQRc8WKqRcSmDQFAzWqYtnYUGjhKpxHnmkioftAzUuQMTPozSBmtPZjxxgQJpdHLK5eDV1xpzMvkL_yakvm3PNMEVhv-E15hibQVaLi_vvUIb8Q1qM-Ba_I7thxyZUmq_ruXtDpR8XuM:1wHCiY:srX_VLSILyhWcEsw2Rjpk-eJgUSFadWPtu3PGFP813o', '2026-04-27 03:38:06.986659+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('mnb9133804jx36pc5128l75q46l01dk3', '.eJxVj0tuAyEQRK8SsY5GgPmNd8k-km-AGho8JGOI-FiKotw9OPIi3r6qeur-JhZG3-xoodqE5EgYef7PHPiPkG8BvkM-l8WX3Gtyy62y3NO2vBUM--u9-yDYoG1zvao1eBBrFHTFg6MGGVcqCgQt0THjqBQGOCqkCqXkiuoQjYrU-wMTIU5ph21kO484Q4U8nZxyNXkLraWSbfnEvxfy2PdHmuECs_-Cl5RT6xV6qU-n0aDP-Q6tW_A9XVP_IkemtaacayN_fgGUXl7e:1wGCnp:ITvPDcd9YZ0PfhzJFqZyRZ-myQ4-u9fOlihRKkKbfN8', '2026-04-24 09:31:25.136169+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('nhx0ay13741fr4v1r9yvme0e7xb64eoj', '.eJxVj0tuAyEQRK8SsY5GgBmY8S7ZR_INUEODh2TcRHwsRVHuHhx5EW9fVT11fzMLvW2211BsQnZkgj3_Zw78R6BbgO9A5zz5TK0kN90q0z2t01vGsL_euw-CDeo21qtegwe1RsVXPDi-oJBaR4VgZnRicXxWC0jUyDXOs9TchLjoyL0_CBXikDbYOtlxxBkK0HBKLvXgNdSaMtn8iX8vUN_3R0pwgdF_wUuiVFuBlsvTqVdoY75DbRZ8S9fUvthRGGO4VIqrn1-UQl7U:1wGDDw:bbmmta1gV9s7tl_ZjbRPUGkoZQAroE8qL2v9iN7lHro', '2026-04-24 09:58:24.806208+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('nqhdemhxz86sgxe1cob1avxnioo7lc40', '.eJxVj0tuAyEQRK8SsY5GDIZmxrtkH8k3QA0NHpIxRHwsRVHuHhx5EW9fVT11fzODvW2mV19MJHZkM3v-zyy6D59uAb1jOufJ5dRKtNOtMt3TOr1l8vvrvfsg2LBuY73C6h3KNUi-0sHyhWYBECShVmTnxXIlFxQExIGUEsC1DwsE7txhlj4MacOtJzOOOGPBNJyCCxi8-lpjTiZ_0t8Lqe_7I014wdF_oUtMsbaCLZenU6_YxnzH2gy6Fq-xfbHjrLUWSgOHn1-UfV7g:1wHBtG:zXAwuVsvrcMIEkNv___ojUIS2IZ-AsUMHUtrGEHRXgo', '2026-04-27 02:45:06.510077+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('a50sp9k5a82v8u0ts6m8k5rvs9f8jl23', '.eJxVj8tqAyEYhV-luC6DOo6O2SX7Qt9Afv01YzvR4qVQSt49pmTRbL9z4ZxfYqC3zfTqi4lIDoSR1__Mgvv06S7gB6RznlxOrUQ73S3TQ63TW0a_nx7ep4IN6jbSWmrvQOggqMbZ0hUZlzIIBLWgZauli1iBo0QqcVm4pMqHVQbq3MyED6O0wdaTGSPOUCCNTk65HLz6WmNOJn_h34XU9_2ZJrjA8B_xElOsrUDL5eW9V2gjvkNtBlyL37H9kANTSo1ldNbXG5R1XuA:1wHE5H:JYuQuAUCU7Qjg62ARnqkVlpboHBfPeb1x1qw-qz33a4', '2026-04-27 05:05:39.210169+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('2dk3s95hzh7rk0vbhg2lgzdxcw2kxtrv', '.eJxVj0tuAyEQRK8SsY5GwDAweGfvI-UGqKHBQzKGiE-kKPLdjSMv4u2rqqfuX2Kgt8306ouJSA6Ekdf_zIL79Oke4Aekc55cTq1EO90r0yOt01tGv58e3SfBBnUbay21dyB0EFTjbOmKjEsZBIJa0LLV0kWswFEilbgsXFLlwyoDdW5mwochbbD1ZMYRZyiQhpNTLgevvtaYk8lf-PdC6vv-TBNcYPSPeIkp1lag5fLy3iu0Md-hNgOuxe_YfsiBKaUo00rO1xuUcV7g:1wGC15:mY6EG_pM_FEdIqiZfdelWNJO4FftJmgftVWgQjeWyHc', '2026-04-24 08:41:03.523149+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('s6glrobu7qoc3xyb5bwmmdwp4km44gm7', '.eJxVj0tuAyEQRK8SsY5GgPnMeJfsI_kGqKHBQzKGiI-lKPLdjS0v7O2rqqfuf2Kgt9X06ouJSPaEkfdnZsH9-HQL8BvSMU8up1ainW6V6ZHW6Suj3z4f3RfBCnUd60Ut3oFYgqAL7iydkXGlgkDQEi2bLZViBo4KqUIpuaLah1kF6tyOCR-GtMHakxlHHKFAGk5OuRq8-lpjTib_4v2F1LftlSY4weh_4CmmWFuBlsvboVdoY75BbQZci-fY_sieaa25YpzJyxWUVl7X:1wHCpU:wuNqg-IUSWndvZcyDIFfzJNX3PjaxF7a0cubxCDvfhU', '2026-04-27 03:45:16.01139+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('9sxzxzddcv68lse3k7x26alqq8zuhtbz', '.eJxVj0tuAyEQRK8SsY5GgPmNd8k-km-AGho8JGOI-FiKotw9OPIi3r6qeur-JhZG3-xoodqE5EgYef7PHPiPkG8BvkM-l8WX3Gtyy62y3NO2vBUM--u9-yDYoG1zvao1eBBrFHTFg6MGGVcqCgQt0THjqBQGOCqkCqXkiuoQjYrU-wMTIU5ph21kO484Q4U8nZxyNXkLraWSbfnEvxfy2PdHmuECs_-Cl5RT6xV6qU-n0aDP-Q6tW_A9XVP_IkemteZKCyN_fgGUkV7m:1wHESc:f69TDPQsXIGIz_JqBkqI8yRWE3iOA2gShFekUsRYQEc', '2026-04-27 05:29:46.076687+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('p3a4gap66kw8hpffvvus7tg1a9j1t1ce', '.eJxVj0tuAyEQRK8SsY5GgBkYvEv2kXwD1NDgIRlDxMdSFPnuxpYX9vZV1VP3PzHQ22p69cVEJHvCyPszs-B-fLoF-A3pmCeXUyvRTrfK9Ejr9JXRb5-P7otghbqOtZbaOxA6CKpxZ-mCjEsZBIKa0bLF0lkswFEilTjPXFLlwyIDdW7HhA9D2mDtyYwjjlAgDSenXA5efa0xJ5N_8f5C6tv2ShOcYPQ_8BRTrK1Ay-Xt0Cu0Md-gNgOuxXNsf2TPlFJcci3Y5QqUeF7e:1wHDHJ:iEj9eANZncQW-XwU6PqlHEwFovUBJlC5eg2v6AGxDz0', '2026-04-27 04:14:01.763218+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('m4aqxiiiketist31sr1wgflfrakkuzu8', '.eJxVj8tOBCEQRX_FsDYdoHn17HRv4h-QgoJptAcMDxNj_HcZMwtne-69J1XfxMLoux0tVJuQnAgjj_-ZA_8e8jXAN8jnsviSe01uuVaWW9qWl4LheL517wQ7tH2uN7UFD2KLgm64OmqQcaWiQNASHTOOSmGAo0KqUEquqA7RqEi9X5kIcUo77CPbecQZKuTp5JSryVtoLZVsywf-vZDHcdzTDBeY_Se8pJxar9BLfXgdDfqcH9C6Bd_TZ-pf5MS01lyaVdCfX5R2Xtw:1wHC56:zxqK1ytUcXzbnaowaHIlYV_NYwu0YdUeifcSobb4GhA', '2026-04-27 02:57:20.788807+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('7135ppr0xr0r64e5awubdzm2fukuxr4g', '.eJxVj0FOBCEQRa9iWJsO0DR0z073Jt6AFBRMoz1gKDAxxrvLmFk42_f_f6n6ZhZ6222nUG1CdmKCPf5nDvx7yNcA3yCfy-RLbjW56VqZbilNLwXD8Xzr3gl2oH2sN70FD2qLim84O76ikFpHhWAWdGJ1fFErSNTINS6L1NyEuOrIvZ-FCnFIG-w923HEGSrk4ZRc6sEpEKWSbfnAvxdyP457muECo_-El5QTtQqt1IfXTtDG_ABqFnxLn6l9sZMwxgzvrOafX5RSXtg:1wGDjD:nhn3uSWUfsZ68Na0LxIPOJWpDRWiqRR3-iQQIdFeGy4', '2026-04-24 10:30:43.786428+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('3142ldbde32pv1w9oqy7q1bptuautszx', '.eJxVj8tOBCEQRX_FsDYdmqYLena6N_EPSEHBNNoDhoeJMf67jJmFsz333pOqb2awt9306ouJxE5sZo__mUX37tM1oDdM5zy5nFqJdrpWpltap5dM_ni-de8EO9Z9rDfYvEO5Bck3WizXNAuAIAnVSnbWlq9SoyAgDrSuArjyQUPgzi2z9GFIG-49mXHEGQum4RRcwODV1xpzMvmD_l5I_TjuacILjv4TXWKKtRVsuTy89optzA-szaBr8TO2L3aalVIC5KLh5xeUgF7j:1wHDec:WIg_mQroya3OxnwrRLHmqpWD9YubieKA1NPWeP7GwX0', '2026-04-27 04:38:06.8559+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('sa0z5orl3aa7jqfq4wxrbryf7z8sczng', '.eJxVj0tuAyEQRK8SsY5GwDAweGfvI-UGqKHBQzKGiE-kKPLdjSMv4u2rqqfuX2Kgt8306ouJSA6Ekdf_zIL79Oke4Aekc55cTq1EO90r0yOt01tGv58e3SfBBnUbay21dyB0EFTjbOmKjEsZBIJa0LLV0kWswFEilbgsXFLlwyoDdW5mwochbbD1ZMYRZyiQhpNTLgevvtaYk8lf-PdC6vv-TBNcYPSPeIkp1lag5fLy3iu0Md-hNgOuxe_YfsiBKaW41DNn1xuUfV7d:1wHEwE:sXIrkju3GyWfloKePA_2D54ETR_pXA1Z1zWrYNtPHl0', '2026-04-27 06:00:22.158225+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('ykj4x8kc2iz32e6exjiktkbnajcqx6vm', '.eJxVj0tuAyEQRK8SsY5GgPmNd8k-km-AGho8JGOI-FiKotw9OPIi3r6qeur-JhZG3-xoodqE5EgYef7PHPiPkG8BvkM-l8WX3Gtyy62y3NO2vBUM--u9-yDYoG1zvao1eBBrFHTFg6MGGVcqCgQt0THjqBQGOCqkCqXkiuoQjYrU-wMTIU5ph21kO484Q4U8nZxyNXkLraWSbfnEvxfy2PdHmuECs_-Cl5RT6xV6qU-n0aDP-Q6tW_A9XVP_IkemtebSaKl_fgGUl17o:1wHCBp:A2gbIkKQvt7YCGnS74PDlU0EytHA7ljTq4fM7rauElc', '2026-04-27 03:04:17.322522+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('7ssgkwesh6tkgjgvdlt14xbipirjag07', '.eJxVj0tuAyEQRK8SsY5GgPmNd8k-km-AGho8JGOI-FiKotw9OPIi3r6qeur-JhZG3-xoodqE5EgYef7PHPiPkG8BvkM-l8WX3Gtyy62y3NO2vBUM--u9-yDYoG1zvao1eBBrFHTFg6MGGVcqCgQt0THjqBQGOCqkCqXkiuoQjYrU-wMTIU5ph21kO484Q4U8nZxyNXkLraWSbfnEvxfy2PdHmuECs_-Cl5RT6xV6qU-n0aDP-Q6tW_A9XVP_IkemteaaSWl-fgGUel7i:1wHFWJ:HdSZ57nHZivDE2ibjRSVFOJyzr5lLeuVVVIznjRpKZo', '2026-04-27 06:37:39.097162+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('ii0hj6x53kxngjx43mrf7fugkgui1bbq', '.eJxVj0tuAyEQRK8SsY5GgBk-3iX7SL4BamjwkIwh4mMpinL34MiLePuq6qn7m1gYfbOjhWoTkiNh5Pk_c-A_Qr4F-A75XBZfcq_JLbfKck_b8lYw7K_37oNgg7bNtZEmeBAmCmrw4KhGxqWMAkGt6Jh2dBUaOEqkEteVS6pC1DJS7w9MhDilHbaR7TziDBXydHLK5eQttJZKtuUT_17IY98faYYLzP4LXlJOrVfopT6dRoM-5zu0bsH3dE39ixyZUoorpo36-QWUkF7o:1wHFbl:aZOYrzWD6jFUHllFeKTXGtiIIW9GbiwQoa5pEVILzPA', '2026-04-27 06:43:17.977801+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('c79hlkuo0w16f5tswooeyfd9tm07c7f9', '.eJxVj0tuAyEQRK8SsY5GgPnMeJfsI_kGqKHBQzKGiI-lKPLdjS0v7O2rqqfuf2Kgt9X06ouJSPaEkfdnZsH9-HQL8BvSMU8up1ainW6V6ZHW6Suj3z4f3RfBCnUd60Ut3oFYgqAL7iydkXGlgkDQEi2bLZViBo4KqUIpuaLah1kF6tyOCR-GtMHakxlHHKFAGk5OuRq8-lpjTib_4v2F1LftlSY4weh_4CmmWFuBlsvboVdoY75BbQZci-fY_sieaa25lkLLyxWUil7k:1wHGXT:jcnwCAjIK1aoqEsvRIUYZGvMckvumtRNf5S1qpQGqaY', '2026-04-27 07:42:55.864555+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('0b2usa644vzwtdvpghnucq2s1yev659s', '.eJxVj8tOBCEQRX_FsDYdoGkes9O9iX9ACgqm0R4wPEyM8d9lzCyc7bn3nlR9Ewuj73a0UG1CciKMPP5nDvx7yNcA3yCfy-JL7jW55VpZbmlbXgqG4_nWvRPs0Pa5NtIED8JEQQ2ujmpkXMooENSGjmlHN6GBo0Qqcdu4pCpELSP1fmUixCntsI9s5xFnqJCnk1MuJ2-htVSyLR_490Iex3FPM1xg9p_wknJqvUIv9eF1NOhzfkDrFnxPn6l_kRNTSnG1aml-fgGUlV7p:1wHG7Z:8KPDgMhmvinUz8RsflhJtxk4Ci8NsbBtlrWqYkOOTBo', '2026-04-27 07:16:09.400398+00');
 
 
 ALTER TABLE public.django_session ENABLE TRIGGER ALL;
@@ -419,6 +450,7 @@ INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (16, 'L
 INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (17, 'Penginapan', 'standard_penginapan_list', 6, 3);
 INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (18, 'Pesawat', 'standard_pesawat_list', 7, 3);
 INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (19, 'Uang Harian', 'standard_uang_harian_list', 8, 3);
+INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (23, 'Eselon', 'eselon_list', 6, 1);
 
 
 ALTER TABLE public.menus_submenu ENABLE TRIGGER ALL;
@@ -457,7 +489,62 @@ ALTER TABLE public.menus_rolepermission ENABLE TRIGGER ALL;
 
 ALTER TABLE public.profiles_opd DISABLE TRIGGER ALL;
 
-INSERT INTO public.profiles_opd (id, nama) VALUES (1, 'Badan Keuangan dan Aset Daerah');
+INSERT INTO public.profiles_opd (id, nama) VALUES (1, 'Dinas Pendidikan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (2, 'Dinas Kesehatan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (3, 'UPTD Rumah Sakit Umum Daerah H. Abdul Manan Simatupang');
+INSERT INTO public.profiles_opd (id, nama) VALUES (4, 'Dinas Pekerjaan Umum Dan Tata Ruang');
+INSERT INTO public.profiles_opd (id, nama) VALUES (5, 'Dinas Perumahan Dan Kawasan Permukiman');
+INSERT INTO public.profiles_opd (id, nama) VALUES (6, 'Badan Penanggulangan Bencana Daerah');
+INSERT INTO public.profiles_opd (id, nama) VALUES (7, 'Satuan Polisi Pamong Praja');
+INSERT INTO public.profiles_opd (id, nama) VALUES (8, 'Dinas Sosial');
+INSERT INTO public.profiles_opd (id, nama) VALUES (9, 'Dinas Ketenagakerjaan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (10, 'Dinas Ketahanan Pangan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (11, 'Dinas Lingkungan Hidup');
+INSERT INTO public.profiles_opd (id, nama) VALUES (12, 'Dinas Kependudukan Dan Pencatatan Sipil');
+INSERT INTO public.profiles_opd (id, nama) VALUES (13, 'Dinas Pemberdayaan Masyarakat Dan Desa');
+INSERT INTO public.profiles_opd (id, nama) VALUES (14, 'Dinas Pengendalian Penduduk, Keluarga Berencana, Pemberdayaan Perempuan Dan Perlindungan Anak');
+INSERT INTO public.profiles_opd (id, nama) VALUES (15, 'Dinas Perhubungan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (16, 'Dinas Komunikasi Dan Informatika');
+INSERT INTO public.profiles_opd (id, nama) VALUES (17, 'Dinas Koperasi, Perdagangan Dan Perindustrian');
+INSERT INTO public.profiles_opd (id, nama) VALUES (18, 'Dinas Penanaman Modal Dan Pelayanan Terpadu Satu Pintu');
+INSERT INTO public.profiles_opd (id, nama) VALUES (19, 'Dinas Pemuda, Olahraga Dan Pariwisata');
+INSERT INTO public.profiles_opd (id, nama) VALUES (20, 'Dinas Perpustakaan Dan Arsip');
+INSERT INTO public.profiles_opd (id, nama) VALUES (21, 'Dinas Perikanan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (22, 'Dinas Pertanian');
+INSERT INTO public.profiles_opd (id, nama) VALUES (23, 'Dinas Peternakan Dan Kesehatan Hewan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (24, 'Sekretariat Daerah');
+INSERT INTO public.profiles_opd (id, nama) VALUES (25, 'Sekretariat DPRD');
+INSERT INTO public.profiles_opd (id, nama) VALUES (26, 'Badan Perencanaan Pembangunan Riset dan Inovasi Daerah');
+INSERT INTO public.profiles_opd (id, nama) VALUES (27, 'Badan Keuangan Dan Aset Daerah');
+INSERT INTO public.profiles_opd (id, nama) VALUES (28, 'Badan Pendapatan Daerah');
+INSERT INTO public.profiles_opd (id, nama) VALUES (29, 'Badan Kepegawaian Dan Pengembangan Sumber Daya Manusia');
+INSERT INTO public.profiles_opd (id, nama) VALUES (30, 'Inspektorat');
+INSERT INTO public.profiles_opd (id, nama) VALUES (31, 'Badan Kesatuan Bangsa Dan Politik');
+INSERT INTO public.profiles_opd (id, nama) VALUES (32, 'Kecamatan Aek Kuasan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (33, 'Kecamatan Aek Ledong');
+INSERT INTO public.profiles_opd (id, nama) VALUES (34, 'Kecamatan Aek Songsongan');
+INSERT INTO public.profiles_opd (id, nama) VALUES (35, 'Kecamatan Air Batu');
+INSERT INTO public.profiles_opd (id, nama) VALUES (36, 'Kecamatan Air Joman');
+INSERT INTO public.profiles_opd (id, nama) VALUES (37, 'Kecamatan Bandar Pulau');
+INSERT INTO public.profiles_opd (id, nama) VALUES (38, 'Kecamatan Bandar Pasir Mandoge');
+INSERT INTO public.profiles_opd (id, nama) VALUES (39, 'Kecamatan Buntu Pane');
+INSERT INTO public.profiles_opd (id, nama) VALUES (40, 'Kecamatan Kota Kisaran Barat');
+INSERT INTO public.profiles_opd (id, nama) VALUES (41, 'Kecamatan Kota Kisaran Timur');
+INSERT INTO public.profiles_opd (id, nama) VALUES (42, 'Kecamatan Meranti');
+INSERT INTO public.profiles_opd (id, nama) VALUES (43, 'Kecamatan Pulau Rakyat');
+INSERT INTO public.profiles_opd (id, nama) VALUES (44, 'Kecamatan Pulo Bandring');
+INSERT INTO public.profiles_opd (id, nama) VALUES (45, 'Kecamatan Rahuning');
+INSERT INTO public.profiles_opd (id, nama) VALUES (46, 'Kecamatan Rawang Panca Arga');
+INSERT INTO public.profiles_opd (id, nama) VALUES (47, 'Kecamatan Sei Dadap');
+INSERT INTO public.profiles_opd (id, nama) VALUES (48, 'Kecamatan Sei Kepayang');
+INSERT INTO public.profiles_opd (id, nama) VALUES (49, 'Kecamatan Sei Kepayang Barat');
+INSERT INTO public.profiles_opd (id, nama) VALUES (50, 'Kecamatan Sei Kepayang Timur');
+INSERT INTO public.profiles_opd (id, nama) VALUES (51, 'Kecamatan Setia Janji');
+INSERT INTO public.profiles_opd (id, nama) VALUES (52, 'Kecamatan Silau Laut');
+INSERT INTO public.profiles_opd (id, nama) VALUES (53, 'Kecamatan Simpang Empat');
+INSERT INTO public.profiles_opd (id, nama) VALUES (54, 'Kecamatan Tanjung Balai');
+INSERT INTO public.profiles_opd (id, nama) VALUES (55, 'Kecamatan Teluk Dalam');
+INSERT INTO public.profiles_opd (id, nama) VALUES (56, 'Kecamatan Tinggi Raja');
 
 
 ALTER TABLE public.profiles_opd ENABLE TRIGGER ALL;
@@ -468,9 +555,6 @@ ALTER TABLE public.profiles_opd ENABLE TRIGGER ALL;
 
 ALTER TABLE public.profiles_userprofile DISABLE TRIGGER ALL;
 
-INSERT INTO public.profiles_userprofile (id, opd_id, role_id, user_id) VALUES (1, NULL, NULL, 1);
-INSERT INTO public.profiles_userprofile (id, opd_id, role_id, user_id) VALUES (2, 1, 1, 2);
-INSERT INTO public.profiles_userprofile (id, opd_id, role_id, user_id) VALUES (11, 1, 2, 7);
 
 
 ALTER TABLE public.profiles_userprofile ENABLE TRIGGER ALL;
@@ -951,13 +1035,11 @@ ALTER TABLE public.spd_standardpesawat ENABLE TRIGGER ALL;
 
 ALTER TABLE public.umum_jenisjabatan DISABLE TRIGGER ALL;
 
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (1, 'Kepala');
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (2, 'Plt.');
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (3, 'Plh.');
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (4, 'Sekretaris');
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (5, 'Kepala Bidang');
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (8, 'Bupati');
-INSERT INTO public.umum_jenisjabatan (id, nama) VALUES (10, 'Wakil Bupati');
+INSERT INTO public.umum_jenisjabatan (id, nama, fungsi, keterangan) VALUES (1, 'Defenitif', 'pejabat yang memegang jabatan secara tetap dan sah', 'Jabatan Tetap');
+INSERT INTO public.umum_jenisjabatan (id, nama, fungsi, keterangan) VALUES (2, 'Plt.', 'pejabat yang melaksanakan tugas rutin dari pejabat definitif yang berhalangan tetap', 'Pelaksana Tugas');
+INSERT INTO public.umum_jenisjabatan (id, nama, fungsi, keterangan) VALUES (3, 'Plh.', 'pejabat yang melaksanakan tugas rutin dari pejabat definitif yang berhalangan sementara', 'Pelaksana Harian');
+INSERT INTO public.umum_jenisjabatan (id, nama, fungsi, keterangan) VALUES (4, 'Pj.', 'menggantikan pejabat definitif kepala daerah yang berhalangan tetap', 'Penjabat');
+INSERT INTO public.umum_jenisjabatan (id, nama, fungsi, keterangan) VALUES (5, 'Pjs.', 'menggantikan pejabat definitif kepala daerah yang berhalangan sementara karena menjalankan cuti di luar tanggungan negara', 'Penjabat Sementara');
 
 
 ALTER TABLE public.umum_jenisjabatan ENABLE TRIGGER ALL;
@@ -968,12 +1050,6 @@ ALTER TABLE public.umum_jenisjabatan ENABLE TRIGGER ALL;
 
 ALTER TABLE public.spd_standardrepresentasi DISABLE TRIGGER ALL;
 
-INSERT INTO public.spd_standardrepresentasi (id, created_at, updated_at, biaya, dasar_peraturan_id, jenis_jabatan_id, jenis_spd_id) VALUES (1, '2026-04-24 10:20:28.943328+00', '2026-04-24 10:20:28.943352+00', 250000.00, 1, 8, 1);
-INSERT INTO public.spd_standardrepresentasi (id, created_at, updated_at, biaya, dasar_peraturan_id, jenis_jabatan_id, jenis_spd_id) VALUES (2, '2026-04-24 10:20:48.031928+00', '2026-04-24 10:20:48.03195+00', 250000.00, 1, 8, 2);
-INSERT INTO public.spd_standardrepresentasi (id, created_at, updated_at, biaya, dasar_peraturan_id, jenis_jabatan_id, jenis_spd_id) VALUES (3, '2026-04-24 10:21:36.414656+00', '2026-04-24 10:21:36.414677+00', 250000.00, 1, 10, 2);
-INSERT INTO public.spd_standardrepresentasi (id, created_at, updated_at, biaya, dasar_peraturan_id, jenis_jabatan_id, jenis_spd_id) VALUES (4, '2026-04-24 10:21:52.188733+00', '2026-04-24 10:21:52.188755+00', 250000.00, 1, 10, 1);
-INSERT INTO public.spd_standardrepresentasi (id, created_at, updated_at, biaya, dasar_peraturan_id, jenis_jabatan_id, jenis_spd_id) VALUES (5, '2026-04-24 10:22:11.802217+00', '2026-04-24 10:22:11.802241+00', 150000.00, 1, 1, 2);
-INSERT INTO public.spd_standardrepresentasi (id, created_at, updated_at, biaya, dasar_peraturan_id, jenis_jabatan_id, jenis_spd_id) VALUES (6, '2026-04-24 10:22:23.439972+00', '2026-04-24 10:22:23.440004+00', 150000.00, 1, 1, 1);
 
 
 ALTER TABLE public.spd_standardrepresentasi ENABLE TRIGGER ALL;
@@ -1314,16 +1390,52 @@ INSERT INTO public.spd_standarduangharian (id, created_at, updated_at, satuan, b
 ALTER TABLE public.spd_standarduangharian ENABLE TRIGGER ALL;
 
 --
+-- Data for Name: umum_eselon; Type: TABLE DATA; Schema: public; Owner: raselstr
+--
+
+ALTER TABLE public.umum_eselon DISABLE TRIGGER ALL;
+
+INSERT INTO public.umum_eselon (id, eselon, keterangan) VALUES (1, 'I', 'Eselon I');
+INSERT INTO public.umum_eselon (id, eselon, keterangan) VALUES (2, 'II', 'Eselon II');
+INSERT INTO public.umum_eselon (id, eselon, keterangan) VALUES (3, 'III', 'Eselon III');
+INSERT INTO public.umum_eselon (id, eselon, keterangan) VALUES (4, 'IV', 'Eselon IV');
+
+
+ALTER TABLE public.umum_eselon ENABLE TRIGGER ALL;
+
+--
 -- Data for Name: umum_pangkat; Type: TABLE DATA; Schema: public; Owner: raselstr
 --
 
 ALTER TABLE public.umum_pangkat DISABLE TRIGGER ALL;
 
-INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (1, 'Pengatur Muda', 'III', 'a');
-INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (2, 'Juru Muda', 'I', 'a');
-INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (3, 'Juru Muda Tingkat I', 'I', 'b');
-INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (4, 'Juru', 'II', 'a');
-INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (5, 'Juru Tingkat I', 'II', 'b');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (1, 'Juru Muda', 'I', 'a');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (2, 'Juru Muda Tk.  I', 'I', 'b');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (3, 'Juru', 'I', 'c');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (4, 'Juru Tk.  I', 'I', 'd');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (5, 'Pengatur Muda', 'II', 'a');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (6, 'Pengatur Muda Tk.  I', 'II', 'b');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (7, 'Pengatur', 'II', 'c');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (8, 'Pengatur Tk. I', 'II', 'd');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (9, 'Penata Muda', 'III', 'a');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (10, 'Penata Muda Tk.  I', 'III', 'b');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (11, 'Penata', 'III', 'c');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (12, 'Penata Tk.  I', 'III', 'd');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (13, 'Pembina', 'IV', 'a');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (14, 'Pembina Tk.  I', 'IV', 'b');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (15, 'Pembina Utama Muda', 'IV', 'c');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (16, 'Pembina Utama Madya', 'IV', 'd');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (17, 'Pembina Utama', 'IV', 'e');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (18, 'Pemula', 'V', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (19, 'Terampil', 'VI', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (20, 'Terampil', 'VII', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (21, 'Mahir', 'IX', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (22, 'Penyelia', 'X', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (23, 'Ahli Muda', 'XI', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (24, 'Lektor', 'XII', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (25, 'Ahli Madya', 'XIII', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (26, 'Lektor Kepala', 'XIV', '');
+INSERT INTO public.umum_pangkat (id, pangkat, golongan, ruang) VALUES (27, 'Ahli Utama', 'XVI', '');
 
 
 ALTER TABLE public.umum_pangkat ENABLE TRIGGER ALL;
@@ -1335,6 +1447,8 @@ ALTER TABLE public.umum_pangkat ENABLE TRIGGER ALL;
 ALTER TABLE public.umum_statusasn DISABLE TRIGGER ALL;
 
 INSERT INTO public.umum_statusasn (id, nama) VALUES (1, 'PNS');
+INSERT INTO public.umum_statusasn (id, nama) VALUES (2, 'PPPK');
+INSERT INTO public.umum_statusasn (id, nama) VALUES (3, 'PPPKPW');
 
 
 ALTER TABLE public.umum_statusasn ENABLE TRIGGER ALL;
@@ -1345,16 +1459,54 @@ ALTER TABLE public.umum_statusasn ENABLE TRIGGER ALL;
 
 ALTER TABLE public.umum_pegawai DISABLE TRIGGER ALL;
 
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (31, '53543543554', 'sfsdfsd', 'gdf', '2026-04-17', 4, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (32, '6765676', 'sfsdfsd', 'hgfh', '2026-03-30', 1, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (10, '765765765', 'ytuytu', 'fgfsd', '2026-04-16', 2, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (9, '2353', 'sfsdfsd', 'tryr', '2026-04-03', 1, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (8, '678678', 'hgf', 'dada', '2026-04-08', 1, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (7, '43534', 'rtettre', 'rt', '2026-04-08', 2, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (5, '45545', 'gggggggggggg', 'gfdg', '2026-04-14', 1, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (4, '53543543', 'ppppppppppp', 'uuuuuuuuuuuuuuu', '2026-04-16', 2, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (2, '2', 'aaaaaaaaaa', 'gggggggggg', '2026-04-16', 1, 1, 1, 1, NULL);
-INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id) VALUES (1, '1', 'lllllllllllllllll', 'yyyy', '2026-04-16', 1, 1, 1, 1, 2);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (1, '197305071992032001', 'Sri Lusi Masdiany, S.I.P.                                            ', 'Sekretaris Badan Keuangan dan Aset Daerah', '1973-05-07', 1, 27, 14, 1, 3, 3);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (2, '198004212009011002', 'M. Idris S.Pd.I, M.Si.', 'Kabid Aset', '1980-04-21', 1, 27, 12, 1, 3, 3);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (3, '197604072009031002', 'Chairun Nasri Hutagaol, S.E.', 'Kabid Perbendaharaan', '1976-04-07', 1, 27, 13, 1, 3, 3);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (4, '199408012018081001', 'Ashdillah Putra, S.Stp.', 'Kabid Anggaran', '1994-08-01', 1, 27, 11, 1, 3, 3);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (5, '198302172002121004', 'Herdi Siagian, S.H.                                 ', 'Kabid Akuntansi dan Pelaporan', '1983-02-17', 1, 27, 13, 1, 3, 3);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (6, '196904241989032005', 'Nilawati, S.H.                                          ', 'Analis Perencana Muda', '1969-04-24', 1, 27, 12, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (7, '197210301993032004', 'Sumarmiati, S.E.                                    ', 'Kasubbid Perbendaharaan', '1972-10-30', 1, 27, 12, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (8, '197902232000032002', 'Elvirawati,  S.E.                                          ', 'Kasubbid Akuntansi dan Pelaporan Penerimaan', '1979-02-23', 1, 27, 12, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (9, '197807152009011004', 'Budi Syahriza, S.H.                  ', 'Kasubbid Akuntansi dan Pelaporan Pengeluaran', '1978-07-15', 1, 27, 11, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (10, '197807222009032003', 'Dwi Priyayi Sugesti, S.E.                       ', 'Kasubbid Pencatatan, Pelaporan dan Analisa Kebutuhan Barang Daerah', '1978-07-22', 1, 27, 12, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (11, '196806011993032002', 'Vera Yuninda                                ', 'Kasubbag Umum Dan Kepegawaian', '1968-06-01', 1, 27, 12, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (12, '197604142009032002', 'Erna Komalasari, S.T.                                     ', 'Kasubbid Pemeliharaan dan Penghapusan', '1976-04-14', 1, 27, 11, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (13, '198309142005022001', 'Lusy Elidha, S.E.                                  ', 'Kasubbid Pengelolaan Kas', '1983-09-14', 1, 27, 12, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (14, '198004132009011003', 'Afri Chandra Kirana, S.E.                               ', 'Kasubbid Anggaran I', '1980-04-13', 1, 27, 11, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (15, '198405182010012008', 'Kusuma Aprina Siagian, S.E.                                 ', 'Kasubbid Anggaran II', '1984-05-18', 1, 27, 10, 1, 4, 4);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (16, '198109022009012004', 'Kamis Riati                              ', 'Pengelola Data Dan Informasi', '1981-09-02', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (17, '198112072009011004', 'Guslan Harahap, S.M.                                        ', 'Penelaah Teknis Kebijakan', '1981-12-07', NULL, 27, 8, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (18, '196806031992032004', 'Nurhamidah Siregar                                     ', 'Pengelola Data Dan Informasi', '1968-06-03', NULL, 27, 10, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (19, '198105062010011004', 'Irvan Syahputra, S.M.                                 ', 'Pengelola Data Dan Informasi', '1981-05-06', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (20, '198606082009032007', 'Nasiah, S.E.                                                 ', 'Penelaah Teknis Kebijakan', '1986-06-08', NULL, 27, 12, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (21, '198404292010011002', 'Firmansyah Tarigan S                                    ', 'Administrasi Perkantoran', '1984-04-29', NULL, 27, 8, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (22, '197507212009012003', 'Nuraini, S. Sos                                       ', 'Penelaah Teknis Kebijakan', '1975-07-21', NULL, 27, 12, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (23, '197806052009012003', 'Yulita Elfika Siregar, S.E.                                    ', 'Penelaah Teknis Kebijakan', '1978-06-05', NULL, 27, 11, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (24, '197410282008012002', 'Rosdawaty, S.E.                                               ', 'Pengelola Data Dan Informasi', '1974-10-28', NULL, 27, 11, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (25, '198309292011011013', 'Rahmad Saleh Sitorus, S.Kom.                   ', 'Pengelola Data Dan Informasi', '1983-09-29', NULL, 27, 10, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (26, '198010262009011002', 'Hendrik , S.M.                                            ', 'Administrasi Perkantoran', '1980-10-26', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (27, '197210262008011001', 'Muh. Arfi                                                      ', 'Administrasi Perkantoran', '1972-10-26', NULL, 27, 5, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (28, '197811012005022001', 'Herlin Tanujaya, S.E.', 'Penelaah Teknis Kebijakan', '1978-11-01', NULL, 27, 12, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (29, '197009122002122004', 'Rosmidawati, S.E.                                 ', 'Penelaah Teknis Kebijakan', '1970-09-12', NULL, 27, 12, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (30, '198206262010012001', 'T. Dhani Vaulina                                 ', 'Penelaah Teknis Kebijakan', '1982-06-26', NULL, 27, 10, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (31, '198101122009011004', 'Muhammad Syafri                                      ', 'Pengelola Data Dan Informasi', '1981-01-12', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (32, '196812061989032005', 'Heryanti, S.H.                                     ', 'Penelaah Teknis Kebijakan', '1968-12-06', NULL, 27, 12, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (33, '197808142005022002', 'Rubiah, S.S.                                      ', 'Pengelola Data Dan Informasi', '1978-08-14', NULL, 27, 11, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (34, '198805202022031001', 'Eddy Haris Siregar, S.E.', 'Penelaah Teknis Kebijakan', '1988-05-20', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (35, '199611242025062003', 'Dessy Permatasari, S.Ak.', 'Analis Keuangan Pusat Dan Daerah Ahli Pertama', '1996-11-24', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (36, '200203022025062003', 'Pratiwi, S.Ak.', 'Analis Keuangan Pusat Dan Daerah Ahli Pertama', '2002-03-02', NULL, 27, 9, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (37, '197303262006041006', 'Irwan', 'Administrasi Perkantoran', '1973-03-26', NULL, 27, 7, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (39, '197403092025212002', 'Nani Susanti', 'Pengadministrasi Pekantoran', '1974-03-09', NULL, 27, 18, 2, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (40, '198508312025212011', 'Tri Eva Yanti', 'Pengadministrasi Pekantoran', '1985-08-31', NULL, 27, 18, 2, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (41, '199612312025212019', 'Dinda Khofifah', 'Pengelola Layanan Operasional', '1996-12-31', NULL, 27, 20, 2, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (42, '198404142025211024', 'Tri Agung Anugerah', 'Penata Layanan Operasional', '1984-04-14', NULL, 27, 21, 2, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (43, '198303262025212016', 'Tuti Mulyani', 'Pengadministrasi Pekantoran', '1983-03-26', NULL, 27, 18, 2, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (44, '198208112025211058', 'Muhammad.Arif Effendi, S.E.', 'Penata Layanan Operasional', '1982-08-11', NULL, 27, NULL, 3, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (38, '197903252008011002', 'Oman Surahman                                          ', 'Pengelola Data Dan Informasi', '1979-03-25', NULL, 27, 5, 1, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (45, '198703072025211140', 'M.Yusuf Butar Butar', 'Penata Layanan Operasional', '1987-03-07', NULL, 27, NULL, 3, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (46, '199009292025212132', 'Lisa Maya Sarie', 'Operator Layanan Operasional', '1990-09-29', NULL, 27, NULL, 3, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (47, '199501172025212059', 'Thivani Amanda Tanjung', 'Operator Layanan Operasional', '1995-01-17', NULL, 27, NULL, 3, 4, NULL);
+INSERT INTO public.umum_pegawai (id, nip, nama, jabatan, tgl_lahir, jenis_jabatan_id, opd_id, pangkat_id, status_id, tingkat_id, eselon_id) VALUES (48, '197305071992032001', 'Sri Lusi Masdiany, S.I.P.', 'Plt. Kepala Badan Keuangan dan Aset Daerah', '1973-05-07', 2, 27, 14, 1, 2, 2);
 
 
 ALTER TABLE public.umum_pegawai ENABLE TRIGGER ALL;
@@ -1365,7 +1517,9 @@ ALTER TABLE public.umum_pegawai ENABLE TRIGGER ALL;
 
 ALTER TABLE public.umum_penandatangan DISABLE TRIGGER ALL;
 
-INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (1, 'sfsdfsd', NULL, 'Bupati Asahan', 8, NULL, NULL);
+INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (1, 'Taufik Zainal Abidin', NULL, 'Bupati Asahan', 1, NULL, NULL);
+INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (2, 'Rianto', NULL, 'Wakil Bupati Asahan', 1, NULL, NULL);
+INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (3, 'Sri Lusi Masdiany, S.I.P.', '197305071992032001', 'Kepala', 2, 27, 14);
 
 
 ALTER TABLE public.umum_penandatangan ENABLE TRIGGER ALL;
@@ -1388,7 +1542,7 @@ SELECT pg_catalog.setval('public.auth_group_permissions_id_seq', 1, false);
 -- Name: auth_permission_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.auth_permission_id_seq', 138, true);
+SELECT pg_catalog.setval('public.auth_permission_id_seq', 142, true);
 
 
 --
@@ -1423,14 +1577,14 @@ SELECT pg_catalog.setval('public.django_admin_log_id_seq', 37, true);
 -- Name: django_content_type_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.django_content_type_id_seq', 51, true);
+SELECT pg_catalog.setval('public.django_content_type_id_seq', 52, true);
 
 
 --
 -- Name: django_migrations_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.django_migrations_id_seq', 69, true);
+SELECT pg_catalog.setval('public.django_migrations_id_seq', 78, true);
 
 
 --
@@ -1451,14 +1605,14 @@ SELECT pg_catalog.setval('public.menus_rolepermission_id_seq', 6, true);
 -- Name: menus_submenu_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.menus_submenu_id_seq', 22, true);
+SELECT pg_catalog.setval('public.menus_submenu_id_seq', 23, true);
 
 
 --
 -- Name: profiles_opd_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.profiles_opd_id_seq', 1, true);
+SELECT pg_catalog.setval('public.profiles_opd_id_seq', 56, true);
 
 
 --
@@ -1472,7 +1626,7 @@ SELECT pg_catalog.setval('public.profiles_role_id_seq', 2, true);
 -- Name: profiles_userprofile_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.profiles_userprofile_id_seq', 11, true);
+SELECT pg_catalog.setval('public.profiles_userprofile_id_seq', 1, false);
 
 
 --
@@ -1528,7 +1682,7 @@ SELECT pg_catalog.setval('public.spd_standardpesawat_id_seq', 1, false);
 -- Name: spd_standardrepresentasi_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.spd_standardrepresentasi_id_seq', 6, true);
+SELECT pg_catalog.setval('public.spd_standardrepresentasi_id_seq', 1, false);
 
 
 --
@@ -1546,38 +1700,45 @@ SELECT pg_catalog.setval('public.spd_standarduangharian_id_seq', 214, true);
 
 
 --
+-- Name: umum_eselon_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
+--
+
+SELECT pg_catalog.setval('public.umum_eselon_id_seq', 4, true);
+
+
+--
 -- Name: umum_jenisjabatan_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.umum_jenisjabatan_id_seq', 10, true);
+SELECT pg_catalog.setval('public.umum_jenisjabatan_id_seq', 5, true);
 
 
 --
 -- Name: umum_pangkat_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.umum_pangkat_id_seq', 5, true);
+SELECT pg_catalog.setval('public.umum_pangkat_id_seq', 27, true);
 
 
 --
 -- Name: umum_pegawai_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.umum_pegawai_id_seq', 32, true);
+SELECT pg_catalog.setval('public.umum_pegawai_id_seq', 48, true);
 
 
 --
 -- Name: umum_penandatangan_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.umum_penandatangan_id_seq', 5, true);
+SELECT pg_catalog.setval('public.umum_penandatangan_id_seq', 3, true);
 
 
 --
 -- Name: umum_statusasn_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.umum_statusasn_id_seq', 1, true);
+SELECT pg_catalog.setval('public.umum_statusasn_id_seq', 3, true);
 
 
 --
@@ -1591,5 +1752,5 @@ SELECT pg_catalog.setval('public.umum_tingkat_id_seq', 4, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 8ahFcm9XNATcDhMkdajnVbk8IaZvXfUX0OLPrSPAVgy1qTaNZMB8VchQKczUSZY
+\unrestrict 0idOijcgiLLpbDRMM4JKMRO4vmhom0xebadYk6sNMhmIsoAYkQZYs8yleeUN4Uj
 

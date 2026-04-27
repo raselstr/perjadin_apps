@@ -62,6 +62,7 @@ class PegawaiForm(forms.ModelForm):
             'nama': forms.TextInput(attrs={'class': 'form-control'}),
             'pangkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Pangkat'}),
             'jabatan': forms.TextInput(attrs={'class': 'form-control'}),
+            'eselon': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Eselon'}),
             'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Jenis Jabatan'}),
             'status': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Status'}),
             'tgl_lahir': forms.DateInput(attrs={

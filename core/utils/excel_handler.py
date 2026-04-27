@@ -203,7 +203,7 @@ class ExcelImporter:
                     if str(value).isdigit():
                         obj = related_model.objects.get(id=int(value))
                     else:
-                        name_fields = ['nama', 'name', 'title', 'pangkat', 'jabatan']
+                        name_fields = ['nama', 'name', 'title', 'pangkat', 'jabatan', 'eselon', 'tingkat']
                         obj = None
 
                         for name_field in name_fields:

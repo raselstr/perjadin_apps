@@ -116,8 +116,18 @@ class BaseCRUDView(ExcelMixin, ListView):
             filters |= Q(nip__icontains=search)
         if 'jabatan' in field_names:
             filters |= Q(jabatan__icontains=search)
+        if 'pangkat' in field_names:
+            filters |= Q(pangkat__pangkat__icontains=search)
+        if 'eselon' in field_names:
+            filters |= Q(eselon__eselon__icontains=search)
         if 'jenis_jabatan' in field_names:
             filters |= Q(jenis_jabatan__nama__icontains=search)
+        if 'status' in field_names:
+            filters |= Q(status__nama__icontains=search)
+        if 'opd' in field_names:
+            filters |= Q(opd__nama__icontains=search)
+        if 'tingkat' in field_names:
+            filters |= Q(tingkat__tingkat__icontains=search)
         if 'tugas' in field_names:
             filters |= Q(tugas__icontains=search)
         if 'url' in field_names:

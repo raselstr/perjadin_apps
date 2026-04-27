@@ -58,7 +58,7 @@ class Tingkat(models.Model):
         return f"{self.tingkat}"
 
 class Pegawai(models.Model):
-    nip = models.CharField(max_length=30, unique=True)
+    nip = models.CharField(max_length=30)
     nama = models.CharField(max_length=200)
 
     pangkat = models.ForeignKey(
@@ -74,7 +74,7 @@ class Pegawai(models.Model):
         Eselon,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
+        default="",
         related_name='pegawai'
     )
 
@@ -82,7 +82,7 @@ class Pegawai(models.Model):
         JenisJabatan,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True,
+        default="",
         related_name='pegawai'
     )
 
@@ -115,6 +115,12 @@ class Pegawai(models.Model):
 
     class Meta:
         ordering = ['id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['nip', 'eselon', 'jenis_jabatan'],
+                name='unique_pegawai_nip_eselon_jenis_jabatan'
+            )
+        ]
 
     def __str__(self):
         return f"{self.nama} ({self.nip})"
@@ -162,4 +168,3 @@ class Penandatangan(models.Model):
 
     def __str__(self):
         return f"{self.nama} - {self.tugas} - {self.opd}"
-
