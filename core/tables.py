@@ -1,5 +1,5 @@
 import django_tables2 as tables
-
+from django.utils.html import format_html
 from core.utils.formatting import format_indonesian_number, is_money_identifier
 
 
@@ -25,6 +25,27 @@ def _append_css_class(attrs, section, class_name):
 
     section_attrs["class"] = " ".join(filter(None, existing_classes))
 
+
+def render_numbered_list(queryset, attr_name):
+    """
+    Menampilkan data sebagai daftar bernomor (ordered list)
+
+    Contoh:
+    render_numbered_list(record.pelaksana.all(), "nama")
+    """
+
+    if not queryset.exists():
+        return "-"
+
+    items = "".join([
+        f"<li>{getattr(item, attr_name, '-')}</li>"
+        for item in queryset
+    ])
+
+    return format_html(
+        '<ol style="margin:0; padding-left:20px; text-align:left;">{}</ol>',
+        format_html(items)
+    )
 
 class BaseTable(tables.Table):
     no = tables.Column(empty_values=(), verbose_name="No", orderable=False)
@@ -66,6 +87,7 @@ class BaseTable(tables.Table):
             return number + (page.number - 1) * page.paginator.per_page
 
         return number
+
 
     class Meta:
         template_name = "django_tables2/bootstrap5.html"

@@ -41,6 +41,10 @@ class Spt(models.Model):
         blank=True,
         null=True,
     )
+    tempat_tujuan = models.TextField(
+        blank=True,
+        null=True
+    )
 
     lama_perjalanan = models.IntegerField(
         choices=HARI_CHOICES

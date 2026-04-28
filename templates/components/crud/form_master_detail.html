@@ -1,150 +1,240 @@
 <div class="modal-header">
-  <h5 class="modal-title">{{ title }}</h5>
-  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <h5 class="modal-title">{{ title }}</h5>
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="modal">
+    </button>
 </div>
 
-<form method="post"
-      action="{{ request.path }}"
-      hx-post="{{ request.path }}"
-      hx-target="#modal-body"
-      hx-swap="none">
+<form
+    method="post"
+    action="{{ request.path }}"
+    hx-post="{{ request.path }}"
+    hx-target="#modal-body"
+    hx-swap="innerHTML"
+>
 
-  {% csrf_token %}
+    {% csrf_token %}
 
-  <div class="modal-body">
+    <div class="modal-body">
 
-    {% if form.non_field_errors %}
-      <div class="alert alert-danger">
-        {{ form.non_field_errors }}
-      </div>
-    {% endif %}
+        {# ============================= #}
+        {# ERROR FORM UTAMA #}
+        {# ============================= #}
 
-    <div class="row g-3">
-
-      {# ========================= #}
-      {# FORM SPT #}
-      {# ========================= #}
-
-      {% for field in form %}
-        <div class="col-md-12">
-          <label class="form-label">{{ field.label }}</label>
-          {{ field }}
-
-          {% if field.errors %}
-            <div class="text-danger small mt-1">
-              {{ field.errors|striptags }}
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {{ form.non_field_errors }}
             </div>
-          {% endif %}
+        {% endif %}
+
+        {# ============================= #}
+        {# FORM SPT #}
+        {# ============================= #}
+
+        <div class="row g-3">
+
+            {% for field in form %}
+
+                {% if field.is_hidden %}
+                    {{ field }}
+
+                {% else %}
+
+                    <div class="
+                        {% if field.name == 'tempat_tujuan' or field.name == 'dasar' or field.name == 'berita' %}
+                            col-md-12
+                        {% else %}
+                            col-md-6
+                        {% endif %}
+                    ">
+
+                        <label class="form-label">
+                            {{ field.label }}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ field.errors|striptags }}
+                            </div>
+                        {% endif %}
+
+                    </div>
+
+                {% endif %}
+
+            {% endfor %}
+
         </div>
-      {% endfor %}
+
+        <hr class="my-4">
+
+        {# ============================= #}
+        {# FORMSET PELAKSANA #}
+        {# ============================= #}
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Pelaksana</h5>
+
+            <button
+                type="button"
+                class="btn btn-sm btn-primary"
+                onclick="addFormsetRow()">
+                + Tambah Pelaksana
+            </button>
+        </div>
+
+        {{ formset.management_form }}
+
+        <div id="formset-container">
+
+            {% for child_form in formset %}
+                <div class="formset-row border rounded p-3 mb-3 bg-light">
+
+                    {{ child_form.id }}
+
+                    <div class="row g-3 align-items-end">
+
+                        <div class="col-md-10">
+
+                            <label class="form-label">
+                                {{ child_form.nama.label }}
+                            </label>
+
+                            {{ child_form.nama }}
+
+                            {% if child_form.nama.errors %}
+                                <div class="text-danger small mt-1">
+                                    {{ child_form.nama.errors|striptags }}
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                        <div class="col-md-2">
+
+                            {% if child_form.DELETE %}
+                                <div class="form-check">
+                                    {{ child_form.DELETE }}
+                                    <label class="form-check-label">
+                                        Hapus
+                                    </label>
+                                </div>
+                            {% endif %}
+
+                        </div>
+
+                    </div>
+
+                </div>
+            {% endfor %}
+
+        </div>
 
     </div>
 
-    <hr>
+    <div class="modal-footer">
 
-    <h5>Pelaksana</h5>
+        <button
+            type="submit"
+            class="btn btn-success">
+            💾 Simpan
+        </button>
 
-    {# ========================= #}
-    {# FORMSET WAJIB #}
-    {# ========================= #}
-
-    {% if formset.non_form_errors %}
-      <div class="alert alert-danger">
-        {{ formset.non_form_errors }}
-      </div>
-    {% endif %}
-
-    {{ formset.management_form }}
-
-    {% for f in formset %}
-      <div class="border rounded p-3 mb-3">
-
-        {% for hidden in f.hidden_fields %}
-          {{ hidden }}
-        {% endfor %}
-
-        {% if f.non_field_errors %}
-          <div class="alert alert-danger py-2">
-            {{ f.non_field_errors }}
-          </div>
-        {% endif %}
-
-        {% for field in f.visible_fields %}
-          {% if field.name != "DELETE" %}
-            <div class="mb-2">
-              <label class="form-label">
-                {{ field.label }}
-              </label>
-
-              {{ field }}
-
-              {% if field.errors %}
-                <div class="text-danger small">
-                  {{ field.errors|striptags }}
-                </div>
-              {% endif %}
-            </div>
-          {% endif %}
-        {% endfor %}
-
-        {% if f.instance.pk and f.DELETE %}
-          <div class="form-check">
-            {{ f.DELETE }}
-            <label class="form-check-label">
-              Hapus pelaksana ini
-            </label>
-          </div>
-        {% endif %}
-
-      </div>
-    {% endfor %}
-
-  </div>
-
-  <div class="modal-footer">
-    <button type="submit" class="btn btn-success">
-      💾 Simpan
-    </button>
-
-    <button type="button"
+        <button
+            type="button"
             class="btn btn-secondary"
             data-bs-dismiss="modal">
-      Batal
-    </button>
-  </div>
-  <script>
-  (function () {
-    const form = document.currentScript.closest('form');
-    const departureInput = form?.querySelector('[name="tgl_berangkat"]');
-    const durationInput = form?.querySelector('[name="lama_perjalanan"]');
-    const returnInput = form?.querySelector('[name="tgl_kembali"]');
+            Batal
+        </button>
 
-    if (!departureInput || !durationInput || !returnInput) {
-      return;
-    }
+    </div>
 
-    function updateReturnDate() {
-      if (!departureInput.value || !durationInput.value) {
-        returnInput.value = '';
-        return;
-      }
-
-      const departureDate = new Date(`${departureInput.value}T00:00:00`);
-      const duration = Number.parseInt(durationInput.value, 10);
-
-      if (Number.isNaN(departureDate.getTime()) || Number.isNaN(duration) || duration < 1) {
-        returnInput.value = '';
-        return;
-      }
-
-      departureDate.setDate(departureDate.getDate() + duration - 1);
-      returnInput.value = departureDate.toISOString().split('T')[0];
-    }
-
-    departureInput.addEventListener('change', updateReturnDate);
-    departureInput.addEventListener('input', updateReturnDate);
-    durationInput.addEventListener('change', updateReturnDate);
-    updateReturnDate();
-  })();
-  </script>
 </form>
+
+
+<script>
+(function () {
+
+    function hitungTanggalKembali() {
+        const tglBerangkat = document.getElementById("id_tgl_berangkat");
+        const lamaPerjalanan = document.getElementById("id_lama_perjalanan");
+        const tglKembali = document.getElementById("id_tgl_kembali");
+
+        if (!tglBerangkat || !lamaPerjalanan || !tglKembali) return;
+
+        const startDate = tglBerangkat.value;
+        const duration = parseInt(lamaPerjalanan.value || 0);
+
+        if (startDate && duration > 0) {
+            let date = new Date(startDate);
+
+            // 1 hari = hari yang sama
+            date.setDate(date.getDate() + (duration - 1));
+
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+
+            tglKembali.value = `${year}-${month}-${day}`;
+        } else {
+            tglKembali.value = "";
+        }
+    }
+
+    function initTanggalKembali() {
+        const tglBerangkat = document.getElementById("id_tgl_berangkat");
+        const lamaPerjalanan = document.getElementById("id_lama_perjalanan");
+
+        if (!tglBerangkat || !lamaPerjalanan) return;
+
+        tglBerangkat.removeEventListener("change", hitungTanggalKembali);
+        lamaPerjalanan.removeEventListener("change", hitungTanggalKembali);
+
+        tglBerangkat.addEventListener("change", hitungTanggalKembali);
+        lamaPerjalanan.addEventListener("change", hitungTanggalKembali);
+
+        hitungTanggalKembali();
+    }
+
+    window.addFormsetRow = function () {
+        const totalForms = document.getElementById("id_pelaksana-TOTAL_FORMS");
+        const container = document.getElementById("formset-container");
+        const firstForm = container.querySelector(".formset-row");
+
+        if (!totalForms || !firstForm) return;
+
+        const formIndex = parseInt(totalForms.value);
+
+        const newForm = firstForm.cloneNode(true);
+
+        newForm.innerHTML = newForm.innerHTML.replace(
+            /pelaksana-(\d+)-/g,
+            `pelaksana-${formIndex}-`
+        );
+
+        newForm.querySelectorAll("input, select, textarea").forEach(function (el) {
+            if (el.type === "checkbox") {
+                el.checked = false;
+            } else if (el.type !== "hidden") {
+                el.value = "";
+            }
+        });
+
+        container.appendChild(newForm);
+        totalForms.value = formIndex + 1;
+    };
+
+    document.addEventListener("DOMContentLoaded", initTanggalKembali);
+
+    document.body.addEventListener("htmx:afterSwap", function (evt) {
+        if (evt.target.id === "modal-body") {
+            initTanggalKembali();
+        }
+    });
+
+})();
+</script>

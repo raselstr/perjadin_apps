@@ -1,0 +1,236 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Surat Perjalanan Dinas (SPD)</title>
+    <style>
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 14px;
+            margin: 20px;
+            color: #000;
+        }
+
+        .header {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .header-table td {
+            vertical-align: middle;
+        }
+
+        .logo-box {
+            width: 90px;
+            height: 55px;
+            border: 1px solid #000;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .meta {
+            width: 100%;
+            margin-top: 8px;
+            margin-bottom: 10px;
+        }
+
+        .meta td {
+            padding: 2px 0;
+        }
+
+        .spd-title {
+            text-align: center;
+            font-weight: bold;
+            text-decoration: underline;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+
+        table.main {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table.main td {
+            border: 1px solid #000;
+            padding: 4px 6px;
+            vertical-align: top;
+        }
+
+        .no {
+            width: 40px;
+            text-align: center;
+        }
+
+        .footer {
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .signature {
+            width: 45%;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <table class="header-table">
+        <tr>
+            <td width="20%">
+                <div class="logo-box">Logo<br>Daerah</div>
+            </td>
+            <td width="80%" class="title">
+                KOP NASKAH DINAS<br>
+                PERANGKAT DAERAH
+            </td>
+        </tr>
+    </table>
+</div>
+
+<table class="meta">
+    <tr>
+        <td width="60%"></td>
+        <td>Lembar ke</td>
+        <td>: ................................</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>Kode No</td>
+        <td>: ................................</td>
+    </tr>
+    <tr>
+        <td></td>
+        <td>Nomor</td>
+        <td>: {{ spt.nomor_spt }}</td>
+    </tr>
+</table>
+
+<div class="spd-title">SURAT PERJALANAN DINAS (SPD)</div>
+
+<table class="main">
+    <tr>
+        <td class="no">1</td>
+        <td>Pejabat Pembuat Komitmen</td>
+        <td>{{ ppk|default:"-" }}</td>
+    </tr>
+
+    <tr>
+        <td class="no">2</td>
+        <td>Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
+        <td>
+            {% for item in spt.pelaksana.all %}
+                {{ forloop.counter }}. {{ item.nama }}<br>
+            {% empty %}
+                -
+            {% endfor %}
+        </td>
+    </tr>
+
+    <tr>
+        <td class="no">3</td>
+        <td>
+            a. Pangkat dan Golongan<br>
+            b. Jabatan / Instansi<br>
+            c. Tingkat Biaya Perjalanan Dinas
+        </td>
+        <td>
+            a. -<br>
+            b. -<br>
+            c. -
+        </td>
+    </tr>
+
+    <tr>
+        <td class="no">4</td>
+        <td>Maksud Perjalanan Dinas</td>
+        <td>{{ spt.berita|default:"-" }}</td>
+    </tr>
+
+    <tr>
+        <td class="no">5</td>
+        <td>Alat Angkutan yang dipergunakan</td>
+        <td>{{ spt.get_kendaraan_display|default:"-" }}</td>
+    </tr>
+
+    <tr>
+        <td class="no">6</td>
+        <td>
+            a. Tempat berangkat<br>
+            b. Tempat tujuan
+        </td>
+        <td>
+            a. Instansi Asal<br>
+            b. {{ spt.kota_tujuan }}
+        </td>
+    </tr>
+
+    <tr>
+        <td class="no">7</td>
+        <td>
+            a. Lamanya Perjalanan Dinas<br>
+            b. Tanggal berangkat<br>
+            c. Tanggal kembali
+        </td>
+        <td>
+            a. {{ spt.lama_perjalanan }} hari<br>
+            b. {{ spt.tgl_berangkat|date:"d-m-Y" }}<br>
+            c. {{ spt.tgl_kembali|date:"d-m-Y" }}
+        </td>
+    </tr>
+
+    <tr>
+        <td class="no">8</td>
+        <td>Pengikut</td>
+        <td>-</td>
+    </tr>
+
+    <tr>
+        <td class="no">9</td>
+        <td>
+            Pembebanan Anggaran :<br>
+            a. SKPD<br>
+            b. Kode Rekening
+        </td>
+        <td>
+            a. -<br>
+            b. -
+        </td>
+    </tr>
+
+    <tr>
+        <td class="no">10</td>
+        <td>Keterangan lain-lain</td>
+        <td>{{ spt.dasar|default:"-" }}</td>
+    </tr>
+</table>
+
+<div class="footer">
+    <div class="signature">
+        Dikeluarkan di .................................<br>
+        Tanggal ........................................<br><br>
+
+        Pejabat Pembuat Komitmen,<br><br><br><br>
+
+        (.......................................................)<br>
+        NIP. ....................................................
+    </div>
+</div>
+
+</body>
+</html>

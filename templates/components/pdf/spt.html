@@ -1,0 +1,160 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Surat Perintah Tugas (SPT)</title>
+    <style>
+        body {
+            font-family: "Times New Roman", serif;
+            font-size: 16px;
+            color: #000;
+            margin: 30px;
+        }
+
+        .page {
+            border: 1px solid #999;
+            padding: 30px 40px;
+            min-height: 90vh;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            margin-bottom: 10px;
+        }
+
+        .title {
+            margin-top: 10px;
+            line-height: 1.5;
+            font-size: 18px;
+        }
+
+        .section {
+            margin-top: 28px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .section td {
+            vertical-align: top;
+            padding: 2px 0;
+        }
+
+        .label {
+            width: 90px;
+        }
+
+        .separator {
+            width: 20px;
+            text-align: center;
+        }
+
+        .content {
+            width: auto;
+        }
+
+        .command-title {
+            text-align: center;
+            margin: 24px 0 10px;
+            font-size: 18px;
+        }
+
+        .signature {
+            width: 45%;
+            margin-left: auto;
+            margin-top: 50px;
+            line-height: 2;
+        }
+    </style>
+</head>
+<body>
+
+<div class="page">
+
+    <div class="text-center">
+        <img src="{% static 'assets/images/logo.png' %}" alt="Logo" class="logo">
+
+        <div class="title">
+            <div>BUPATI ASAHAN</div>
+            <br>
+            <div>SURAT PERINTAH</div>
+            <div>NOMOR {{ spt.nomor_spt|default:'................................' }}</div>
+        </div>
+    </div>
+
+
+    <table class="section">
+        <tr>
+            <td class="label">Menimbang</td>
+            <td class="separator">:</td>
+            <td class="content">
+                a. bahwa {{ spt.berita|default:'............................................................' }};<br>
+                b. bahwa ........................................................................;
+            </td>
+        </tr>
+    </table>
+
+
+    <table class="section">
+        <tr>
+            <td class="label">Dasar</td>
+            <td class="separator">:</td>
+            <td class="content">
+                1. {{ spt.dasar|default:'............................................................' }};<br>
+                2. ........................................................................;
+            </td>
+        </tr>
+    </table>
+
+
+    <div class="command-title">
+        Memberi Perintah
+    </div>
+
+
+    <table class="section">
+        <tr>
+            <td class="label">Kepada</td>
+            <td class="separator">:</td>
+            <td class="content">
+                {% for item in spt.pelaksana.all %}
+                    {{ forloop.counter }}. {{ item.nama }};<br>
+                {% empty %}
+                    1. .................................................................;<br>
+                    2. .................................................................;<br>
+                {% endfor %}
+                {{ forloop.counter|default:'4' }}. dan seterusnya.
+            </td>
+        </tr>
+    </table>
+
+
+    <table class="section">
+        <tr>
+            <td class="label">Untuk</td>
+            <td class="separator">:</td>
+            <td class="content">
+                1. Melaksanakan perjalanan dinas ke {{ spt.kota_tujuan|default:'........................' }};<br>
+                2. Tanggal berangkat {{ spt.tgl_berangkat|date:'d-m-Y'|default:'................' }};<br>
+                3. Lama perjalanan {{ spt.lama_perjalanan|default:'....' }} hari;<br>
+                4. dan seterusnya.
+            </td>
+        </tr>
+    </table>
+
+
+    <div class="signature">
+        {{ tempat_ttd|default:'Nama Tempat' }}, {{ tanggal_ttd|default:'Tanggal' }}<br>
+        Bupati Asahan,<br><br><br><br>
+
+        {{ pejabat_ttd|default:'Nama' }}
+    </div>
+
+</div>
+
+</body>
+</html>

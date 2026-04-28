@@ -94,7 +94,7 @@ class Lokasi(models.Model):
         verbose_name_plural = "Lokasi"
 
     def __str__(self):
-        return self.lokasi
+        return f"{self.lokasi} - {self.kota} - {self.jenis_spd}" if self.kota and self.jenis_spd else self.lokasi
 
 
 class StandardPenginapan(BaseMasterModel):

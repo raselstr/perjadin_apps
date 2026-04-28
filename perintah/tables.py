@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from core.tables import BaseTable, action_column
+from core.tables import BaseTable, render_numbered_list, action_column
 
 from .models import Spt
 
@@ -8,17 +8,8 @@ from .models import Spt
 class SptTable(BaseTable):
     aksi = action_column("spt_action_pk", "spt_delete")
 
-    nomor_spt = tables.Column(
-        verbose_name="Nomor SPT"
-    )
-
-    tanggal_spt = tables.DateColumn(
-        verbose_name="Tanggal SPT",
-        format="d M Y"
-    )
-
-    kota_tujuan = tables.Column(
-        verbose_name="Kota Tujuan"
+    tempat_tujuan = tables.Column(
+        verbose_name="Tempat Tujuan"
     )
 
     jenis_kegiatan = tables.Column(
@@ -41,7 +32,8 @@ class SptTable(BaseTable):
     )
 
     kendaraan = tables.Column(
-        verbose_name="Kendaraan"
+        verbose_name="Kendaraan",
+        accessor="get_kendaraan_display"
     )
 
     pelaksana_list = tables.Column(
@@ -53,9 +45,7 @@ class SptTable(BaseTable):
         model = Spt
         fields = (
             "no",
-            "nomor_spt",
-            "tanggal_spt",
-            "kota_tujuan",
+            "tempat_tujuan",
             "jenis_kegiatan",
             "lama_perjalanan",
             "tgl_berangkat",
@@ -65,23 +55,8 @@ class SptTable(BaseTable):
             "aksi",
         )
 
-    def render_kendaraan(self, value):
-        mapping = {
-            "transport_umum": "Transport Umum",
-            "kendaraan_dinas": "Kendaraan Dinas",
-        }
-        return mapping.get(value, "-")
-
     def render_pelaksana_list(self, record):
-        """
-        Menampilkan daftar pelaksana dalam 1 kolom
-        """
-        nama_pelaksana = [
-            str(item.nama)
-            for item in record.pelaksana.all()
-        ]
-
-        if not nama_pelaksana:
-            return "-"
-
-        return ", ".join(nama_pelaksana)
+        return render_numbered_list(
+            record.pelaksana.all(),
+            "nama"
+        )
