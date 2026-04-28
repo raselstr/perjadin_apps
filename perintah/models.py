@@ -131,4 +131,4 @@ class Pelaksana(models.Model):
         verbose_name_plural = "Pelaksana"
 
     def __str__(self):
-        return self.nama
+        return str(self.nama)

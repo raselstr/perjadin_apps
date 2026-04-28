@@ -1,7 +1,7 @@
 import json
 
 from django.contrib import messages
-from django.db import models
+from django.db import models, transaction
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import ListView
 from django.shortcuts import render, get_object_or_404, redirect
@@ -305,4 +305,100 @@ class BaseCRUDView(ExcelMixin, ListView):
             "object": obj,
             "url_list": self.url_list,
             "title": "Hapus Data"
+        })
+
+class BaseMasterDetailCRUDView(BaseCRUDView):
+    """
+    Base CRUD untuk Parent + Child (Master Detail)
+
+    Contoh:
+    - SPT + Pelaksana
+    - SPD + Rincian
+    - Invoice + Items
+    - Surat + Lampiran
+    """
+
+    # khusus override template form saja
+    template_form = "components/crud/form_master_detail.html"
+
+    # wajib diisi di child view
+    formset_class = None
+
+    def form_view(self, request, pk=None):
+        perm = self.get_permission()
+
+        # =========================
+        # Permission Check
+        # =========================
+        if pk:
+            if not perm or not perm.can_edit:
+                return self._forbidden(request)
+        else:
+            if not perm or not perm.can_add:
+                return self._forbidden(request)
+
+        # =========================
+        # Ambil instance parent
+        # =========================
+        instance = None
+        if pk:
+            instance = get_object_or_404(
+                self.model,
+                pk=pk
+            )
+
+        # safety check
+        if not self.formset_class:
+            raise ValueError(
+                "formset_class harus diisi pada BaseMasterDetailCRUDView"
+            )
+
+        # =========================
+        # Parent Form
+        # =========================
+        form = self.form_class(
+            request.POST or None,
+            instance=instance
+        )
+
+        # =========================
+        # Child Formset
+        # =========================
+        formset = self.formset_class(
+            request.POST or None,
+            instance=instance
+        )
+
+        # =========================
+        # SAVE
+        # =========================
+        if request.method == "POST":
+            if form.is_valid() and formset.is_valid():
+                with transaction.atomic():
+                    # simpan parent dulu
+                    parent = form.save()
+
+                    # kaitkan child ke parent
+                    formset.instance = parent
+                    formset.save()
+
+                action = "update" if instance else "add"
+
+                # HTMX response
+                if request.headers.get("HX-Request"):
+                    return self._build_htmx_success_response(action)
+
+                # normal response
+                self._add_success_message(request, action)
+                return redirect(self.url_list)
+
+        # =========================
+        # Render Form
+        # =========================
+        return render(request, self.template_form, {
+            "form": form,
+            "formset": formset,
+            "title": self.title,
+            "permission": perm,
+            "url_list": self.url_list,
         })

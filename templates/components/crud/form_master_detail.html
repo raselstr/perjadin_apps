@@ -1,0 +1,150 @@
+<div class="modal-header">
+  <h5 class="modal-title">{{ title }}</h5>
+  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+
+<form method="post"
+      action="{{ request.path }}"
+      hx-post="{{ request.path }}"
+      hx-target="#modal-body"
+      hx-swap="none">
+
+  {% csrf_token %}
+
+  <div class="modal-body">
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    <div class="row g-3">
+
+      {# ========================= #}
+      {# FORM SPT #}
+      {# ========================= #}
+
+      {% for field in form %}
+        <div class="col-md-12">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+
+          {% if field.errors %}
+            <div class="text-danger small mt-1">
+              {{ field.errors|striptags }}
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+
+    </div>
+
+    <hr>
+
+    <h5>Pelaksana</h5>
+
+    {# ========================= #}
+    {# FORMSET WAJIB #}
+    {# ========================= #}
+
+    {% if formset.non_form_errors %}
+      <div class="alert alert-danger">
+        {{ formset.non_form_errors }}
+      </div>
+    {% endif %}
+
+    {{ formset.management_form }}
+
+    {% for f in formset %}
+      <div class="border rounded p-3 mb-3">
+
+        {% for hidden in f.hidden_fields %}
+          {{ hidden }}
+        {% endfor %}
+
+        {% if f.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {{ f.non_field_errors }}
+          </div>
+        {% endif %}
+
+        {% for field in f.visible_fields %}
+          {% if field.name != "DELETE" %}
+            <div class="mb-2">
+              <label class="form-label">
+                {{ field.label }}
+              </label>
+
+              {{ field }}
+
+              {% if field.errors %}
+                <div class="text-danger small">
+                  {{ field.errors|striptags }}
+                </div>
+              {% endif %}
+            </div>
+          {% endif %}
+        {% endfor %}
+
+        {% if f.instance.pk and f.DELETE %}
+          <div class="form-check">
+            {{ f.DELETE }}
+            <label class="form-check-label">
+              Hapus pelaksana ini
+            </label>
+          </div>
+        {% endif %}
+
+      </div>
+    {% endfor %}
+
+  </div>
+
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-success">
+      💾 Simpan
+    </button>
+
+    <button type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal">
+      Batal
+    </button>
+  </div>
+  <script>
+  (function () {
+    const form = document.currentScript.closest('form');
+    const departureInput = form?.querySelector('[name="tgl_berangkat"]');
+    const durationInput = form?.querySelector('[name="lama_perjalanan"]');
+    const returnInput = form?.querySelector('[name="tgl_kembali"]');
+
+    if (!departureInput || !durationInput || !returnInput) {
+      return;
+    }
+
+    function updateReturnDate() {
+      if (!departureInput.value || !durationInput.value) {
+        returnInput.value = '';
+        return;
+      }
+
+      const departureDate = new Date(`${departureInput.value}T00:00:00`);
+      const duration = Number.parseInt(durationInput.value, 10);
+
+      if (Number.isNaN(departureDate.getTime()) || Number.isNaN(duration) || duration < 1) {
+        returnInput.value = '';
+        return;
+      }
+
+      departureDate.setDate(departureDate.getDate() + duration - 1);
+      returnInput.value = departureDate.toISOString().split('T')[0];
+    }
+
+    departureInput.addEventListener('change', updateReturnDate);
+    departureInput.addEventListener('input', updateReturnDate);
+    durationInput.addEventListener('change', updateReturnDate);
+    updateReturnDate();
+  })();
+  </script>
+</form>
