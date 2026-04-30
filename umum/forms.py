@@ -1,5 +1,9 @@
 from django import forms
+from django.db.models import Q
+
 from core.forms import BaseAppModelForm
+from profiles.models import OPD
+from profiles.utils import get_active_opd_id
 
 from .models import (
     Eselon,
@@ -11,6 +15,19 @@ from .models import (
     StatusASN,
     Tingkat,
 )
+
+
+def _build_limited_opd_queryset(active_opd_id, instance_opd_id=None):
+    queryset = OPD.objects.all()
+
+    if not active_opd_id:
+        return queryset
+
+    filters = Q(pk=active_opd_id)
+    if instance_opd_id:
+        filters |= Q(pk=instance_opd_id)
+
+    return queryset.filter(filters).distinct()
 
 class PangkatForm(forms.ModelForm):
     class Meta:
@@ -64,7 +81,7 @@ class TingkatForm(forms.ModelForm):
             'lainnya': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
-class PegawaiForm(forms.ModelForm):
+class PegawaiForm(BaseAppModelForm):
     field_layout = {
         "nip": 6,
         "nama": 6,
@@ -106,8 +123,46 @@ class PegawaiForm(forms.ModelForm):
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
             'tingkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tingkat'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        active_opd_id = get_active_opd_id(self.request)
+        optional_fields = [
+            "pangkat",
+            "eselon",
+            "jenis_jabatan",
+            "status",
+            "tgl_lahir",
+            "tingkat",
+            "opd",
+        ]
+
+        for field_name in optional_fields:
+            self.fields[field_name].required = False
+
+        if active_opd_id:
+            self.fields["opd"].queryset = _build_limited_opd_queryset(
+                active_opd_id,
+                instance_opd_id=self.instance.opd_id,
+            )
+            self.fields["opd"].initial = (
+                self.instance.opd_id or active_opd_id
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        active_opd_id = get_active_opd_id(self.request)
+
+        if active_opd_id and not cleaned_data.get("opd"):
+            cleaned_data["opd"] = OPD.objects.filter(
+                pk=active_opd_id
+            ).first()
+
+        return cleaned_data
         
 class PenandatanganForm(forms.ModelForm):
+    accepts_request = True
+
     class Meta:
         model = Penandatangan
         fields = '__all__'
@@ -115,10 +170,39 @@ class PenandatanganForm(forms.ModelForm):
             'nama': forms.TextInput(attrs={'class': 'form-control'}),
             'nip': forms.TextInput(attrs={'class': 'form-control'}),
             'pangkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Pangkat'}),
-            'tugas': forms.TextInput(attrs={'class': 'form-control'}),
+            'tugas': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tugas'}),
             'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder':'Jenis Jabatan'}),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
+        super().__init__(*args, **kwargs)
+        active_opd_id = get_active_opd_id(self.request)
+        optional_fields = ["nip", "pangkat", "jenis_jabatan", "opd"]
+
+        for field_name in optional_fields:
+            self.fields[field_name].required = False
+
+        if active_opd_id:
+            self.fields["opd"].queryset = _build_limited_opd_queryset(
+                active_opd_id,
+                instance_opd_id=self.instance.opd_id,
+            )
+            self.fields["opd"].initial = (
+                self.instance.opd_id or active_opd_id
+            )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        active_opd_id = get_active_opd_id(self.request)
+
+        if active_opd_id and not cleaned_data.get("opd"):
+            cleaned_data["opd"] = OPD.objects.filter(
+                pk=active_opd_id
+            ).first()
+
+        return cleaned_data
 
 
 class PemdaForm(BaseAppModelForm):
@@ -126,9 +210,10 @@ class PemdaForm(BaseAppModelForm):
         "nama_pemda": 12,
         "nama_dinas": 12,
         "alamat": 12,
-        "telepon": 6,
-        "email": 6,
-        "jenis_kop": 6,
+        "telepon": 4,
+        "email": 4,
+        "website": 4,
+        "ibukota": 6,   
         "logo": 6,
     }
 
@@ -140,21 +225,21 @@ class PemdaForm(BaseAppModelForm):
             "alamat",
             "telepon",
             "email",
-            "jenis_kop",
+            "website",
+            "ibukota",
             "logo",
         ]
         labels = {
             "nama_pemda": "Nama Pemda",
             "nama_dinas": "Nama Dinas/Badan/Kantor",
-            "jenis_kop": "Jenis Kop",
         }
         widgets = {
             "nama_pemda": forms.TextInput(attrs={
                 "class": "form-control",
                 "placeholder": "Masukkan nama pemerintah daerah",
             }),
-            "nama_dinas": forms.TextInput(attrs={
-                "class": "form-control",
+            "nama_dinas": forms.Select(attrs={
+                "class": "form-control select2",
                 "placeholder": "Masukkan nama dinas/badan/kantor",
             }),
             "alamat": forms.Textarea(attrs={
@@ -170,8 +255,13 @@ class PemdaForm(BaseAppModelForm):
                 "class": "form-control",
                 "placeholder": "Masukkan alamat email",
             }),
-            "jenis_kop": forms.Select(attrs={
-                "class": "form-select",
+            "website": forms.URLInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan alamat website",
+            }),
+            "ibukota": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan nama ibukota Lokasi Penandatangan",
             }),
             "logo": forms.ClearableFileInput(attrs={
                 "class": "form-control",
@@ -183,6 +273,16 @@ class PemdaForm(BaseAppModelForm):
         self.fields["logo"].help_text = (
             "Upload logo resmi jika ingin dipakai pada kop surat."
         )
+        active_opd_id = get_active_opd_id(self.request)
+
+        if active_opd_id:
+            self.fields["nama_dinas"].queryset = _build_limited_opd_queryset(
+                active_opd_id,
+                instance_opd_id=self.instance.nama_dinas_id,
+            )
+            self.fields["nama_dinas"].initial = (
+                self.instance.nama_dinas_id or active_opd_id
+            )
 
 
         

@@ -141,14 +141,18 @@ class PemberiTugas(models.Model):
         blank=True,
         default=""
     )
-
+    nomor_spd = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
     tanggal_spt = models.DateField(
         blank=True,
         null=True
     )
     nama = models.CharField(max_length=200)
-    nip = models.CharField(max_length=30)
-    pangkat = models.CharField(max_length=30)
+    nip = models.CharField(max_length=30, blank=True, default="")
+    pangkat = models.CharField(max_length=30, blank=True, default="")
     tugas = models.CharField(max_length=200)
     jenis_jabatan = models.CharField(max_length=100)
     opd = models.CharField(max_length=200)
@@ -159,12 +163,8 @@ class PemberiTugas(models.Model):
         verbose_name_plural = "Pemberi Tugas"
         constraints = [
             models.UniqueConstraint(
-                fields=["spt"],
-                name="unique_pemberi_tugas_per_spt",
-            ),
-            models.UniqueConstraint(
-                fields=["spt", "penandatangan"],
-                name="unique_pemberi_tugas_spt_penandatangan",
+                fields=["spt", "penandatangan", "nomor_spt", "nomor_spd"],
+                name="unique_pemberi_tugas_spt_penandatangan_nomor_spt_nomor_spd",
             ),
         ]
 

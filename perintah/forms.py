@@ -1,10 +1,17 @@
 from datetime import timedelta
 
 from django import forms
+from django.db.models import Q
 from django.forms import inlineformset_factory
 from django.utils.dateparse import parse_date
 
 from core.forms import BaseAppModelForm
+from profiles.utils import (
+    GLOBAL_PENANDATANGAN_TASKS,
+    filter_penandatangan_queryset,
+    get_active_opd_id,
+)
+from umum.models import Pegawai, Penandatangan
 
 from .models import Pelaksana, PemberiTugas, Spt
 
@@ -180,13 +187,33 @@ class PelaksanaForm(BaseAppModelForm):
             }),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        active_opd_id = get_active_opd_id(self.request)
+
+        queryset = Pegawai.objects.select_related(
+            "pangkat",
+            "eselon",
+            "jenis_jabatan",
+            "opd",
+        ).order_by("nama")
+
+        if active_opd_id:
+            filters = Q(opd_id=active_opd_id)
+            if self.instance and self.instance.nama_id:
+                filters |= Q(pk=self.instance.nama_id)
+            queryset = queryset.filter(filters).distinct()
+
+        self.fields["nama"].queryset = queryset
+
 
 class PemberiTugasForm(BaseAppModelForm):
     field_layout = {
         "spt": 12,
         "penandatangan": 12,
-        "nomor_spt": 6,
-        "tanggal_spt": 6,
+        "nomor_spt": 4,
+        "nomor_spd": 4,
+        "tanggal_spt": 4,
     }
 
     class Meta:
@@ -195,12 +222,14 @@ class PemberiTugasForm(BaseAppModelForm):
             "spt",
             "penandatangan",
             "nomor_spt",
+            "nomor_spd",
             "tanggal_spt",
         ]
         labels = {
             "spt": "SPT",
             "penandatangan": "Pemberi Tugas",
             "nomor_spt": "Nomor SPT",
+            "nomor_spd": "Nomor SPD",
             "tanggal_spt": "Tanggal SPT",
         }
         widgets = {
@@ -216,6 +245,10 @@ class PemberiTugasForm(BaseAppModelForm):
                 "class": "form-control",
                 "placeholder": "Masukkan nomor surat tugas",
             }),
+            "nomor_spd": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan nomor surat perjalanan",
+            }),
             "tanggal_spt": forms.DateInput(attrs={
                 "class": "form-control",
                 "type": "date",
@@ -224,9 +257,38 @@ class PemberiTugasForm(BaseAppModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["spt"].queryset = (
-            Spt.objects.select_related("kota_tujuan").order_by("-id")
+        active_opd_id = get_active_opd_id(self.request)
+
+        spt_queryset = Spt.objects.select_related(
+            "kota_tujuan"
+        ).order_by("-id")
+        if active_opd_id:
+            spt_filters = Q(pelaksana__nama__opd_id=active_opd_id)
+            if self.instance and self.instance.spt_id:
+                spt_filters |= Q(pk=self.instance.spt_id)
+            spt_queryset = spt_queryset.filter(spt_filters).distinct()
+
+        penandatangan_queryset = Penandatangan.objects.select_related(
+            "jenis_jabatan",
+            "opd",
+        ).order_by("nama")
+        penandatangan_queryset = filter_penandatangan_queryset(
+            penandatangan_queryset,
+            self.request,
         )
+
+        if active_opd_id and self.instance and self.instance.penandatangan_id:
+            penandatangan_queryset = Penandatangan.objects.select_related(
+                "jenis_jabatan",
+                "opd",
+            ).filter(
+                Q(pk__in=penandatangan_queryset.values("pk")) |
+                Q(pk=self.instance.penandatangan_id) |
+                Q(tugas__in=GLOBAL_PENANDATANGAN_TASKS)
+            ).distinct().order_by("nama")
+
+        self.fields["spt"].queryset = spt_queryset
+        self.fields["penandatangan"].queryset = penandatangan_queryset
         self.fields["spt"].label_from_instance = self._format_spt_label
         self.order_fields([
             "spt",

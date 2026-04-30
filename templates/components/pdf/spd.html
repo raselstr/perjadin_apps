@@ -7,14 +7,14 @@
 <style>
 @page {
     size: A4;
-    margin: 15mm;
+    margin: 15mm 15mm 18mm 15mm;
 }
 
 body {
-    font-family: "Times New Roman", serif;
-    font-size: 11.5pt;
-    color: #000;
     margin: 0;
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+    color: #111;
     background: #eef2f7;
 }
 
@@ -54,26 +54,39 @@ body {
     margin: 12px auto 24px;
     background: #fff;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
-    padding: 16mm 14mm;
-    box-sizing: border-box;
+}
+
+.sheet {
+    padding: 15mm 15mm 12mm;
 }
 
 .letterhead {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    border-bottom: 4px double #000;
-    padding-bottom: 8px;
+    border-bottom: 3px solid #000;
+    padding-bottom: 10px;
+}
+
+.letterhead-flex {
+    display: table;
+    width: 100%;
+}
+
+.letterhead-flex > div {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.logo-col {
+    width: 90px;
 }
 
 .letterhead-logo {
-    width: 84px;
-    height: auto;
+    width: 78px;
+    height: 78px;
     object-fit: contain;
+    display: block;
 }
 
 .letterhead-text {
-    flex: 1;
     text-align: center;
     line-height: 1.35;
 }
@@ -90,27 +103,37 @@ body {
     text-transform: uppercase;
 }
 
-.letterhead-address {
+.letterhead-address,
+.letterhead-contact {
     font-size: 10pt;
 }
 
-.meta {
+.meta-table {
     width: 100%;
-    margin: 10px 0 12px;
     border-collapse: collapse;
+    margin: 10px 0 14px;
 }
 
-.meta td {
+.meta-table td {
     padding: 2px 0;
     vertical-align: top;
 }
 
+.meta-label {
+    width: 116px;
+}
+
+.meta-colon {
+    width: 14px;
+    text-align: center;
+}
+
 .document-title {
     text-align: center;
-    font-size: 15pt;
+    font-size: 14pt;
     font-weight: bold;
     text-decoration: underline;
-    margin: 10px 0 14px;
+    margin-bottom: 14px;
 }
 
 .main-table {
@@ -120,8 +143,9 @@ body {
 
 .main-table td {
     border: 1px solid #000;
-    padding: 6px 8px;
+    padding: 7px 8px;
     vertical-align: top;
+    line-height: 1.45;
 }
 
 .number-col {
@@ -129,15 +153,56 @@ body {
     text-align: center;
 }
 
+.label-col {
+    width: 220px;
+}
+
+.sub-table,
+.followers-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sub-table td,
+.followers-table td {
+    border: 0;
+    padding: 0 0 2px;
+    vertical-align: top;
+}
+
+.sub-label {
+    width: 165px;
+}
+
+.sub-colon {
+    width: 14px;
+    text-align: center;
+}
+
+.followers-table th,
+.followers-table td {
+    font-size: 11pt;
+    padding: 2px 4px 2px 0;
+}
+
+.followers-table th {
+    font-weight: bold;
+    text-align: left;
+}
+
+.followers-no {
+    width: 22px;
+}
+
 .footer {
-    width: 280px;
+    width: 300px;
     margin-left: auto;
-    margin-top: 24px;
-    line-height: 1.45;
+    margin-top: 26px;
+    line-height: 1.5;
 }
 
 .signature-space {
-    height: 72px;
+    height: 76px;
 }
 
 .signature-name {
@@ -163,7 +228,6 @@ body {
         min-height: auto;
         margin: 0;
         box-shadow: none;
-        padding: 0;
     }
 }
 </style>
@@ -175,160 +239,186 @@ body {
 </div>
 
 <div class="page">
-    <div class="letterhead">
-        <img
-            src="{% if pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
-            alt="Logo"
-            class="letterhead-logo">
-        <div class="letterhead-text">
-            <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
-            <div class="letterhead-office">{{ pemda.nama_dinas|default:"Instansi"|upper }}</div>
-            <div class="letterhead-address">
-                {{ pemda.alamat|default:"-"|upper }}
-                {% if pemda.telepon or pemda.email %}
-                    <br>
-                    {% if pemda.telepon %}Telp. {{ pemda.telepon }}{% endif %}
-                    {% if pemda.telepon and pemda.email %} | {% endif %}
-                    {% if pemda.email %}Email: {{ pemda.email }}{% endif %}
-                {% endif %}
+    <div class="sheet">
+        <div class="letterhead">
+            <div class="letterhead-flex">
+                <div class="logo-col">
+                    <img
+                        src="{% if pemda and pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
+                        alt="Logo Pemda"
+                        class="letterhead-logo">
+                </div>
+                <div class="letterhead-text">
+                    <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
+                    <div class="letterhead-office">{{ kop_office_name|default:"Instansi"|upper }}</div>
+                    {% if pemda and pemda.alamat %}
+                        <div class="letterhead-address">{{ pemda.alamat|upper }}</div>
+                    {% endif %}
+                    {% if kop_contact_line %}
+                        <div class="letterhead-contact">{{ kop_contact_line }}</div>
+                    {% endif %}
+                </div>
             </div>
         </div>
-    </div>
 
-    <table class="meta">
-        <tr>
-            <td style="width: 60%;"></td>
-            <td>Lembar ke</td>
-            <td>: ................................</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>Kode No</td>
-            <td>: ................................</td>
-        </tr>
-        <tr>
-            <td></td>
-            <td>Nomor</td>
-            <td>: {{ pemberi_tugas.nomor_spt|default:"-" }}</td>
-        </tr>
-    </table>
+        <table class="meta-table">
+            <tr>
+                <td style="width: 58%;"></td>
+                <td class="meta-label">Lembar ke</td>
+                <td class="meta-colon">:</td>
+                <td>................................</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="meta-label">Kode No</td>
+                <td class="meta-colon">:</td>
+                <td>................................</td>
+            </tr>
+            <tr>
+                <td></td>
+                <td class="meta-label">Nomor</td>
+                <td class="meta-colon">:</td>
+                <td>{{ pemberi_tugas.nomor_spt|default:"-" }}</td>
+            </tr>
+        </table>
 
-    <div class="document-title">SURAT PERJALANAN DINAS (SPD)</div>
+        <div class="document-title">SURAT PERJALANAN DINAS (SPD)</div>
 
-    <table class="main-table">
-        <tr>
-            <td class="number-col">1</td>
-            <td>Pejabat Pembuat Komitmen</td>
-            <td>
-                {{ pemberi_tugas.nama|default:"-" }}
-                {% if pemberi_tugas.nip %}
-                    <br>NIP. {{ pemberi_tugas.nip }}
-                {% endif %}
-                {% if pemberi_tugas.tugas %}
-                    <br>{{ pemberi_tugas.tugas }}
-                {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <td class="number-col">2</td>
-            <td>Nama/NIP Pegawai</td>
-            <td>
-                {% if pelaksana_list %}
-                    {% for pelaksana in pelaksana_list %}
-                        {{ forloop.counter }}. {{ pelaksana.nama.nama|default:"-" }} / {{ pelaksana.nama.nip|default:"-" }}{% if not forloop.last %}<br>{% endif %}
-                    {% endfor %}
-                {% else %}
-                    <span class="empty-state">Belum ada data pelaksana.</span>
-                {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <td class="number-col">3</td>
-            <td>
-                a. Pangkat/Gol<br>
-                b. Jabatan<br>
-                c. Tingkat Biaya
-            </td>
-            <td>
-                {% if pelaksana_list %}
-                    {% for pelaksana in pelaksana_list %}
-                        a. {{ pelaksana.nama.pangkat|default:"-" }}<br>
-                        b. {{ pelaksana.nama.jabatan|default:"-" }}<br>
-                        c. {{ pelaksana.nama.tingkat|default:"-" }}{% if not forloop.last %}<br><br>{% endif %}
-                    {% endfor %}
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-        </tr>
-        <tr>
-            <td class="number-col">4</td>
-            <td>Maksud Perjalanan</td>
-            <td>{{ spt.berita|default:"-" }}</td>
-        </tr>
-        <tr>
-            <td class="number-col">5</td>
-            <td>Alat Angkutan</td>
-            <td>{{ spt.get_kendaraan_display|default:"-" }}</td>
-        </tr>
-        <tr>
-            <td class="number-col">6</td>
-            <td>
-                a. Tempat berangkat<br>
-                b. Tujuan
-            </td>
-            <td>
-                a. {{ asal_instansi|default:"-" }}<br>
-                b. {{ spt.kota_tujuan|default:"-" }}
-            </td>
-        </tr>
-        <tr>
-            <td class="number-col">7</td>
-            <td>
-                a. Lama perjalanan<br>
-                b. Tanggal berangkat<br>
-                c. Tanggal kembali
-            </td>
-            <td>
-                a. {{ spt.lama_perjalanan }} hari<br>
-                b. {{ spt.tgl_berangkat|date:"d/m/Y" }}<br>
-                c. {{ spt.tgl_kembali|date:"d/m/Y" }}
-            </td>
-        </tr>
-        <tr>
-            <td class="number-col">8</td>
-            <td>Pengikut</td>
-            <td>-</td>
-        </tr>
-        <tr>
-            <td class="number-col">9</td>
-            <td>
-                Pembebanan Anggaran<br>
-                a. SKPD<br>
-                b. Rekening
-            </td>
-            <td>
-                a. {{ asal_instansi|default:"-" }}<br>
-                b. -
-            </td>
-        </tr>
-        <tr>
-            <td class="number-col">10</td>
-            <td>Keterangan</td>
-            <td>{{ spt.dasar|default:spt.tempat_tujuan|default:"-" }}</td>
-        </tr>
-    </table>
+        <table class="main-table">
+            <tr>
+                <td class="number-col">1</td>
+                <td class="label-col">Pejabat Pembuat Komitmen</td>
+                <td>
+                    {{ penandatangan_dokumen.nama|default:"-" }}
+                    {% if penandatangan_dokumen.nip %}<br>NIP. {{ penandatangan_dokumen.nip }}{% endif %}
+                    {% if penandatangan_dokumen.pangkat %}<br>{{ penandatangan_dokumen.pangkat }}{% endif %}
+                    <br>{{ signature_title|default:"-" }}
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">2</td>
+                <td class="label-col">Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
+                <td>
+                    {% if primary_pelaksana %}
+                        {{ primary_pelaksana.nama.nama|default:"-" }}
+                        {% if primary_pelaksana.nama.nip %}<br>NIP. {{ primary_pelaksana.nama.nip }}{% endif %}
+                    {% else %}
+                        <span class="empty-state">Belum ada pelaksana.</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">3</td>
+                <td class="label-col">
+                    a. Pangkat/Golongan<br>
+                    b. Jabatan<br>
+                    c. Tingkat Biaya
+                </td>
+                <td>
+                    {% if primary_pelaksana %}
+                        a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
+                        b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
+                        c. {{ primary_pelaksana.nama.tingkat|default:"-" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">4</td>
+                <td class="label-col">Maksud Perjalanan Dinas</td>
+                <td>{{ spt.berita|default:"-" }}</td>
+            </tr>
+            <tr>
+                <td class="number-col">5</td>
+                <td class="label-col">Alat Angkutan</td>
+                <td>{{ spt.get_kendaraan_display|default:"-" }}</td>
+            </tr>
+            <tr>
+                <td class="number-col">6</td>
+                <td class="label-col">
+                    a. Tempat berangkat<br>
+                    b. Tujuan
+                </td>
+                <td>
+                    a. {{ asal_instansi|default:"-" }}<br>
+                    b. {{ spt.tempat_tujuan|default:spt.kota_tujuan|default:"-" }}
+                    {% if spt.kota_tujuan %}<br>{{ spt.kota_tujuan }}{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">7</td>
+                <td class="label-col">
+                    a. Lama perjalanan<br>
+                    b. Tanggal berangkat<br>
+                    c. Tanggal kembali
+                </td>
+                <td>
+                    a. {{ spt.lama_perjalanan }} hari<br>
+                    b. {{ spt.tgl_berangkat|date:"d/m/Y" }}<br>
+                    c. {{ spt.tgl_kembali|date:"d/m/Y" }}
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">8</td>
+                <td class="label-col">Pengikut</td>
+                <td>
+                    {% if show_followers %}
+                        <table class="followers-table">
+                            <thead>
+                                <tr>
+                                    <th class="followers-no">No</th>
+                                    <th>Nama</th>
+                                    <th>Tanggal Lahir</th>
+                                    <th>Jabatan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for follower in followers %}
+                                    <tr>
+                                        <td class="followers-no">{{ forloop.counter }}.</td>
+                                        <td>{{ follower.nama.nama|default:"-" }}</td>
+                                        <td>{{ follower.nama.tgl_lahir|date:"d/m/Y"|default:"-" }}</td>
+                                        <td>{{ follower.nama.jabatan|default:"-" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">9</td>
+                <td class="label-col">
+                    Pembebanan Anggaran<br>
+                    a. SKPD<br>
+                    b. Rekening
+                </td>
+                <td>
+                    a. {{ asal_instansi|default:"-" }}<br>
+                    b. -
+                </td>
+            </tr>
+            <tr>
+                <td class="number-col">10</td>
+                <td class="label-col">Keterangan</td>
+                <td>-</td>
+            </tr>
+        </table>
 
-    <div class="footer">
-        {{ spt.kota_tujuan|default:asal_instansi }}, {{ tanggal_dokumen|date:"d/m/Y" }}<br>
-        {{ pemberi_tugas.jenis_jabatan|default:"" }} {{ pemberi_tugas.tugas|default:"-" }}<br>
+        <div class="footer">
+            {{ signature_location }}, {{ tanggal_dokumen|date:"d/m/Y" }}<br>
+            {{ signature_title|default:"-" }}<br>
 
-        <div class="signature-space"></div>
+            <div class="signature-space"></div>
 
-        <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
-        {% if pemberi_tugas.nip %}
-            NIP. {{ pemberi_tugas.nip }}
-        {% endif %}
+            <div class="signature-name">{{ penandatangan_dokumen.nama|default:"-" }}</div>
+            {% if penandatangan_dokumen.nip %}
+                NIP. {{ penandatangan_dokumen.nip }}
+            {% endif %}
+        </div>
     </div>
 </div>
 

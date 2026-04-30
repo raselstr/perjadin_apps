@@ -75,13 +75,15 @@ class PemberiTugasTable(BaseTable):
                 rel="noopener">
                 SPT
             </a>
-            <a
-                class="btn btn-sm btn-outline-info"
-                href="{% url 'pemberi_tugas_print_spd' record.id %}"
-                target="_blank"
-                rel="noopener">
-                SPD
-            </a>
+            {% if record.tugas != "Bupati" and record.tugas != "Wakil Bupati" %}
+                <a
+                    class="btn btn-sm btn-outline-info"
+                    href="{% url 'pemberi_tugas_print_spd' record.id %}"
+                    target="_blank"
+                    rel="noopener">
+                    SPD
+                </a>
+            {% endif %}
         </div>
         """,
     )

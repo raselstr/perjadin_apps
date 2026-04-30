@@ -1,17 +1,45 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 
 from core.crud.base import BaseCRUDView, BaseMasterDetailCRUDView
 from menus.models import RolePermission, SubMenu
 from profiles.models import UserProfile
-from umum.models import Pemda
+from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
 
+from .document_utils import (
+    build_contact_line,
+    build_penandatangan_title,
+    filter_spt_pelaksana,
+    find_ppk_penandatangan,
+    get_letterhead_office_name,
+    get_matching_pemda,
+    get_signature_location,
+    is_regional_head_task,
+    select_spd_primary_pelaksana,
+)
 from .forms import PelaksanaFormSet, PemberiTugasForm, SptForm
 from .models import Pelaksana, PemberiTugas, Spt
 from .tables import PemberiTugasTable, SptTable
+
+
+def _get_default_signature_location(spt):
+    if spt.kota_tujuan:
+        return spt.kota_tujuan.kota or spt.kota_tujuan.lokasi
+    return ""
+
+
+def _get_primary_instansi_name(pemda, penandatangan=None, fallback=""):
+    if pemda and pemda.nama_dinas:
+        return pemda.nama_dinas.nama
+
+    if penandatangan and getattr(penandatangan, "opd", None):
+        return penandatangan.opd.nama
+
+    return fallback or "Instansi Asal"
 
 
 class PerintahPermissionMixin(LoginRequiredMixin):
@@ -64,19 +92,20 @@ class SptView(BaseMasterDetailCRUDView):
     url_export = None
     url_import = None
 
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .select_related(
-                "kota_tujuan",
-                "jenis_kegiatan",
-            )
-            .prefetch_related(
-                "pelaksana__nama"
-            )
-            .order_by("-id")
+    def get_base_queryset(self):
+        queryset = Spt.objects.select_related(
+            "kota_tujuan",
+            "jenis_kegiatan",
+        ).prefetch_related(
+            "pelaksana__nama"
+        ).order_by("-id")
+
+        queryset = filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "pelaksana__nama__opd_id",
         )
+        return queryset.distinct()
 
 
 class PemberiTugasView(BaseCRUDView):
@@ -91,69 +120,102 @@ class PemberiTugasView(BaseCRUDView):
     url_action = "pemberi_tugas_action"
     url_action_pk = "pemberi_tugas_action_pk"
 
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            .select_related(
-                "spt",
-                "spt__kota_tujuan",
-                "penandatangan",
-                "penandatangan__jenis_jabatan",
-                "penandatangan__opd",
-            )
-            .order_by("-tanggal_spt", "-id")
+    def get_base_queryset(self):
+        queryset = PemberiTugas.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "penandatangan",
+            "penandatangan__jenis_jabatan",
+            "penandatangan__opd",
+        ).order_by("-tanggal_spt", "-id")
+
+        queryset = filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "spt__pelaksana__nama__opd_id",
         )
+        return queryset.distinct()
 
 
 class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
     template_name = ""
 
-    def get_object(self, pk):
-        return get_object_or_404(
-            PemberiTugas.objects.select_related(
-                "spt",
-                "spt__kota_tujuan",
-                "spt__jenis_kegiatan",
-                "penandatangan",
-                "penandatangan__pangkat",
-                "penandatangan__jenis_jabatan",
-                "penandatangan__opd",
-            ).prefetch_related(
-                Prefetch(
-                    "spt__pelaksana",
-                    queryset=Pelaksana.objects.select_related(
-                        "nama",
-                        "nama__pangkat",
-                        "nama__tingkat",
-                        "nama__opd",
-                    ).order_by("id"),
-                )
-            ),
-            pk=pk,
+    def get_base_queryset(self):
+        queryset = PemberiTugas.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "spt__jenis_kegiatan",
+            "penandatangan",
+            "penandatangan__pangkat",
+            "penandatangan__jenis_jabatan",
+            "penandatangan__opd",
+        ).prefetch_related(
+            Prefetch(
+                "spt__pelaksana",
+                queryset=Pelaksana.objects.select_related(
+                    "nama",
+                    "nama__eselon",
+                    "nama__pangkat",
+                    "nama__tingkat",
+                    "nama__opd",
+                ).order_by("id"),
+            )
         )
 
-    def get_context_data(self, pemberi_tugas):
+        queryset = filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "spt__pelaksana__nama__opd_id",
+        )
+        return queryset.distinct()
+
+    def get_object(self, pk):
+        return get_object_or_404(self.get_base_queryset(), pk=pk)
+
+    def build_document_context(
+        self,
+        pemberi_tugas,
+        pemda,
+        penandatangan,
+        asal_instansi_fallback="",
+    ):
         spt = pemberi_tugas.spt
-        pemda = Pemda.objects.order_by("id").first()
+        default_signature_location = _get_default_signature_location(spt)
+        asal_instansi = _get_primary_instansi_name(
+            pemda,
+            penandatangan=penandatangan,
+            fallback=asal_instansi_fallback or pemberi_tugas.opd,
+        )
 
         return {
             "pemda": pemda,
             "pemberi_tugas": pemberi_tugas,
+            "penandatangan_dokumen": penandatangan,
             "spt": spt,
-            "pelaksana_list": list(spt.pelaksana.all()),
             "tanggal_dokumen": (
                 pemberi_tugas.tanggal_spt or spt.tgl_berangkat
             ),
-            "asal_instansi": (
-                pemberi_tugas.opd
-                or getattr(pemda, "nama_dinas", "")
-                or "Instansi Asal"
+            "asal_instansi": asal_instansi,
+            "kop_office_name": get_letterhead_office_name(
+                penandatangan,
+                pemda=pemda,
+            ),
+            "kop_contact_line": build_contact_line(pemda),
+            "kop_is_regional_head": is_regional_head_task(
+                getattr(penandatangan, "tugas", "")
+            ),
+            "signature_title": build_penandatangan_title(penandatangan),
+            "signature_location": get_signature_location(
+                pemda,
+                default_location=default_signature_location,
             ),
             "auto_print": (
                 self.request.GET.get("autoprint", "1") != "0"
             ),
         }
+
+    def get_context_data(self, pemberi_tugas):
+        raise NotImplementedError
 
     def get(self, request, pk):
         pemberi_tugas = self.get_object(pk)
@@ -164,6 +226,53 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
 class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
     template_name = "components/pdf/spt.html"
 
+    def get_context_data(self, pemberi_tugas):
+        pelaksana_list = filter_spt_pelaksana(
+            pemberi_tugas.spt.pelaksana.all(),
+            pemberi_tugas.penandatangan.tugas,
+        )
+        pemda = get_matching_pemda(pemberi_tugas.penandatangan.opd)
+        context = self.build_document_context(
+            pemberi_tugas,
+            pemda,
+            pemberi_tugas.penandatangan,
+        )
+        context.update({
+            "pelaksana_list": pelaksana_list,
+            "show_pelaksana_numbering": len(pelaksana_list) > 1,
+        })
+        return context
+
 
 class PemberiTugasPrintSpdView(PemberiTugasPrintBaseView):
     template_name = "components/pdf/spd.html"
+
+    def get_context_data(self, pemberi_tugas):
+        if is_regional_head_task(pemberi_tugas.penandatangan.tugas):
+            raise Http404(
+                "SPD tidak tersedia untuk penandatangan Bupati/Wakil Bupati."
+            )
+
+        active_opd_id = get_active_opd_id(self.request)
+        ppk = find_ppk_penandatangan(
+            opd=pemberi_tugas.penandatangan.opd,
+            fallback_opd_id=active_opd_id,
+        ) or pemberi_tugas.penandatangan
+
+        pemda = get_matching_pemda(getattr(ppk, "opd", None))
+        primary_pelaksana, followers = select_spd_primary_pelaksana(
+            pemberi_tugas.spt.pelaksana.all()
+        )
+
+        context = self.build_document_context(
+            pemberi_tugas,
+            pemda,
+            ppk,
+            asal_instansi_fallback=pemberi_tugas.opd,
+        )
+        context.update({
+            "primary_pelaksana": primary_pelaksana,
+            "followers": followers,
+            "show_followers": len(followers) > 0,
+        })
+        return context

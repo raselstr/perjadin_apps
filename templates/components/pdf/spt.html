@@ -7,14 +7,14 @@
 <style>
 @page {
     size: A4;
-    margin: 18mm;
+    margin: 18mm 18mm 20mm 18mm;
 }
 
 body {
-    font-family: "Times New Roman", serif;
-    font-size: 12pt;
-    color: #000;
     margin: 0;
+    font-family: Arial, sans-serif;
+    font-size: 12pt;
+    color: #111;
     background: #eef2f7;
 }
 
@@ -52,28 +52,39 @@ body {
     width: 210mm;
     min-height: 297mm;
     margin: 12px auto 24px;
+    padding: 0 0 10mm;
+    box-sizing: border-box;
     background: #fff;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
-    padding: 20mm 18mm;
-    box-sizing: border-box;
+}
+
+.sheet {
+    padding: 18mm 18mm 0;
 }
 
 .letterhead {
-    border-bottom: 4px double #000;
+    border-bottom: 3px solid #000;
     padding-bottom: 10px;
-    margin-bottom: 18px;
 }
 
 .letterhead-flex {
-    display: flex;
-    align-items: center;
-    gap: 18px;
+    display: table;
+    width: 100%;
 }
 
-.letterhead-logo-left,
-.letterhead-logo-center {
-    width: 84px;
-    height: auto;
+.letterhead-flex > div {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.logo-col {
+    width: 92px;
+}
+
+.letterhead-logo {
+    display: block;
+    width: 80px;
+    height: 80px;
     object-fit: contain;
 }
 
@@ -81,82 +92,102 @@ body {
     text-align: center;
 }
 
+.letterhead-centered .letterhead-logo {
+    margin: 0 auto 8px;
+}
+
 .letterhead-text {
-    flex: 1;
     text-align: center;
     line-height: 1.35;
 }
 
 .letterhead-region {
-    font-size: 15pt;
+    font-size: 14pt;
     font-weight: bold;
     text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .letterhead-office {
-    font-size: 17pt;
+    font-size: 16pt;
     font-weight: bold;
     text-transform: uppercase;
+    margin-top: 2px;
 }
 
-.letterhead-address {
-    font-size: 10.5pt;
+.letterhead-address,
+.letterhead-contact {
+    font-size: 10pt;
 }
 
 .document-title {
     text-align: center;
-    margin: 20px 0 18px;
-    line-height: 1.45;
+    margin: 18px 0 20px;
+    line-height: 1.5;
 }
 
-.document-title strong {
-    font-size: 15pt;
+.document-title .title-text {
+    font-size: 14pt;
+    font-weight: bold;
     text-decoration: underline;
+    letter-spacing: 0.4px;
 }
 
-.section {
-    margin-top: 14px;
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    line-height: 1.5;
 }
 
-.section-row {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 6px;
+.detail-table td {
+    vertical-align: top;
+    padding: 3px 0;
 }
 
-.section-label {
-    width: 88px;
+.label-cell {
+    width: 92px;
 }
 
-.section-separator {
+.colon-cell {
     width: 14px;
     text-align: center;
 }
 
-.section-content {
-    flex: 1;
-    text-align: justify;
+.section-heading {
+    text-align: center;
+    font-weight: bold;
+    margin: 18px 0 8px;
+    letter-spacing: 0.4px;
 }
 
-.centered {
+.recipient-table,
+.person-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recipient-table td,
+.person-table td {
+    vertical-align: top;
+    padding: 0 0 2px;
+}
+
+.recipient-no {
+    width: 24px;
+    padding-right: 8px;
+}
+
+.person-label {
+    width: 110px;
+}
+
+.person-colon {
+    width: 14px;
     text-align: center;
 }
 
-.executor-list {
-    margin: 8px 0 0 0;
-    padding-left: 22px;
-}
-
-.executor-list li {
-    margin-bottom: 10px;
-}
-
-.executor-meta {
-    line-height: 1.45;
-}
-
 .instruction-list {
-    margin: 8px 0 0 18px;
+    margin: 0;
     padding-left: 18px;
 }
 
@@ -165,24 +196,24 @@ body {
     text-align: justify;
 }
 
+.empty-state {
+    font-style: italic;
+}
+
 .signature {
-    width: 270px;
+    width: 300px;
     margin-left: auto;
-    margin-top: 38px;
+    margin-top: 34px;
     line-height: 1.5;
 }
 
 .signature-space {
-    height: 72px;
+    height: 76px;
 }
 
 .signature-name {
     font-weight: bold;
     text-decoration: underline;
-}
-
-.empty-state {
-    font-style: italic;
 }
 
 @media print {
@@ -199,7 +230,6 @@ body {
         min-height: auto;
         margin: 0;
         box-shadow: none;
-        padding: 0;
     }
 }
 </style>
@@ -211,122 +241,141 @@ body {
 </div>
 
 <div class="page">
-    <div class="letterhead">
-        {% if pemda and pemda.jenis_kop == "3" %}
-            <div class="letterhead-flex">
-                <img
-                    src="{% if pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
-                    alt="Logo"
-                    class="letterhead-logo-left">
-                <div class="letterhead-text">
-                    <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
-                    <div class="letterhead-office">{{ pemda.nama_dinas|default:"Instansi"|upper }}</div>
-                    <div class="letterhead-address">
-                        {{ pemda.alamat|default:"-"|upper }}
-                        {% if pemda.telepon or pemda.email %}
-                            <br>
-                            {% if pemda.telepon %}Telp. {{ pemda.telepon }}{% endif %}
-                            {% if pemda.telepon and pemda.email %} | {% endif %}
-                            {% if pemda.email %}Email: {{ pemda.email }}{% endif %}
+    <div class="sheet">
+        <div class="letterhead">
+            {% if kop_is_regional_head %}
+                <div class="letterhead-centered">
+                    <img
+                        src="{% if pemda and pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
+                        alt="Logo Pemda"
+                        class="letterhead-logo">
+                    <div class="letterhead-text">
+                        <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
+                        <div class="letterhead-office">{{ kop_office_name|default:"Bupati Asahan"|upper }}</div>
+                        {% if pemda and pemda.alamat %}
+                            <div class="letterhead-address">{{ pemda.alamat|upper }}</div>
+                        {% endif %}
+                        {% if kop_contact_line %}
+                            <div class="letterhead-contact">{{ kop_contact_line }}</div>
                         {% endif %}
                     </div>
                 </div>
-            </div>
-        {% else %}
-            <div class="letterhead-centered">
-                <img
-                    src="{% if pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
-                    alt="Logo"
-                    class="letterhead-logo-center">
-                <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
-                <div class="letterhead-office">
-                    {% if pemda and pemda.jenis_kop == "2" %}
-                        WAKIL KEPALA DAERAH
-                    {% else %}
-                        KEPALA DAERAH
-                    {% endif %}
+            {% else %}
+                <div class="letterhead-flex">
+                    <div class="logo-col">
+                        <img
+                            src="{% if pemda and pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
+                            alt="Logo Pemda"
+                            class="letterhead-logo">
+                    </div>
+                    <div class="letterhead-text">
+                        <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
+                        <div class="letterhead-office">{{ kop_office_name|default:"Instansi"|upper }}</div>
+                        {% if pemda and pemda.alamat %}
+                            <div class="letterhead-address">{{ pemda.alamat|upper }}</div>
+                        {% endif %}
+                        {% if kop_contact_line %}
+                            <div class="letterhead-contact">{{ kop_contact_line }}</div>
+                        {% endif %}
+                    </div>
                 </div>
-            </div>
-        {% endif %}
-    </div>
-
-    <div class="document-title">
-        <strong>SURAT TUGAS</strong><br>
-        Nomor: {{ pemberi_tugas.nomor_spt|default:"-" }}
-    </div>
-
-    {% if spt.dasar %}
-        <div class="section">
-            <div class="section-row">
-                <div class="section-label">Dasar</div>
-                <div class="section-separator">:</div>
-                <div class="section-content">{{ spt.dasar|linebreaksbr }}</div>
-            </div>
+            {% endif %}
         </div>
-    {% endif %}
 
-    <div class="section centered">
-        <strong>MEMERINTAHKAN:</strong>
-    </div>
+        <div class="document-title">
+            <div class="title-text">SURAT TUGAS</div>
+            <div>Nomor: {{ pemberi_tugas.nomor_spt|default:"-" }}</div>
+        </div>
 
-    <div class="section">
-        <div class="section-row">
-            <div class="section-label">Kepada</div>
-            <div class="section-separator">:</div>
-            <div class="section-content">
-                {% if pelaksana_list %}
-                    <ol class="executor-list">
-                        {% for pelaksana in pelaksana_list %}
-                            <li>
-                                <div class="executor-meta">
-                                    Nama: {{ pelaksana.nama.nama|default:"-" }}<br>
-                                    Pangkat/Gol: {{ pelaksana.nama.pangkat|default:"-" }}<br>
-                                    NIP: {{ pelaksana.nama.nip|default:"-" }}<br>
-                                    Jabatan: {{ pelaksana.nama.jabatan|default:"-" }}
-                                </div>
-                            </li>
-                        {% endfor %}
+        <table class="detail-table">
+            <tr>
+                <td class="label-cell">Dasar</td>
+                <td class="colon-cell">:</td>
+                <td>{{ spt.dasar|default:"-"|linebreaksbr }}</td>
+            </tr>
+        </table>
+
+        <div class="section-heading">MEMERINTAHKAN:</div>
+
+        <table class="detail-table">
+            <tr>
+                <td class="label-cell">Kepada</td>
+                <td class="colon-cell">:</td>
+                <td>
+                    {% if pelaksana_list %}
+                        <table class="recipient-table">
+                            {% for pelaksana in pelaksana_list %}
+                                <tr>
+                                    {% if show_pelaksana_numbering %}
+                                        <td class="recipient-no">{{ forloop.counter }}.</td>
+                                    {% endif %}
+                                    <td>
+                                        <table class="person-table">
+                                            <tr>
+                                                <td class="person-label">Nama</td>
+                                                <td class="person-colon">:</td>
+                                                <td>{{ pelaksana.nama.nama|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="person-label">Pangkat/Gol</td>
+                                                <td class="person-colon">:</td>
+                                                <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="person-label">NIP</td>
+                                                <td class="person-colon">:</td>
+                                                <td>{{ pelaksana.nama.nip|default:"-" }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="person-label">Jabatan</td>
+                                                <td class="person-colon">:</td>
+                                                <td>{{ pelaksana.nama.jabatan|default:"-" }}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% if not forloop.last %}
+                                    <tr><td colspan="2" style="height:8px;"></td></tr>
+                                {% endif %}
+                            {% endfor %}
+                        </table>
+                    {% else %}
+                        <span class="empty-state">Belum ada pelaksana yang sesuai untuk surat tugas ini.</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="label-cell">Untuk</td>
+                <td class="colon-cell">:</td>
+                <td>
+                    <ol class="instruction-list">
+                        <li>
+                            Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} hari dalam rangka
+                            {{ spt.berita|default:"-" }} ke {{ spt.tempat_tujuan|default:"-" }}
+                            di {{ spt.kota_tujuan|default:"-" }} terhitung tanggal
+                            {{ spt.tgl_berangkat|date:"dd mm YYYY" }} sampai dengan
+                            {{ spt.tgl_kembali|date:"dd mm YYYY" }}.
+                        </li>
+                        <li>
+                            Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada
+                            {{ pemberi_tugas.penandatangan.tugas|default:"pejabat pemberi tugas" }}.
+                        </li>
                     </ol>
-                {% else %}
-                    <div class="empty-state">Belum ada data pelaksana.</div>
-                {% endif %}
-            </div>
+                </td>
+            </tr>
+        </table>
+
+        <div class="signature">
+            {{ signature_location }}, {{ tanggal_dokumen|date:"dd mm YYYY" }}<br>
+            {{ signature_title|default:"-" }}<br>
+
+            <div class="signature-space"></div>
+
+            <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
+            {% if pemberi_tugas.nip %}
+                NIP. {{ pemberi_tugas.nip }}
+            {% endif %}
         </div>
-    </div>
-
-    <div class="section">
-        <div class="section-row">
-            <div class="section-label">Untuk</div>
-            <div class="section-separator">:</div>
-            <div class="section-content">
-                <ol class="instruction-list">
-                    <li>
-                        Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} hari
-                        dalam rangka {{ spt.berita|default:"-" }}
-                        ke {{ spt.tempat_tujuan|default:"-" }}
-                        di {{ spt.kota_tujuan|default:"-" }}
-                        terhitung tanggal {{ spt.tgl_berangkat|date:"d/m/Y" }}
-                        sampai dengan {{ spt.tgl_kembali|date:"d/m/Y" }}.
-                    </li>
-                    <li>
-                        Setelah selesai melaksanakan tugas, agar menyampaikan laporan
-                        kepada {{ pemberi_tugas.tugas|default:"-" }}.
-                    </li>
-                </ol>
-            </div>
-        </div>
-    </div>
-
-    <div class="signature">
-        {{ spt.kota_tujuan|default:asal_instansi }}, {{ tanggal_dokumen|date:"d/m/Y" }}<br>
-        {{ pemberi_tugas.jenis_jabatan|default:"" }} {{ pemberi_tugas.tugas|default:"-" }}<br>
-
-        <div class="signature-space"></div>
-
-        <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
-        {% if pemberi_tugas.nip %}
-            NIP. {{ pemberi_tugas.nip }}
-        {% endif %}
     </div>
 </div>
 

@@ -1,4 +1,6 @@
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
+from django.db.models import Q
 
 class Pangkat(models.Model):
     pangkat = models.CharField(max_length=100)
@@ -129,6 +131,14 @@ class Pegawai(models.Model):
 
 
 class Penandatangan(models.Model):
+    TUGAS_CHOICES = [
+        ('Bupati', 'Bupati'),
+        ('Wakil Bupati', 'Wakil Bupati'),
+        ('Sekretaris Daerah', 'Sekretaris Daerah'),
+        ('Kepala', 'Kepala'),
+        ('Kepala Bidang', 'Kepala Bidang'),
+        ('PPK', 'Pejabat Pembuat Komitmen'),
+    ]
     nama = models.CharField(max_length=200)
     nip = models.CharField(max_length=30, null=True, blank=True)
 
@@ -140,7 +150,7 @@ class Penandatangan(models.Model):
         related_name='penandatangan'
     )
 
-    tugas = models.CharField(max_length=200)
+    tugas = models.CharField(max_length=200, choices=TUGAS_CHOICES, null=True, default="")
 
     jenis_jabatan = models.ForeignKey(
         JenisJabatan,
@@ -162,27 +172,64 @@ class Penandatangan(models.Model):
         ordering = ['id']
         constraints = [
             models.UniqueConstraint(
-                fields=['nama', 'jenis_jabatan'],
-                name='uniq_penandatangan_nama_jenis_jabatan',
-            ),
+                fields=['nama', 'tugas','jenis_jabatan', 'opd'],
+                name='uniq_penandatangan_nama_tugas_jenis_jabatan_opd',
+                violation_error_message=(
+                    "Penandatangan dengan Nama, tugas, "
+                    "jenis jabatan, dan OPD yang sama sudah ada."
+                )
+            ),   
         ]
+
+    def clean(self):
+        super().clean()
+
+        duplicates = Penandatangan.objects.exclude(pk=self.pk).filter(
+            nama=self.nama,
+            tugas=self.tugas,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd,
+        ).exists()
+
+        if not duplicates.exists():
+            return
+
+        message = (
+            "Penandatangan dengan NIP, nama, tugas, "
+            "jenis jabatan, dan OPD yang sama sudah ada."
+        )
+
+        raise ValidationError({
+            "nip": message,
+            "nama": message,
+            "tugas": message,
+            "jenis_jabatan": message,
+            "opd": message,
+            NON_FIELD_ERRORS: [message],
+        })
 
     def __str__(self):
         return f"{self.nama} - {self.tugas} - {self.opd}"
 
 class Pemda(models.Model):
-    JENIS_KOP = [
-        ('1', 'Kepala Daerah'),
-        ('2', 'Wakil Kepala Daerah'),
-        ('3', 'Dinas/Badan/Kantor'),
-    ]
-    nama_pemda = models.CharField(max_length=200, unique=True)
-    nama_dinas = models.CharField(max_length=200, unique=True)
+    nama_pemda = models.CharField(max_length=200)
+    nama_dinas = models.OneToOneField(
+        'profiles.OPD', 
+        on_delete=models.PROTECT, 
+        null=True, 
+        unique=True,
+        error_messages={
+            'unique': "Nama Dinas sudah digunakan. Pilih nama dinas lain."
+        },
+        related_name='pemda'
+        )
+    nama_kabupaten = models.CharField(max_length=200, null=True, blank=True)
+    ibukota = models.CharField(max_length=100, null=True, blank=True)
     alamat = models.CharField(max_length=300, null=True, blank=True)
     telepon = models.CharField(max_length=50, null=True, blank=True)
     email = models.EmailField(null=True, blank=True)
+    website = models.URLField(null=True, blank=True)
     logo = models.ImageField(upload_to='pemda_logos/', null=True, blank=True)
-    jenis_kop = models.CharField(max_length=100, choices=JENIS_KOP, null=True, blank=True)
 
     class Meta:
         ordering = ['nama_pemda']

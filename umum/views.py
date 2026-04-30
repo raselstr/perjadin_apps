@@ -1,6 +1,10 @@
 from django.shortcuts import render
 from core.crud.base import BaseCRUDView
 from core.views_excel import ExcelExportView, ExcelImportView
+from profiles.utils import (
+    filter_penandatangan_queryset,
+    filter_queryset_by_active_opd,
+)
 from .models import Eselon, Pegawai, Pemda, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
 from .forms import EselonForm, PegawaiForm, PemdaForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
 from .tables import EselonTable, PegawaiTable, PemdaTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
@@ -86,8 +90,8 @@ class PegawaiView(BaseCRUDView):
     url_import = "pegawai_import"
     url_export = "pegawai_export"
 
-    def get_queryset(self):
-        return super().get_queryset().select_related(
+    def get_base_queryset(self):
+        queryset = Pegawai.objects.select_related(
             'pangkat',
             'eselon',
             'jenis_jabatan',
@@ -95,6 +99,13 @@ class PegawaiView(BaseCRUDView):
             'opd',
             'tingkat',
         )
+        return filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "opd_id",
+        )
+
+
 class PenandatanganView(BaseCRUDView):
     model = Penandatangan
     form_class = PenandatanganForm
@@ -109,11 +120,15 @@ class PenandatanganView(BaseCRUDView):
     url_import = "penandatangan_import"
     url_export = "penandatangan_export"
     
-    def get_queryset(self):
-        return super().get_queryset().select_related(
+    def get_base_queryset(self):
+        queryset = Penandatangan.objects.select_related(
             'pangkat',
             'jenis_jabatan',
             'opd'
+        )
+        return filter_penandatangan_queryset(
+            queryset,
+            self.request,
         )
 
 class TingkatView(BaseCRUDView):
@@ -143,8 +158,15 @@ class PemdaView(BaseCRUDView):
     url_action = "pemda_action"
     url_action_pk = "pemda_action_pk"
 
-    def get_queryset(self):
-        return super().get_queryset().order_by('nama_pemda')
+    def get_base_queryset(self):
+        queryset = Pemda.objects.select_related(
+            "nama_dinas"
+        ).order_by('nama_pemda')
+        return filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "nama_dinas_id",
+        )
 
 # ===========================
 # 📊 EXCEL EXPORT/IMPORT
@@ -156,7 +178,7 @@ class PegawaiExportView(ExcelExportView):
     
     def get_queryset(self):
         """Filter & select_related untuk performance"""
-        return Pegawai.objects.all().select_related(
+        queryset = Pegawai.objects.all().select_related(
             'pangkat',
             'eselon',
             'jenis_jabatan',
@@ -164,6 +186,11 @@ class PegawaiExportView(ExcelExportView):
             'opd',
             'tingkat',
         ).order_by('-id')
+        return filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "opd_id",
+        )
 
 
 class PegawaiImportView(ExcelImportView):
@@ -235,12 +262,23 @@ class PenandatanganExportView(ExcelExportView):
     """Download Penandatangan data sebagai Excel"""
     model = Penandatangan
 
+    def get_queryset(self):
+        queryset = Penandatangan.objects.select_related(
+            "pangkat",
+            "jenis_jabatan",
+            "opd",
+        ).order_by("-id")
+        return filter_penandatangan_queryset(
+            queryset,
+            self.request,
+        )
+
 class PenandatanganImportView(ExcelImportView):
     """Upload & import Penandatangan data dari Excel"""
     model = Penandatangan
     success_url = '/umum/penandatangan/'
     columns = ['nama', 'nip', 'pangkat','tugas', 'jenis_jabatan', 'opd']
-    match_fields = [('nama', 'jenis_jabatan'), ('nip',), ('nama', 'tugas', 'opd')]
+    match_fields = [('nip', 'nama', 'tugas', 'jenis_jabatan', 'opd')]
 
 class TingkatExportView(ExcelExportView):
     """Download Tingkat data sebagai Excel"""

@@ -6,8 +6,8 @@ from openpyxl import Workbook
 from core.utils.excel_handler import ExcelImporter
 from profiles.models import OPD
 
-from .forms import PegawaiForm
-from .models import Eselon, JenisJabatan, Pangkat, Pegawai, StatusASN, Tingkat
+from .forms import PegawaiForm, PenandatanganForm
+from .models import Eselon, JenisJabatan, Pangkat, Pegawai, Penandatangan, StatusASN, Tingkat
 
 
 def build_excel_file(rows):
@@ -89,6 +89,42 @@ class PegawaiFormTests(TestCase):
         })
 
         self.assertTrue(form.is_valid(), form.errors)
+
+
+class PenandatanganFormTests(TestCase):
+    def test_duplicate_penandatangan_shows_validation_error(self):
+        opd = OPD.objects.create(nama="BPKAD")
+        pangkat = Pangkat.objects.create(
+            pangkat="Pembina",
+            golongan="IV",
+            ruang="a",
+        )
+        jenis_jabatan = JenisJabatan.objects.create(nama="Definitif")
+
+        Penandatangan.objects.create(
+            nama="Ahmad",
+            nip="197001011995031001",
+            pangkat=pangkat,
+            tugas="Kepala",
+            jenis_jabatan=jenis_jabatan,
+            opd=opd,
+        )
+
+        form = PenandatanganForm(data={
+            "nama": "Ahmad",
+            "nip": "197001011995031001",
+            "pangkat": pangkat.pk,
+            "tugas": "Kepala",
+            "jenis_jabatan": jenis_jabatan.pk,
+            "opd": opd.pk,
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("__all__", form.errors)
+        self.assertIn(
+            "Penandatangan dengan NIP, nama, tugas, jenis jabatan, dan OPD yang sama sudah ada.",
+            form.errors["__all__"][0],
+        )
 
 
 class PegawaiImportTests(TestCase):

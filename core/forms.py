@@ -24,10 +24,12 @@ class BaseAppModelForm(forms.ModelForm):
     - metadata file existing untuk preview pada template generik
     """
 
+    accepts_request = True
     field_layout = {}
     default_field_class = "col-md-12"
 
     def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request", None)
         super().__init__(*args, **kwargs)
         self._apply_default_widget_styles()
 

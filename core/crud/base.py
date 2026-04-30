@@ -145,8 +145,38 @@ class BaseCRUDView(ExcelMixin, ListView):
         return response
 
     # =========================
+    def get_base_queryset(self):
+        return self.model.objects.all().order_by('id')
+
+    def get_object_queryset(self):
+        return self.get_base_queryset()
+
+    def get_form_kwargs(self, request, instance=None):
+        kwargs = {
+            "data": request.POST or None,
+            "files": request.FILES or None,
+            "instance": instance,
+        }
+
+        if getattr(self.form_class, "accepts_request", False):
+            kwargs["request"] = request
+
+        return kwargs
+
+    def get_formset_kwargs(self, request, instance=None):
+        kwargs = {
+            "data": request.POST or None,
+            "files": request.FILES or None,
+            "instance": instance,
+        }
+
+        if getattr(self.formset_class.form, "accepts_request", False):
+            kwargs["form_kwargs"] = {"request": request}
+
+        return kwargs
+
     def get_queryset(self):
-        qs = self.model.objects.all().order_by('id')
+        qs = self.get_base_queryset()
         search = self.request.GET.get("search")
 
         if not search:
@@ -334,12 +364,13 @@ class BaseCRUDView(ExcelMixin, ListView):
 
         instance = None
         if pk:
-            instance = get_object_or_404(self.model, pk=pk)
+            instance = get_object_or_404(
+                self.get_object_queryset(),
+                pk=pk,
+            )
 
         form = self.form_class(
-            data=request.POST or None,
-            files=request.FILES or None,
-            instance=instance,
+            **self.get_form_kwargs(request, instance=instance)
         )
 
         if request.method == "POST" and form.is_valid():
@@ -377,7 +408,10 @@ class BaseCRUDView(ExcelMixin, ListView):
         if not perm or not perm.can_delete:
             return self._forbidden(request)
 
-        obj = get_object_or_404(self.model, pk=pk)
+        obj = get_object_or_404(
+            self.get_object_queryset(),
+            pk=pk,
+        )
 
         if request.method == "POST":
             obj.delete()
@@ -430,7 +464,7 @@ class BaseMasterDetailCRUDView(BaseCRUDView):
         instance = None
         if pk:
             instance = get_object_or_404(
-                self.model,
+                self.get_object_queryset(),
                 pk=pk
             )
 
@@ -444,18 +478,14 @@ class BaseMasterDetailCRUDView(BaseCRUDView):
         # Parent Form
         # =========================
         form = self.form_class(
-            data=request.POST or None,
-            files=request.FILES or None,
-            instance=instance,
+            **self.get_form_kwargs(request, instance=instance)
         )
 
         # =========================
         # Child Formset
         # =========================
         formset = self.formset_class(
-            data=request.POST or None,
-            files=request.FILES or None,
-            instance=instance,
+            **self.get_formset_kwargs(request, instance=instance)
         )
 
         # =========================
