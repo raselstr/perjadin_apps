@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from types import SimpleNamespace
@@ -63,6 +64,7 @@ def login_view(request):
     })
 
 
+@require_POST
 def logout_view(request):
     logout(request)
 

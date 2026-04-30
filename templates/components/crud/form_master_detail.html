@@ -1,5 +1,10 @@
-<div class="modal-header">
-    <h5 class="modal-title">{{ title }}</h5>
+<div class="modal-header border-0 pb-0">
+    <div>
+        <h5 class="modal-title">{{ title }}</h5>
+        <div class="text-muted small">
+            Lengkapi data SPT dan atur daftar pelaksana pada form yang sama.
+        </div>
+    </div>
     <button
         type="button"
         class="btn-close"
@@ -13,166 +18,185 @@
     hx-post="{{ request.path }}"
     hx-target="#modal-body"
     hx-swap="innerHTML"
+    {% if is_multipart_form %}
+        enctype="multipart/form-data"
+        hx-encoding="multipart/form-data"
+    {% endif %}
 >
-
     {% csrf_token %}
 
-    <div class="modal-body">
-
-        {# ============================= #}
-        {# ERROR FORM UTAMA #}
-        {# ============================= #}
-
+    <div class="modal-body pt-3">
         {% if form.non_field_errors %}
             <div class="alert alert-danger">
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
 
-        {# ============================= #}
-        {# FORM SPT #}
-        {# ============================= #}
+        {% include "components/crud/form_fields.html" with form=form %}
 
-        <div class="row g-3">
-
-            {% for field in form %}
-
-                {% if field.is_hidden %}
-                    {{ field }}
-
-                {% else %}
-
-                    <div class="
-                        {% if field.name == 'tempat_tujuan' or field.name == 'dasar' or field.name == 'berita' %}
-                            col-md-12
-                        {% else %}
-                            col-md-6
-                        {% endif %}
-                    ">
-
-                        <label class="form-label">
-                            {{ field.label }}
-                        </label>
-
-                        {{ field }}
-
-                        {% if field.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ field.errors|striptags }}
-                            </div>
-                        {% endif %}
-
-                    </div>
-
-                {% endif %}
-
-            {% endfor %}
-
-        </div>
-
-        <hr class="my-4">
-
-        {# ============================= #}
-        {# FORMSET PELAKSANA #}
-        {# ============================= #}
-
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="mb-0">Pelaksana</h5>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 mb-3">
+            <div>
+                <h6 class="mb-1">Daftar Pelaksana</h6>
+                <div class="text-muted small">
+                    Tambahkan atau kurangi pelaksana sesuai kebutuhan surat tugas.
+                </div>
+            </div>
 
             <button
                 type="button"
-                class="btn btn-sm btn-primary"
-                onclick="addFormsetRow()">
-                + Tambah Pelaksana
+                class="btn btn-primary"
+                data-formset-add>
+                <i class="ti ti-plus me-1"></i>
+                Tambah Pelaksana
             </button>
         </div>
 
+        {% if formset.non_form_errors %}
+            <div class="alert alert-danger">
+                {{ formset.non_form_errors }}
+            </div>
+        {% endif %}
+
         {{ formset.management_form }}
 
-        <div id="formset-container">
-
+        <div id="formset-container" class="d-grid gap-3">
             {% for child_form in formset %}
-                <div class="formset-row border rounded p-3 mb-3 bg-light">
+                <div
+                    class="card border shadow-sm formset-row"
+                    data-formset-row
+                    data-deleted="{% if child_form.DELETE.value %}true{% else %}false{% endif %}">
 
-                    {{ child_form.id }}
+                    <div class="card-body">
+                        {{ child_form.id }}
+                        {{ child_form.DELETE.as_hidden }}
 
-                    <div class="row g-3 align-items-end">
-
-                        <div class="col-md-10">
-
-                            <label class="form-label">
-                                {{ child_form.nama.label }}
-                            </label>
-
-                            {{ child_form.nama }}
-
-                            {% if child_form.nama.errors %}
-                                <div class="text-danger small mt-1">
-                                    {{ child_form.nama.errors|striptags }}
+                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                            <div>
+                                <div class="d-inline-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white" data-row-title>
+                                        Pelaksana {{ forloop.counter }}
+                                    </span>
                                 </div>
-                            {% endif %}
+                                <div class="small text-muted mt-1" data-row-message>
+                                    Pilih pegawai yang ditugaskan untuk perjalanan dinas ini.
+                                </div>
+                            </div>
 
+                            <button
+                                type="button"
+                                class="btn btn-outline-danger align-self-start"
+                                data-formset-toggle-delete>
+                                <i class="ti ti-trash me-1"></i>
+                                Hapus
+                            </button>
                         </div>
 
-                        <div class="col-md-2">
+                        <div class="row g-3" data-row-fields>
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold" for="{{ child_form.nama.id_for_label }}">
+                                    {{ child_form.nama.label }}
+                                    <span class="text-danger">*</span>
+                                </label>
 
-                            {% if child_form.DELETE %}
-                                <div class="form-check">
-                                    {{ child_form.DELETE }}
-                                    <label class="form-check-label">
-                                        Hapus
-                                    </label>
-                                </div>
-                            {% endif %}
+                                {{ child_form.nama }}
 
+                                {% if child_form.nama.errors %}
+                                    <div class="text-danger small mt-1">
+                                        {{ child_form.nama.errors|striptags }}
+                                    </div>
+                                {% endif %}
+
+                                {% if child_form.non_field_errors %}
+                                    <div class="text-danger small mt-2">
+                                        {{ child_form.non_field_errors|striptags }}
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
-
                     </div>
-
+                </div>
+            {% empty %}
+                <div class="text-center text-muted border rounded-3 py-4 px-3 bg-light">
+                    Belum ada pelaksana. Klik tombol tambah untuk membuat baris baru.
                 </div>
             {% endfor %}
-
         </div>
-
     </div>
 
-    <div class="modal-footer">
-
+    <div class="modal-footer border-0 pt-0">
         <button
             type="submit"
             class="btn btn-success">
-            💾 Simpan
+            Simpan
         </button>
 
         <button
             type="button"
-            class="btn btn-secondary"
+            class="btn btn-outline-secondary"
             data-bs-dismiss="modal">
             Batal
         </button>
-
     </div>
-
 </form>
+
+<template id="pelaksana-empty-form-template">
+    <div class="card border shadow-sm formset-row" data-formset-row data-deleted="false">
+        <div class="card-body">
+            __ID_FIELD__
+            __DELETE_FIELD__
+
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                <div>
+                    <div class="d-inline-flex align-items-center gap-2">
+                        <span class="badge bg-primary text-white" data-row-title>
+                            Pelaksana
+                        </span>
+                    </div>
+                    <div class="small text-muted mt-1" data-row-message>
+                        Pilih pegawai yang ditugaskan untuk perjalanan dinas ini.
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn btn-outline-danger align-self-start"
+                    data-formset-toggle-delete>
+                    <i class="ti ti-trash me-1"></i>
+                    Hapus
+                </button>
+            </div>
+
+            <div class="row g-3" data-row-fields>
+                <div class="col-md-12">
+                    <label class="form-label fw-semibold" for="{{ formset.empty_form.nama.id_for_label }}">
+                        {{ formset.empty_form.nama.label }}
+                        <span class="text-danger">*</span>
+                    </label>
+
+                    {{ formset.empty_form.nama }}
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
 
 
 <script>
 (function () {
-
     function hitungTanggalKembali() {
         const tglBerangkat = document.getElementById("id_tgl_berangkat");
         const lamaPerjalanan = document.getElementById("id_lama_perjalanan");
         const tglKembali = document.getElementById("id_tgl_kembali");
 
-        if (!tglBerangkat || !lamaPerjalanan || !tglKembali) return;
+        if (!tglBerangkat || !lamaPerjalanan || !tglKembali) {
+            return;
+        }
 
         const startDate = tglBerangkat.value;
-        const duration = parseInt(lamaPerjalanan.value || 0);
+        const duration = parseInt(lamaPerjalanan.value || 0, 10);
 
         if (startDate && duration > 0) {
-            let date = new Date(startDate);
-
-            // 1 hari = hari yang sama
+            const date = new Date(startDate);
             date.setDate(date.getDate() + (duration - 1));
 
             const year = date.getFullYear();
@@ -180,16 +204,19 @@
             const day = String(date.getDate()).padStart(2, "0");
 
             tglKembali.value = `${year}-${month}-${day}`;
-        } else {
-            tglKembali.value = "";
+            return;
         }
+
+        tglKembali.value = "";
     }
 
     function initTanggalKembali() {
         const tglBerangkat = document.getElementById("id_tgl_berangkat");
         const lamaPerjalanan = document.getElementById("id_lama_perjalanan");
 
-        if (!tglBerangkat || !lamaPerjalanan) return;
+        if (!tglBerangkat || !lamaPerjalanan) {
+            return;
+        }
 
         tglBerangkat.removeEventListener("change", hitungTanggalKembali);
         lamaPerjalanan.removeEventListener("change", hitungTanggalKembali);
@@ -200,41 +227,175 @@
         hitungTanggalKembali();
     }
 
-    window.addFormsetRow = function () {
+    function initSelect2ForRow(row) {
+        if (!window.jQuery) {
+            return;
+        }
+
+        window.jQuery(row).find(".select2, .select2-ajax").each(function () {
+            const $field = window.jQuery(this);
+
+            if ($field.hasClass("select2-hidden-accessible")) {
+                $field.select2("destroy");
+            }
+
+            $field.select2({
+                width: "100%",
+                dropdownParent: window.jQuery("#modal"),
+                theme: "bootstrap-5",
+            });
+        });
+    }
+
+    function updateRowAppearance(row, visibleIndex) {
+        const deleteInput = row.querySelector('input[name$="-DELETE"]');
+        const isDeleted = Boolean(deleteInput && deleteInput.checked);
+        const title = row.querySelector("[data-row-title]");
+        const message = row.querySelector("[data-row-message]");
+        const toggleButton = row.querySelector("[data-formset-toggle-delete]");
+        const fieldWrapper = row.querySelector("[data-row-fields]");
+
+        row.dataset.deleted = isDeleted ? "true" : "false";
+        row.classList.toggle("border-danger", isDeleted);
+        row.classList.toggle("bg-light", isDeleted);
+        row.classList.toggle("opacity-75", isDeleted);
+
+        if (fieldWrapper) {
+            fieldWrapper.classList.toggle("d-none", isDeleted);
+        }
+
+        if (title) {
+            title.textContent = `Pelaksana ${visibleIndex}`;
+            title.classList.toggle("bg-danger", isDeleted);
+            title.classList.toggle("bg-primary", !isDeleted);
+            title.classList.toggle("text-white", true);
+        }
+
+        if (message) {
+            message.textContent = isDeleted
+                ? "Baris ini akan dihapus saat data disimpan."
+                : "Pilih pegawai yang ditugaskan untuk perjalanan dinas ini.";
+        }
+
+        if (toggleButton) {
+            toggleButton.classList.toggle("btn-outline-danger", !isDeleted);
+            toggleButton.classList.toggle("btn-outline-secondary", isDeleted);
+            toggleButton.innerHTML = isDeleted
+                ? '<i class="ti ti-arrow-back-up me-1"></i>Batalkan Hapus'
+                : '<i class="ti ti-trash me-1"></i>Hapus';
+        }
+    }
+
+    function renumberRows() {
+        const rows = document.querySelectorAll("[data-formset-row]");
+        let counter = 1;
+
+        rows.forEach(function (row) {
+            updateRowAppearance(row, counter);
+
+            counter += 1;
+        });
+    }
+
+    function buildEmptyRowHtml(index) {
+        const template = document.getElementById("pelaksana-empty-form-template");
+
+        if (!template) {
+            return "";
+        }
+
+        return template.innerHTML
+            .replace(
+                "__ID_FIELD__",
+                '{{ formset.empty_form.id.as_widget|escapejs }}'
+            )
+            .replace(
+                "__DELETE_FIELD__",
+                '{{ formset.empty_form.DELETE.as_hidden|escapejs }}'
+            )
+            .replace(/__prefix__/g, index);
+    }
+
+    function addFormsetRow() {
         const totalForms = document.getElementById("id_pelaksana-TOTAL_FORMS");
         const container = document.getElementById("formset-container");
-        const firstForm = container.querySelector(".formset-row");
 
-        if (!totalForms || !firstForm) return;
+        if (!totalForms || !container) {
+            return;
+        }
 
-        const formIndex = parseInt(totalForms.value);
+        const formIndex = parseInt(totalForms.value || 0, 10);
+        const rowHtml = buildEmptyRowHtml(formIndex);
 
-        const newForm = firstForm.cloneNode(true);
+        if (!rowHtml) {
+            return;
+        }
 
-        newForm.innerHTML = newForm.innerHTML.replace(
-            /pelaksana-(\d+)-/g,
-            `pelaksana-${formIndex}-`
-        );
+        const wrapper = document.createElement("div");
+        wrapper.innerHTML = rowHtml.trim();
+        const newRow = wrapper.firstElementChild;
 
-        newForm.querySelectorAll("input, select, textarea").forEach(function (el) {
-            if (el.type === "checkbox") {
-                el.checked = false;
-            } else if (el.type !== "hidden") {
-                el.value = "";
+        container.appendChild(newRow);
+        totalForms.value = formIndex + 1;
+
+        initSelect2ForRow(newRow);
+        renumberRows();
+    }
+
+    function handleToggleDelete(button) {
+        const row = button.closest("[data-formset-row]");
+        const deleteInput = row ? row.querySelector('input[name$="-DELETE"]') : null;
+
+        if (!row || !deleteInput) {
+            return;
+        }
+
+        deleteInput.checked = !deleteInput.checked;
+        renumberRows();
+    }
+
+    function bindFormsetActions() {
+        const addButton = document.querySelector("[data-formset-add]");
+        const container = document.getElementById("formset-container");
+
+        if (addButton && !addButton.dataset.bound) {
+            addButton.dataset.bound = "true";
+            addButton.addEventListener("click", addFormsetRow);
+        }
+
+        if (container && !container.dataset.bound) {
+            container.dataset.bound = "true";
+            container.addEventListener("click", function (event) {
+                const toggleButton = event.target.closest("[data-formset-toggle-delete]");
+
+                if (toggleButton) {
+                    handleToggleDelete(toggleButton);
+                }
+            });
+        }
+    }
+
+    function initializeMasterDetailForm() {
+        bindFormsetActions();
+        initTanggalKembali();
+
+        document.querySelectorAll("[data-formset-row]").forEach(function (row) {
+            initSelect2ForRow(row);
+        });
+
+        renumberRows();
+    }
+
+    initializeMasterDetailForm();
+
+    if (!window.__masterDetailCrudHandlersBound) {
+        document.body.addEventListener("htmx:afterSwap", function (event) {
+            if (event.detail.target && event.detail.target.id === "modal-body") {
+                initializeMasterDetailForm();
             }
         });
 
-        container.appendChild(newForm);
-        totalForms.value = formIndex + 1;
-    };
-
-    document.addEventListener("DOMContentLoaded", initTanggalKembali);
-
-    document.body.addEventListener("htmx:afterSwap", function (evt) {
-        if (evt.target.id === "modal-body") {
-            initTanggalKembali();
-        }
-    });
-
+        window.__masterDetailCrudHandlersBound = true;
+    }
 })();
 </script>

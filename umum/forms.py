@@ -1,5 +1,16 @@
 from django import forms
-from .models import Eselon, Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from core.forms import BaseAppModelForm
+
+from .models import (
+    Eselon,
+    Pegawai,
+    Pemda,
+    Penandatangan,
+    Pangkat,
+    JenisJabatan,
+    StatusASN,
+    Tingkat,
+)
 
 class PangkatForm(forms.ModelForm):
     class Meta:
@@ -54,9 +65,32 @@ class TingkatForm(forms.ModelForm):
         }
 
 class PegawaiForm(forms.ModelForm):
+    field_layout = {
+        "nip": 6,
+        "nama": 6,
+        "pangkat": 6,
+        "jabatan": 6,
+        "eselon": 4,
+        "jenis_jabatan": 4,
+        "status": 4,
+        "tgl_lahir": 6,
+        "tingkat": 6,
+        "opd": 12,
+    }
     class Meta:
         model = Pegawai
-        fields = '__all__'
+        fields = [
+            "nip",
+            "nama",
+            "pangkat",
+            "jabatan",
+            "eselon",
+            "jenis_jabatan",
+            "status",
+            "tgl_lahir",
+            "tingkat",
+            "opd",
+        ]
         widgets = {
             'nip': forms.TextInput(attrs={'class': 'form-control'}),
             'nama': forms.TextInput(attrs={'class': 'form-control'}),
@@ -85,6 +119,70 @@ class PenandatanganForm(forms.ModelForm):
             'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder':'Jenis Jabatan'}),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
         }
+
+
+class PemdaForm(BaseAppModelForm):
+    field_layout = {
+        "nama_pemda": 12,
+        "nama_dinas": 12,
+        "alamat": 12,
+        "telepon": 6,
+        "email": 6,
+        "jenis_kop": 6,
+        "logo": 6,
+    }
+
+    class Meta:
+        model = Pemda
+        fields = [
+            "nama_pemda",
+            "nama_dinas",
+            "alamat",
+            "telepon",
+            "email",
+            "jenis_kop",
+            "logo",
+        ]
+        labels = {
+            "nama_pemda": "Nama Pemda",
+            "nama_dinas": "Nama Dinas/Badan/Kantor",
+            "jenis_kop": "Jenis Kop",
+        }
+        widgets = {
+            "nama_pemda": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan nama pemerintah daerah",
+            }),
+            "nama_dinas": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan nama dinas/badan/kantor",
+            }),
+            "alamat": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 3,
+                "placeholder": "Masukkan alamat lengkap",
+            }),
+            "telepon": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan nomor telepon",
+            }),
+            "email": forms.EmailInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan alamat email",
+            }),
+            "jenis_kop": forms.Select(attrs={
+                "class": "form-select",
+            }),
+            "logo": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["logo"].help_text = (
+            "Upload logo resmi jika ingin dipakai pada kop surat."
+        )
 
 
         

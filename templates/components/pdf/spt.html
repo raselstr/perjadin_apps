@@ -2,159 +2,340 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Surat Perintah Tugas (SPT)</title>
-    <style>
-        body {
-            font-family: "Times New Roman", serif;
-            font-size: 16px;
-            color: #000;
-            margin: 30px;
-        }
+<meta charset="UTF-8">
+<title>Surat Tugas</title>
+<style>
+@page {
+    size: A4;
+    margin: 18mm;
+}
 
-        .page {
-            border: 1px solid #999;
-            padding: 30px 40px;
-            min-height: 90vh;
-        }
+body {
+    font-family: "Times New Roman", serif;
+    font-size: 12pt;
+    color: #000;
+    margin: 0;
+    background: #eef2f7;
+}
 
-        .text-center {
-            text-align: center;
-        }
+.toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 16px 20px 0;
+}
 
-        .logo {
-            width: 80px;
-            margin-bottom: 10px;
-        }
+.toolbar a,
+.toolbar button {
+    border: 0;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: none;
+}
 
-        .title {
-            margin-top: 10px;
-            line-height: 1.5;
-            font-size: 18px;
-        }
+.toolbar button {
+    background: #0d6efd;
+    color: #fff;
+}
 
-        .section {
-            margin-top: 28px;
-            width: 100%;
-            border-collapse: collapse;
-        }
+.toolbar a {
+    background: #fff;
+    color: #1f2937;
+}
 
-        .section td {
-            vertical-align: top;
-            padding: 2px 0;
-        }
+.page {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 12px auto 24px;
+    background: #fff;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    padding: 20mm 18mm;
+    box-sizing: border-box;
+}
 
-        .label {
-            width: 90px;
-        }
+.letterhead {
+    border-bottom: 4px double #000;
+    padding-bottom: 10px;
+    margin-bottom: 18px;
+}
 
-        .separator {
-            width: 20px;
-            text-align: center;
-        }
+.letterhead-flex {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
 
-        .content {
-            width: auto;
-        }
+.letterhead-logo-left,
+.letterhead-logo-center {
+    width: 84px;
+    height: auto;
+    object-fit: contain;
+}
 
-        .command-title {
-            text-align: center;
-            margin: 24px 0 10px;
-            font-size: 18px;
-        }
+.letterhead-centered {
+    text-align: center;
+}
 
-        .signature {
-            width: 45%;
-            margin-left: auto;
-            margin-top: 50px;
-            line-height: 2;
-        }
-    </style>
+.letterhead-text {
+    flex: 1;
+    text-align: center;
+    line-height: 1.35;
+}
+
+.letterhead-region {
+    font-size: 15pt;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.letterhead-office {
+    font-size: 17pt;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.letterhead-address {
+    font-size: 10.5pt;
+}
+
+.document-title {
+    text-align: center;
+    margin: 20px 0 18px;
+    line-height: 1.45;
+}
+
+.document-title strong {
+    font-size: 15pt;
+    text-decoration: underline;
+}
+
+.section {
+    margin-top: 14px;
+}
+
+.section-row {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 6px;
+}
+
+.section-label {
+    width: 88px;
+}
+
+.section-separator {
+    width: 14px;
+    text-align: center;
+}
+
+.section-content {
+    flex: 1;
+    text-align: justify;
+}
+
+.centered {
+    text-align: center;
+}
+
+.executor-list {
+    margin: 8px 0 0 0;
+    padding-left: 22px;
+}
+
+.executor-list li {
+    margin-bottom: 10px;
+}
+
+.executor-meta {
+    line-height: 1.45;
+}
+
+.instruction-list {
+    margin: 8px 0 0 18px;
+    padding-left: 18px;
+}
+
+.instruction-list li {
+    margin-bottom: 8px;
+    text-align: justify;
+}
+
+.signature {
+    width: 270px;
+    margin-left: auto;
+    margin-top: 38px;
+    line-height: 1.5;
+}
+
+.signature-space {
+    height: 72px;
+}
+
+.signature-name {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.empty-state {
+    font-style: italic;
+}
+
+@media print {
+    body {
+        background: #fff;
+    }
+
+    .toolbar {
+        display: none;
+    }
+
+    .page {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        box-shadow: none;
+        padding: 0;
+    }
+}
+</style>
 </head>
 <body>
+<div class="toolbar">
+    <a href="javascript:window.close()">Tutup</a>
+    <button type="button" onclick="window.print()">Cetak PDF</button>
+</div>
 
 <div class="page">
+    <div class="letterhead">
+        {% if pemda and pemda.jenis_kop == "3" %}
+            <div class="letterhead-flex">
+                <img
+                    src="{% if pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
+                    alt="Logo"
+                    class="letterhead-logo-left">
+                <div class="letterhead-text">
+                    <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
+                    <div class="letterhead-office">{{ pemda.nama_dinas|default:"Instansi"|upper }}</div>
+                    <div class="letterhead-address">
+                        {{ pemda.alamat|default:"-"|upper }}
+                        {% if pemda.telepon or pemda.email %}
+                            <br>
+                            {% if pemda.telepon %}Telp. {{ pemda.telepon }}{% endif %}
+                            {% if pemda.telepon and pemda.email %} | {% endif %}
+                            {% if pemda.email %}Email: {{ pemda.email }}{% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="letterhead-centered">
+                <img
+                    src="{% if pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
+                    alt="Logo"
+                    class="letterhead-logo-center">
+                <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
+                <div class="letterhead-office">
+                    {% if pemda and pemda.jenis_kop == "2" %}
+                        WAKIL KEPALA DAERAH
+                    {% else %}
+                        KEPALA DAERAH
+                    {% endif %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
 
-    <div class="text-center">
-        <img src="{% static 'assets/images/logo.png' %}" alt="Logo" class="logo">
+    <div class="document-title">
+        <strong>SURAT TUGAS</strong><br>
+        Nomor: {{ pemberi_tugas.nomor_spt|default:"-" }}
+    </div>
 
-        <div class="title">
-            <div>BUPATI ASAHAN</div>
-            <br>
-            <div>SURAT PERINTAH</div>
-            <div>NOMOR {{ spt.nomor_spt|default:'................................' }}</div>
+    {% if spt.dasar %}
+        <div class="section">
+            <div class="section-row">
+                <div class="section-label">Dasar</div>
+                <div class="section-separator">:</div>
+                <div class="section-content">{{ spt.dasar|linebreaksbr }}</div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="section centered">
+        <strong>MEMERINTAHKAN:</strong>
+    </div>
+
+    <div class="section">
+        <div class="section-row">
+            <div class="section-label">Kepada</div>
+            <div class="section-separator">:</div>
+            <div class="section-content">
+                {% if pelaksana_list %}
+                    <ol class="executor-list">
+                        {% for pelaksana in pelaksana_list %}
+                            <li>
+                                <div class="executor-meta">
+                                    Nama: {{ pelaksana.nama.nama|default:"-" }}<br>
+                                    Pangkat/Gol: {{ pelaksana.nama.pangkat|default:"-" }}<br>
+                                    NIP: {{ pelaksana.nama.nip|default:"-" }}<br>
+                                    Jabatan: {{ pelaksana.nama.jabatan|default:"-" }}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ol>
+                {% else %}
+                    <div class="empty-state">Belum ada data pelaksana.</div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-
-    <table class="section">
-        <tr>
-            <td class="label">Menimbang</td>
-            <td class="separator">:</td>
-            <td class="content">
-                a. bahwa {{ spt.berita|default:'............................................................' }};<br>
-                b. bahwa ........................................................................;
-            </td>
-        </tr>
-    </table>
-
-
-    <table class="section">
-        <tr>
-            <td class="label">Dasar</td>
-            <td class="separator">:</td>
-            <td class="content">
-                1. {{ spt.dasar|default:'............................................................' }};<br>
-                2. ........................................................................;
-            </td>
-        </tr>
-    </table>
-
-
-    <div class="command-title">
-        Memberi Perintah
+    <div class="section">
+        <div class="section-row">
+            <div class="section-label">Untuk</div>
+            <div class="section-separator">:</div>
+            <div class="section-content">
+                <ol class="instruction-list">
+                    <li>
+                        Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} hari
+                        dalam rangka {{ spt.berita|default:"-" }}
+                        ke {{ spt.tempat_tujuan|default:"-" }}
+                        di {{ spt.kota_tujuan|default:"-" }}
+                        terhitung tanggal {{ spt.tgl_berangkat|date:"d/m/Y" }}
+                        sampai dengan {{ spt.tgl_kembali|date:"d/m/Y" }}.
+                    </li>
+                    <li>
+                        Setelah selesai melaksanakan tugas, agar menyampaikan laporan
+                        kepada {{ pemberi_tugas.tugas|default:"-" }}.
+                    </li>
+                </ol>
+            </div>
+        </div>
     </div>
-
-
-    <table class="section">
-        <tr>
-            <td class="label">Kepada</td>
-            <td class="separator">:</td>
-            <td class="content">
-                {% for item in spt.pelaksana.all %}
-                    {{ forloop.counter }}. {{ item.nama }};<br>
-                {% empty %}
-                    1. .................................................................;<br>
-                    2. .................................................................;<br>
-                {% endfor %}
-                {{ forloop.counter|default:'4' }}. dan seterusnya.
-            </td>
-        </tr>
-    </table>
-
-
-    <table class="section">
-        <tr>
-            <td class="label">Untuk</td>
-            <td class="separator">:</td>
-            <td class="content">
-                1. Melaksanakan perjalanan dinas ke {{ spt.kota_tujuan|default:'........................' }};<br>
-                2. Tanggal berangkat {{ spt.tgl_berangkat|date:'d-m-Y'|default:'................' }};<br>
-                3. Lama perjalanan {{ spt.lama_perjalanan|default:'....' }} hari;<br>
-                4. dan seterusnya.
-            </td>
-        </tr>
-    </table>
-
 
     <div class="signature">
-        {{ tempat_ttd|default:'Nama Tempat' }}, {{ tanggal_ttd|default:'Tanggal' }}<br>
-        Bupati Asahan,<br><br><br><br>
+        {{ spt.kota_tujuan|default:asal_instansi }}, {{ tanggal_dokumen|date:"d/m/Y" }}<br>
+        {{ pemberi_tugas.jenis_jabatan|default:"" }} {{ pemberi_tugas.tugas|default:"-" }}<br>
 
-        {{ pejabat_ttd|default:'Nama' }}
+        <div class="signature-space"></div>
+
+        <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
+        {% if pemberi_tugas.nip %}
+            NIP. {{ pemberi_tugas.nip }}
+        {% endif %}
     </div>
-
 </div>
 
+{% if auto_print %}
+<script>
+window.addEventListener("load", function () {
+    window.print();
+});
+</script>
+{% endif %}
 </body>
 </html>

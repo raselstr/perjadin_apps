@@ -1,281 +1,311 @@
 {% extends 'layouts/base.html' %}
 {% load static %}
 
-{% block title %} Dashboard {% endblock title %}
-{% block content %}
-  <!-- [ Main Content ] start -->
-  <div class="pc-container">
-    <div class="pc-content">
-      <!-- [ Main Content ] start -->
-      <div class="row">
-        <!-- [ sample-page ] start -->
-        <div class="col-xl-4 col-md-6">
-          <div class="card bg-secondary-dark dashnum-card text-white overflow-hidden">
-            <span class="round small"></span>
-            <span class="round big"></span>
-            <div class="card-body">
-              <div class="row">
-                <div class="col">
-                  <div class="avtar avtar-lg">
-                    <i class="text-white ti ti-credit-card"></i>
-                  </div>
-                </div>
-                <div class="col-auto">
-                  <div class="btn-group">
-                    <a
-                      type="button"
-                      class="avtar bg-secondary dropdown-toggle arrow-none"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <i class="ti ti-dots"></i>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                      <li><button class="dropdown-item" type="button">Import Card</button></li>
-                      <li><button class="dropdown-item" type="button">Export</button></li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-              <span class="text-white d-block f-34 f-w-500 my-2">1350 <i class="ti ti-arrow-up-right-circle opacity-50"></i></span>
-              <p class="mb-0 opacity-50">Total Pending Orders</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-xl-4 col-md-6">
-          <div class="card bg-primary-dark dashnum-card text-white overflow-hidden">
-            <span class="round small"></span>
-            <span class="round big"></span>
-            <div class="card-body">
-              <div class="row">
-                <div class="col">
-                  <div class="avtar avtar-lg">
-                    <i class="text-white ti ti-credit-card"></i>
-                  </div>
-                </div>
-                <div class="col-auto">
-                  <ul class="nav nav-pills justify-content-end mb-0" id="chart-tab-tab" role="tablist">
-                    <li class="nav-item" role="presentation">
-                      <button
-                        class="nav-link text-white active"
-                        id="chart-tab-home-tab"
-                        data-bs-toggle="pill"
-                        data-bs-target="#chart-tab-home"
-                        type="button"
-                        role="tab"
-                        aria-controls="chart-tab-home"
-                        aria-selected="true"
-                        >Month</button
-                      >
-                    </li>
-                    <li class="nav-item" role="presentation">
-                      <button
-                        class="nav-link text-white"
-                        id="chart-tab-profile-tab"
-                        data-bs-toggle="pill"
-                        data-bs-target="#chart-tab-profile"
-                        type="button"
-                        role="tab"
-                        aria-controls="chart-tab-profile"
-                        aria-selected="false"
-                        >Year</button
-                      >
-                    </li>
-                  </ul>
-                </div>
-              </div>
-              <div class="tab-content" id="chart-tab-tabContent">
-                <div class="tab-pane show active" id="chart-tab-home" role="tabpanel" aria-labelledby="chart-tab-home-tab" tabindex="0">
-                  <div class="row">
-                    <div class="col-6">
-                      <span class="text-white d-block f-34 f-w-500 my-2">$130<i class="ti ti-arrow-up-right-circle opacity-50"></i></span>
-                      <p class="mb-0 opacity-50">Total Earning</p>
-                    </div>
-                    <div class="col-6">
-                      <div id="tab-chart-1"></div>
-                    </div>
-                  </div>
-                </div>
-                <div class="tab-pane" id="chart-tab-profile" role="tabpanel" aria-labelledby="chart-tab-profile-tab" tabindex="0">
-                  <div class="row">
-                    <div class="col-6">
-                      <span class="text-white d-block f-34 f-w-500 my-2">$29961 <i class="ti ti-arrow-down-right-circle opacity-50"></i></span>
-                      <p class="mb-0 opacity-50">C/W Last Year</p>
-                    </div>
-                    <div class="col-6">
-                      <div id="tab-chart-2"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-xl-4 col-md-12">
-          <div class="card bg-primary-dark dashnum-card dashnum-card-small text-white overflow-hidden">
-            <span class="round bg-primary small"></span>
-            <span class="round bg-primary big"></span>
-            <div class="card-body p-3">
-              <div class="d-flex align-items-center">
-                <div class="avtar avtar-lg">
-                  <i class="text-white ti ti-credit-card"></i>
-                </div>
-                <div class="ms-2">
-                  <h4 class="text-white mb-1">$203k <i class="ti ti-arrow-up-right-circle opacity-50"></i></h4>
-                  <p class="mb-0 opacity-50 text-sm">Net Profit</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="card dashnum-card dashnum-card-small overflow-hidden">
-            <span class="round bg-warning small"></span>
-            <span class="round bg-warning big"></span>
-            <div class="card-body p-3">
-              <div class="d-flex align-items-center">
-                <div class="avtar avtar-lg bg-light-warning">
-                  <i class="text-warning ti ti-credit-card"></i>
-                </div>
-                <div class="ms-2">
-                  <h4 class="mb-1">$550K <i class="ti ti-arrow-up-right-circle opacity-50"></i></h4>
-                  <p class="mb-0 opacity-50 text-sm">Total Revenue</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+{% block title %}Dashboard{% endblock title %}
 
-        <div class="col-xl-8 col-md-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="row mb-3 align-items-center">
-                <div class="col">
-                  <small>Total Growth</small>
-                  <h3>$2,324.00</h3>
-                </div>
-                <div class="col-auto">
-                  <select class="form-select p-r-35">
-                    <option>Today</option>
-                    <option selected>This Month</option>
-                    <option>This Year</option>
-                  </select>
-                </div>
-              </div>
-              <div id="growthchart"></div>
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="col-md-12">
+            <div class="page-header-title">
+              <h5 class="m-b-10">Dashboard Perjalanan Dinas</h5>
             </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item" aria-current="page">Ringkasan</li>
+            </ul>
           </div>
         </div>
-        <div class="col-xl-4 col-md-12">
-          <div class="card">
-            <div class="card-body">
-              <div class="row mb-3 align-items-center">
-                <div class="col">
-                  <h4>Popular Stocks</h4>
-                </div>
-                <div class="col-auto"> </div>
-              </div>
-              <div class="rounded bg-light-secondary overflow-hidden mb-3">
-                <div class="px-3 pt-3">
-                  <div class="row mb-1 align-items-start">
-                    <div class="col">
-                      <h5 class="text-secondary mb-0">Bajaj Finery</h5>
-                      <small class="text-muted">10% Profit</small>
-                    </div>
-                    <div class="col-auto">
-                      <h4 class="mb-0">$1839.00</h4>
-                    </div>
-                  </div>
-                </div>
-                <div id="bajajchart"></div>
-              </div>
-              <ul class="list-group list-group-flush">
-                <li class="list-group-item px-0">
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <h5 class="mb-0">Bajaj Finery</h5>
-                      <small class="text-success">10% Profit</small>
-                    </div>
-                    <div class="col-auto">
-                      <h4 class="mb-0"
-                        >$1839.00<span class="ms-2 align-top avtar avtar-xxs bg-light-success"
-                          ><i class="ti ti-chevron-up text-success"></i></span
-                      ></h4>
-                    </div>
-                  </div>
-                </li>
-                <li class="list-group-item px-0">
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <h5 class="mb-0">TTML</h5>
-                      <small class="text-danger">10% Profit</small>
-                    </div>
-                    <div class="col-auto">
-                      <h4 class="mb-0"
-                        >$100.00<span class="ms-2 align-top avtar avtar-xxs bg-light-danger"
-                          ><i class="ti ti-chevron-down text-danger"></i></span
-                      ></h4>
-                    </div>
-                  </div>
-                </li>
-                <li class="list-group-item px-0">
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <h5 class="mb-0">Reliance</h5>
-                      <small class="text-success">10% Profit</small>
-                    </div>
-                    <div class="col-auto">
-                      <h4 class="mb-0"
-                        >$200.00<span class="ms-2 align-top avtar avtar-xxs bg-light-success"
-                          ><i class="ti ti-chevron-up text-success"></i></span
-                      ></h4>
-                    </div>
-                  </div>
-                </li>
-                <li class="list-group-item px-0">
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <h5 class="mb-0">TTML</h5>
-                      <small class="text-danger">10% Profit</small>
-                    </div>
-                    <div class="col-auto">
-                      <h4 class="mb-0"
-                        >$189.00<span class="ms-2 align-top avtar avtar-xxs bg-light-danger"
-                          ><i class="ti ti-chevron-down text-danger"></i></span
-                      ></h4>
-                    </div>
-                  </div>
-                </li>
-                <li class="list-group-item px-0">
-                  <div class="row align-items-start">
-                    <div class="col">
-                      <h5 class="mb-0">Stolon</h5>
-                      <small class="text-danger">10% Profit</small>
-                    </div>
-                    <div class="col-auto">
-                      <h4 class="mb-0"
-                        >$189.00<span class="ms-2 align-top avtar avtar-xxs bg-light-danger"
-                          ><i class="ti ti-chevron-down text-danger"></i></span
-                      ></h4>
-                    </div>
-                  </div>
-                </li>
-              </ul>
-              <div class="text-center">
-                <a href="#!" class="b-b-primary text-primary">View all <i class="ti ti-chevron-right"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- [ sample-page ] end -->
       </div>
-      <!-- [ Main Content ] end -->
+    </div>
+
+    <div class="row g-4">
+      <div class="col-xxl-3 col-md-6">
+        <div class="card border-0 shadow-sm dashboard-stat-card bg-primary text-white h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div class="stat-icon bg-white bg-opacity-25">
+                <i class="ti ti-file-description"></i>
+              </div>
+              <span class="badge rounded-pill text-bg-light">Tahun {{ dashboard_year }}</span>
+            </div>
+            <h3 class="text-white mb-1">{{ stats.total_spt_year }}</h3>
+            <p class="mb-0 text-white text-opacity-75">Total SPT diterbitkan</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card border-0 shadow-sm dashboard-stat-card bg-success text-white h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div class="stat-icon bg-white bg-opacity-25">
+                <i class="ti ti-users"></i>
+              </div>
+              <span class="badge rounded-pill text-bg-light">Frekuensi</span>
+            </div>
+            <h3 class="text-white mb-1">{{ stats.total_pelaksana_year }}</h3>
+            <p class="mb-0 text-white text-opacity-75">Jumlah pelaksana perjalanan</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card border-0 shadow-sm dashboard-stat-card bg-warning h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div class="stat-icon bg-white bg-opacity-50">
+                <i class="ti ti-calendar-stats"></i>
+              </div>
+              <span class="badge rounded-pill bg-white text-warning">Bulan Ini</span>
+            </div>
+            <h3 class="mb-1">{{ stats.total_current_month }}</h3>
+            <p class="mb-0 text-dark text-opacity-75">SPT berangkat pada bulan berjalan</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xxl-3 col-md-6">
+        <div class="card border-0 shadow-sm dashboard-stat-card bg-dark text-white h-100">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-4">
+              <div class="stat-icon bg-white bg-opacity-25">
+                <i class="ti ti-map-pin-share"></i>
+              </div>
+              <span class="badge rounded-pill text-bg-light">{{ today|date:"d/m/Y" }}</span>
+            </div>
+            <h3 class="text-white mb-1">{{ stats.total_today }}</h3>
+            <p class="mb-0 text-white text-opacity-75">Pelaksana yang sedang dinas hari ini</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header border-0 pt-4 pb-0">
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+              <div>
+                <h5 class="mb-1">Grafik Frekuensi Perjalanan</h5>
+                <p class="text-muted mb-0">
+                  Rekap pelaksana perjalanan dinas per bulan untuk tahun {{ dashboard_year }}.
+                </p>
+              </div>
+              <div class="text-md-end">
+                <div class="small text-muted">Puncak frekuensi</div>
+                <div class="fw-semibold">{{ peak_month_total }} pelaksana</div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body pt-3">
+            <div id="monthly-travel-chart" style="min-height: 360px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header border-0 pt-4 pb-0">
+            <h5 class="mb-1">Ruang Pantau Hari Ini</h5>
+            <p class="text-muted mb-0">Status berdasarkan tanggal server saat ini.</p>
+          </div>
+          <div class="card-body">
+            <div class="overview-panel mb-3">
+              <div class="small text-muted mb-1">Tanggal aktif</div>
+              <div class="fw-semibold fs-5">{{ today|date:"d/m/Y" }}</div>
+            </div>
+            <div class="overview-panel mb-3">
+              <div class="small text-muted mb-1">OPD aktif</div>
+              <div class="fw-semibold">{{ opd|default:"Semua OPD" }}</div>
+            </div>
+            <div class="overview-panel">
+              <div class="small text-muted mb-1">Dokumen berjalan</div>
+              <div class="fw-semibold">{{ stats.total_today }} pelaksana sedang bertugas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header border-0 pt-4 pb-0">
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+              <div>
+                <h5 class="mb-1">Pelaksana Perjalanan Dinas Hari Ini</h5>
+                <p class="text-muted mb-0">
+                  Daftar pegawai yang tanggal perjalanannya mencakup {{ today|date:"d/m/Y" }}.
+                </p>
+              </div>
+              <span class="badge rounded-pill bg-light-primary text-primary px-3 py-2">
+                {{ stats.total_today }} pelaksana aktif
+              </span>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if today_travelers %}
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Nama</th>
+                      <th>Jabatan</th>
+                      <th>Tujuan</th>
+                      <th>Kegiatan</th>
+                      <th>Periode</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in today_travelers %}
+                      <tr>
+                        <td>
+                          <div class="fw-semibold">{{ item.nama.nama }}</div>
+                          <div class="text-muted small">{{ item.nama.nip|default:"-" }}</div>
+                        </td>
+                        <td>{{ item.nama.jabatan|default:"-" }}</td>
+                        <td>
+                          <div class="fw-medium">{{ item.spt.kota_tujuan|default:"-" }}</div>
+                          <div class="text-muted small">{{ item.spt.tempat_tujuan|default:"-" }}</div>
+                        </td>
+                        <td>{{ item.spt.jenis_kegiatan|default:"-" }}</td>
+                        <td>{{ item.spt.tgl_berangkat|date:"d/m/Y" }} - {{ item.spt.tgl_kembali|date:"d/m/Y" }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="empty-dashboard-state">
+                <div class="empty-icon">
+                  <i class="ti ti-calendar-off"></i>
+                </div>
+                <h5 class="mb-2">Belum ada perjalanan aktif hari ini</h5>
+                <p class="text-muted mb-0">
+                  Tidak ditemukan pelaksana perjalanan dinas yang sedang berjalan pada tanggal ini.
+                </p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-  <!-- [ Main Content ] end -->
+</div>
 {% endblock content %}
 
+{% block extrastyle %}
+<style>
+.dashboard-stat-card {
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+}
+
+.overview-panel {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, #f8fafc 0%, #eef4ff 100%);
+}
+
+.empty-dashboard-state {
+  border: 1px dashed rgba(15, 23, 42, 0.12);
+  border-radius: 20px;
+  padding: 42px 20px;
+  text-align: center;
+  background: linear-gradient(180deg, #fbfdff 0%, #f3f7ff 100%);
+}
+
+.empty-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9f2ff;
+  color: #0d6efd;
+  font-size: 28px;
+}
+</style>
+{% endblock extrastyle %}
+
 {% block extra_js %}
-  <!-- Apex Chart -->
-  <script src="{% static 'assets/js/plugins/apexcharts.min.js' %}"></script>
-  <script src="{% static 'assets/js/pages/dashboard-default.js' %}"></script>
-  <!-- [Page Specific JS] end -->
+<script src="{% static 'assets/js/plugins/apexcharts.min.js' %}"></script>
+{{ chart_data|json_script:"dashboard-chart-data" }}
+<script>
+(function () {
+  const chartNode = document.getElementById('dashboard-chart-data');
+  const target = document.getElementById('monthly-travel-chart');
+
+  if (!chartNode || !target || typeof ApexCharts === 'undefined') {
+    return;
+  }
+
+  const chartData = JSON.parse(chartNode.textContent);
+
+  const options = {
+    chart: {
+      type: 'bar',
+      height: 360,
+      toolbar: { show: false },
+      fontFamily: 'inherit',
+    },
+    series: [{
+      name: 'Pelaksana',
+      data: chartData.series,
+    }],
+    colors: ['#0d6efd'],
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        columnWidth: '48%',
+      },
+    },
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      show: true,
+      width: 1,
+      colors: ['transparent'],
+    },
+    xaxis: {
+      categories: chartData.labels,
+    },
+    yaxis: {
+      min: 0,
+      forceNiceScale: true,
+      title: {
+        text: 'Jumlah pelaksana',
+      },
+    },
+    grid: {
+      borderColor: '#eef2f6',
+      strokeDashArray: 4,
+    },
+    tooltip: {
+      y: {
+        formatter: function (value) {
+          return value + ' pelaksana';
+        }
+      }
+    },
+  };
+
+  const chart = new ApexCharts(target, options);
+  chart.render();
+})();
+</script>
 {% endblock extra_js %}

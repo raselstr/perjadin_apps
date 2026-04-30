@@ -18,7 +18,7 @@ class BaseCRUDView(ExcelMixin, ListView):
     table_class = None
     template_name = "pages/page.html"
     template_list = "components/crud/list.html"
-    template_form = "components/crud/form.html"
+    template_form = "components/crud/form_general.html"
 
     title = ""
 
@@ -99,6 +99,51 @@ class BaseCRUDView(ExcelMixin, ListView):
         })
         return response
 
+    def _collect_form_errors(self, form, formset=None):
+        errors = []
+
+        if form.non_field_errors():
+            errors.extend(str(error) for error in form.non_field_errors())
+
+        for field in form:
+            for error in field.errors:
+                errors.append(f"{field.label}: {error}")
+
+        if formset is not None:
+            if formset.non_form_errors():
+                errors.extend(str(error) for error in formset.non_form_errors())
+
+            for index, child_form in enumerate(formset.forms, start=1):
+                if child_form.non_field_errors():
+                    errors.extend(
+                        f"Pelaksana {index}: {error}"
+                        for error in child_form.non_field_errors()
+                    )
+
+                for field in child_form.visible_fields():
+                    for error in field.errors:
+                        errors.append(
+                            f"Pelaksana {index} - {field.label}: {error}"
+                        )
+
+        return errors
+
+    def _build_htmx_error_response(self, request, context, form, formset=None):
+        response = render(request, self.template_form, context)
+        errors = self._collect_form_errors(form, formset)
+
+        response["HX-Trigger"] = json.dumps({
+            "crudError": {
+                "title": "Validasi gagal",
+                "message": (
+                    errors[0]
+                    if errors else "Periksa kembali data yang diinput."
+                ),
+                "level": "error",
+            },
+        })
+        return response
+
     # =========================
     def get_queryset(self):
         qs = self.model.objects.all().order_by('id')
@@ -107,8 +152,29 @@ class BaseCRUDView(ExcelMixin, ListView):
         if not search:
             return qs
 
-        field_names = {field.name for field in self.model._meta.get_fields()}
+        model_fields = {
+            field.name: field
+            for field in self.model._meta.get_fields()
+            if getattr(field, "name", None)
+        }
+        field_names = set(model_fields.keys())
         filters = Q()
+
+        def is_relation(field_name):
+            return getattr(model_fields.get(field_name), "is_relation", False)
+
+        def add_text_filter(field_name, related_lookup=None):
+            nonlocal filters
+
+            if field_name not in field_names:
+                return
+
+            if is_relation(field_name):
+                if related_lookup:
+                    filters |= Q(**{related_lookup: search})
+                return
+
+            filters |= Q(**{f"{field_name}__icontains": search})
 
         if 'nama' in field_names:
             filters |= Q(nama__icontains=search)
@@ -116,36 +182,43 @@ class BaseCRUDView(ExcelMixin, ListView):
             filters |= Q(nip__icontains=search)
         if 'jabatan' in field_names:
             filters |= Q(jabatan__icontains=search)
-        if 'pangkat' in field_names:
-            filters |= Q(pangkat__pangkat__icontains=search)
-        if 'eselon' in field_names:
-            filters |= Q(eselon__eselon__icontains=search)
-        if 'jenis_jabatan' in field_names:
-            filters |= Q(jenis_jabatan__nama__icontains=search)
-        if 'status' in field_names:
-            filters |= Q(status__nama__icontains=search)
-        if 'opd' in field_names:
-            filters |= Q(opd__nama__icontains=search)
-        if 'tingkat' in field_names:
-            filters |= Q(tingkat__tingkat__icontains=search)
+        add_text_filter('pangkat', 'pangkat__pangkat__icontains')
+        add_text_filter('eselon', 'eselon__eselon__icontains')
+        add_text_filter('jenis_jabatan', 'jenis_jabatan__nama__icontains')
+        add_text_filter('status', 'status__nama__icontains')
+        add_text_filter('opd', 'opd__nama__icontains')
+        add_text_filter('tingkat', 'tingkat__tingkat__icontains')
         if 'tugas' in field_names:
             filters |= Q(tugas__icontains=search)
+        if 'nama_pemda' in field_names:
+            filters |= Q(nama_pemda__icontains=search)
+        if 'nama_dinas' in field_names:
+            filters |= Q(nama_dinas__icontains=search)
+        if 'alamat' in field_names:
+            filters |= Q(alamat__icontains=search)
+        if 'telepon' in field_names:
+            filters |= Q(telepon__icontains=search)
+        if 'email' in field_names:
+            filters |= Q(email__icontains=search)
+        if 'nomor_spt' in field_names:
+            filters |= Q(nomor_spt__icontains=search)
         if 'url' in field_names:
             filters |= Q(url__icontains=search)
-        if 'menu' in field_names:
-            filters |= Q(menu__nama__icontains=search)
+        add_text_filter('menu', 'menu__nama__icontains')
         if 'icon' in field_names:
             filters |= Q(icon__icontains=search)
-        if 'lokasi' in field_names:
-            filters |= Q(lokasi__icontains=search)
+        add_text_filter('lokasi', 'lokasi__lokasi__icontains')
         if 'kota' in field_names:
             filters |= Q(kota__icontains=search)
-        if 'jenis_spd' in field_names:
-            filters |= Q(jenis_spd__nama__icontains=search)
-        if 'jenis_kegiatan' in field_names:
-            filters |= Q(jenis_kegiatan__nama__icontains=search)
-        if 'jenis_transportasi' in field_names:
-            filters |= Q(jenis_transportasi__nama__icontains=search)
+        add_text_filter('jenis_spd', 'jenis_spd__nama__icontains')
+        add_text_filter('jenis_kegiatan', 'jenis_kegiatan__nama__icontains')
+        add_text_filter('jenis_transportasi', 'jenis_transportasi__nama__icontains')
+        add_text_filter('penandatangan', 'penandatangan__nama__icontains')
+        if 'spt' in field_names and is_relation('spt'):
+            filters |= (
+                Q(spt__tempat_tujuan__icontains=search) |
+                Q(spt__kota_tujuan__lokasi__icontains=search)
+            )
         money_field_types = (
             models.DecimalField,
             models.FloatField,
@@ -263,7 +336,11 @@ class BaseCRUDView(ExcelMixin, ListView):
         if pk:
             instance = get_object_or_404(self.model, pk=pk)
 
-        form = self.form_class(request.POST or None, instance=instance)
+        form = self.form_class(
+            data=request.POST or None,
+            files=request.FILES or None,
+            instance=instance,
+        )
 
         if request.method == "POST" and form.is_valid():
             action = "update" if instance else "add"
@@ -275,11 +352,21 @@ class BaseCRUDView(ExcelMixin, ListView):
             self._add_success_message(request, action)
             return redirect(self.url_list)
 
-        return render(request, self.template_form, {
+        context = {
             "form": form,
             "title": self.title,
-            "permission": perm
-        })
+            "permission": perm,
+            "is_multipart_form": form.is_multipart(),
+        }
+
+        if request.method == "POST" and request.headers.get("HX-Request"):
+            return self._build_htmx_error_response(
+                request,
+                context,
+                form,
+            )
+
+        return render(request, self.template_form, context)
 
     # =========================
     # DELETE
@@ -357,16 +444,18 @@ class BaseMasterDetailCRUDView(BaseCRUDView):
         # Parent Form
         # =========================
         form = self.form_class(
-            request.POST or None,
-            instance=instance
+            data=request.POST or None,
+            files=request.FILES or None,
+            instance=instance,
         )
 
         # =========================
         # Child Formset
         # =========================
         formset = self.formset_class(
-            request.POST or None,
-            instance=instance
+            data=request.POST or None,
+            files=request.FILES or None,
+            instance=instance,
         )
 
         # =========================
@@ -395,10 +484,23 @@ class BaseMasterDetailCRUDView(BaseCRUDView):
         # =========================
         # Render Form
         # =========================
-        return render(request, self.template_form, {
+        context = {
             "form": form,
             "formset": formset,
             "title": self.title,
             "permission": perm,
             "url_list": self.url_list,
-        })
+            "is_multipart_form": (
+                form.is_multipart() or formset.is_multipart()
+            ),
+        }
+
+        if request.method == "POST" and request.headers.get("HX-Request"):
+            return self._build_htmx_error_response(
+                request,
+                context,
+                form,
+                formset=formset,
+            )
+
+        return render(request, self.template_form, context)

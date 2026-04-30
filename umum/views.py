@@ -1,10 +1,9 @@
 from django.shortcuts import render
-from django.urls import reverse
 from core.crud.base import BaseCRUDView
 from core.views_excel import ExcelExportView, ExcelImportView
-from .models import Eselon, Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
-from .forms import EselonForm, PegawaiForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
-from .tables import EselonTable, PegawaiTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
+from .models import Eselon, Pegawai, Pemda, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .forms import EselonForm, PegawaiForm, PemdaForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
+from .tables import EselonTable, PegawaiTable, PemdaTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
 
 def umum_view(request):
     context = {
@@ -131,6 +130,21 @@ class TingkatView(BaseCRUDView):
 
     def get_queryset(self):
         return super().get_queryset().order_by('id')
+
+
+class PemdaView(BaseCRUDView):
+    model = Pemda
+    form_class = PemdaForm
+    table_class = PemdaTable
+    enable_excel = False
+
+    title = "Daftar Pemda"
+    url_list = "pemda_list"
+    url_action = "pemda_action"
+    url_action_pk = "pemda_action_pk"
+
+    def get_queryset(self):
+        return super().get_queryset().order_by('nama_pemda')
 
 # ===========================
 # 📊 EXCEL EXPORT/IMPORT

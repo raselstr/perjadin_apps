@@ -85,3 +85,37 @@ class SessionSecurityMiddleware:
         response["Pragma"] = "no-cache"
         response["Expires"] = "0"
         return response
+
+
+class SecurityHeadersMiddleware:
+    """
+    Menambahkan header keamanan dasar untuk mengurangi risiko
+    XSS, clickjacking, MIME sniffing, dan penyalahgunaan fitur browser.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        response.setdefault(
+            "Content-Security-Policy",
+            (
+                "default-src 'self'; "
+                "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net https://unpkg.com; "
+                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+                "img-src 'self' data: blob:; "
+                "font-src 'self' data: https://cdn.jsdelivr.net; "
+                "connect-src 'self'; "
+                "frame-ancestors 'none'; "
+                "base-uri 'self'; "
+                "form-action 'self'; "
+                "object-src 'none'"
+            ),
+        )
+        response.setdefault(
+            "Permissions-Policy",
+            "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        )
+        response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        return response

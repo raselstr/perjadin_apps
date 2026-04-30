@@ -314,6 +314,14 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
     showAppToast(evt.detail || {});
   });
 
+  document.body.addEventListener('crudError', function (evt) {
+    showAppToast(evt.detail || {
+      title: 'Validasi gagal',
+      message: 'Periksa kembali data yang diinput.',
+      level: 'error',
+    });
+  });
+
 // Trigger formSuccess event ketika form sukses disubmit
 document.body.addEventListener('htmx:xhr:loadend', function (evt) {
     if (evt.detail.xhr.status === 200 && evt.detail.target.tagName === 'FORM') {

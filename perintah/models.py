@@ -1,6 +1,7 @@
 from datetime import timedelta
+
+from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
-from django.core.exceptions import ValidationError
 
 
 class Spt(models.Model):
@@ -12,17 +13,6 @@ class Spt(models.Model):
     HARI_CHOICES = [
         (i, f"{i} hari") for i in range(1, 31)
     ]
-
-    nomor_spt = models.CharField(
-        max_length=150,
-        blank=True,
-        default=""
-    )
-
-    tanggal_spt = models.DateField(
-        blank=True,
-        null=True
-    )
 
     dasar = models.TextField(
         blank=True,
@@ -69,9 +59,9 @@ class Spt(models.Model):
         blank=True,
         default=""
     )
-
+    
     class Meta:
-        ordering = ["-tanggal_spt", "-id"]
+        ordering = ["-id"]
         verbose_name = "SPT"
         verbose_name_plural = "SPT"
 
@@ -113,9 +103,7 @@ class Spt(models.Model):
         return f"{self.lama_perjalanan} hari"
 
     def __str__(self):
-        nomor = self.nomor_spt if self.nomor_spt else "Tanpa Nomor"
-        kota = self.kota_tujuan.lokasi if self.kota_tujuan else "Tanpa Tujuan"
-        return f"{nomor} - {kota}"
+        return f"{self.kota_tujuan} - {self.tempat_tujuan}"
 
 class Pelaksana(models.Model):
     spt = models.ForeignKey(
@@ -136,3 +124,108 @@ class Pelaksana(models.Model):
 
     def __str__(self):
         return str(self.nama)
+
+class PemberiTugas(models.Model):
+    spt = models.ForeignKey(
+        Spt,
+        on_delete=models.CASCADE,
+        related_name="pemberi_tugas",
+    )
+    penandatangan = models.ForeignKey(
+        "umum.Penandatangan",
+        on_delete=models.PROTECT,
+        related_name="pemberi_tugas",
+    )
+    nomor_spt = models.CharField(
+        max_length=150,
+        blank=True,
+        default=""
+    )
+
+    tanggal_spt = models.DateField(
+        blank=True,
+        null=True
+    )
+    nama = models.CharField(max_length=200)
+    nip = models.CharField(max_length=30)
+    pangkat = models.CharField(max_length=30)
+    tugas = models.CharField(max_length=200)
+    jenis_jabatan = models.CharField(max_length=100)
+    opd = models.CharField(max_length=200)
+
+    class Meta:
+        ordering = ["spt", "penandatangan"]
+        verbose_name = "Pemberi Tugas"
+        verbose_name_plural = "Pemberi Tugas"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["spt"],
+                name="unique_pemberi_tugas_per_spt",
+            ),
+            models.UniqueConstraint(
+                fields=["spt", "penandatangan"],
+                name="unique_pemberi_tugas_spt_penandatangan",
+            ),
+        ]
+
+    def sync_from_penandatangan(self):
+        if self.penandatangan:
+            self.nama = self.penandatangan.nama
+            self.nip = self.penandatangan.nip or ""
+            self.pangkat = (
+                self.penandatangan.pangkat.pangkat
+                if self.penandatangan.pangkat else ""
+            )
+            self.tugas = self.penandatangan.tugas
+            self.jenis_jabatan = (
+                self.penandatangan.jenis_jabatan.nama
+                if self.penandatangan.jenis_jabatan else ""
+            )
+            self.opd = (
+                self.penandatangan.opd.nama
+                if self.penandatangan.opd else ""
+            )
+
+    def clean(self):
+        self.sync_from_penandatangan()
+
+        if not self.spt_id:
+            return
+
+        duplicates = PemberiTugas.objects.exclude(pk=self.pk).filter(
+            spt_id=self.spt_id
+        )
+
+        errors = {}
+
+        if duplicates.exists():
+            errors["spt"] = (
+                "SPT yang dipilih sudah memiliki data pemberi tugas."
+            )
+            errors[NON_FIELD_ERRORS] = [
+                "Setiap SPT hanya boleh memiliki satu data pemberi tugas."
+            ]
+
+        if (
+            self.penandatangan_id
+            and duplicates.filter(
+                penandatangan_id=self.penandatangan_id
+            ).exists()
+        ):
+            errors["penandatangan"] = (
+                "Penandatangan untuk SPT tersebut sudah terdaftar."
+            )
+            errors[NON_FIELD_ERRORS] = [
+                "Kombinasi SPT dan penandatangan tidak boleh ganda."
+            ]
+
+        if errors:
+            raise ValidationError(errors)
+
+    def save(self, *args, **kwargs):
+        self.sync_from_penandatangan()
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return str(self.penandatangan)

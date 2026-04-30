@@ -1,5 +1,17 @@
+import django_tables2 as tables
+from django.utils.html import format_html
+
 from core.tables import BaseTable, action_column
-from .models import Eselon, Pegawai, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .models import (
+    Eselon,
+    Pegawai,
+    Pemda,
+    Penandatangan,
+    Pangkat,
+    JenisJabatan,
+    StatusASN,
+    Tingkat,
+)
 
 
 class PangkatTable(BaseTable):
@@ -52,3 +64,40 @@ class PenandatanganTable(BaseTable):
     class Meta(BaseTable.Meta):
         model = Penandatangan
         fields = ('no', 'nama', 'nip', 'pangkat', 'tugas', 'jenis_jabatan', 'opd','aksi')
+
+
+class PemdaTable(BaseTable):
+    aksi = action_column("pemda_action_pk", "pemda_delete")
+
+    logo_preview = tables.Column(
+        empty_values=(),
+        verbose_name="Logo",
+        orderable=False,
+    )
+
+    class Meta(BaseTable.Meta):
+        model = Pemda
+        fields = (
+            'no',
+            'logo_preview',
+            'nama_pemda',
+            'nama_dinas',
+            'telepon',
+            'email',
+            'jenis_kop',
+            'aksi',
+        )
+
+    def render_logo_preview(self, record):
+        if not record.logo:
+            return "-"
+
+        return format_html(
+            '<img src="{}" alt="{}" class="rounded border" '
+            'style="width:56px;height:56px;object-fit:contain;background:#fff;padding:4px;">',
+            record.logo.url,
+            record.nama_pemda,
+        )
+
+    def render_jenis_kop(self, record):
+        return record.get_jenis_kop_display() or "-"

@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    EselonImportView, EselonView, PegawaiView, PenandatanganView, PangkatView, JenisJabatanView, StatusASNView, TingkatExportView, TingkatImportView, TingkatView, umum_view,
+    EselonImportView, EselonView, PegawaiView, PemdaView, PenandatanganView, PangkatView, JenisJabatanView, StatusASNView, TingkatExportView, TingkatImportView, TingkatView, umum_view,
     PegawaiExportView, PegawaiImportView,
     PangkatExportView, PangkatImportView,
     JenisJabatanExportView, JenisJabatanImportView,
@@ -60,4 +60,9 @@ urlpatterns = [
     path("tingkat/delete/<int:pk>/<str:action>/", TingkatView.as_view(), name="tingkat_delete"),
     path("tingkat/export/", TingkatExportView.as_view(), name="tingkat_export"),
     path("tingkat/import/", TingkatImportView.as_view(), name="tingkat_import"),
+
+    path("pemda/", PemdaView.as_view(), name="pemda_list"),
+    path("pemda/form/", PemdaView.as_view(), name="pemda_action"),
+    path("pemda/form/<int:pk>/<str:action>/", PemdaView.as_view(), name="pemda_action_pk"),
+    path("pemda/delete/<int:pk>/<str:action>/", PemdaView.as_view(), name="pemda_delete"),
 ]

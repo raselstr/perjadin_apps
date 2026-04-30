@@ -214,6 +214,7 @@ class GenericExcelImportView(ExcelImportView):
 class ExcelMixin:
     """Mixin untuk menambah export/import ke CRUD view"""
     
+    enable_excel = True
     excel_columns = None  # Custom columns untuk Excel
     
     def get_excel_columns(self):
@@ -227,6 +228,12 @@ class ExcelMixin:
     def get_context_data(self, **kwargs):
         """Add excel URLs ke context"""
         context = super().get_context_data(**kwargs)
+
+        if not self.enable_excel:
+            context['export_url'] = None
+            context['import_url'] = None
+            return context
+
         context['export_url'] = self.get_export_url()
         context['import_url'] = self.get_import_url()
         return context

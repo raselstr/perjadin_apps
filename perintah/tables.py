@@ -2,7 +2,7 @@ import django_tables2 as tables
 
 from core.tables import BaseTable, render_numbered_list, action_column
 
-from .models import Spt
+from .models import PemberiTugas, Spt
 
 
 class SptTable(BaseTable):
@@ -59,4 +59,50 @@ class SptTable(BaseTable):
         return render_numbered_list(
             record.pelaksana.all(),
             "nama"
+        )
+
+
+class PemberiTugasTable(BaseTable):
+    dokumen = tables.TemplateColumn(
+        verbose_name="Cetak",
+        orderable=False,
+        template_code="""
+        <div class="d-flex gap-1 justify-content-center">
+            <a
+                class="btn btn-sm btn-outline-primary"
+                href="{% url 'pemberi_tugas_print_spt' record.id %}"
+                target="_blank"
+                rel="noopener">
+                SPT
+            </a>
+            <a
+                class="btn btn-sm btn-outline-info"
+                href="{% url 'pemberi_tugas_print_spd' record.id %}"
+                target="_blank"
+                rel="noopener">
+                SPD
+            </a>
+        </div>
+        """,
+    )
+
+    aksi = action_column("pemberi_tugas_action_pk", "pemberi_tugas_delete")
+
+    tanggal_spt = tables.DateColumn(
+        verbose_name="Tanggal SPT",
+        format="d M Y"
+    )
+
+    class Meta(BaseTable.Meta):
+        model = PemberiTugas
+        fields = (
+            "no",
+            "spt",
+            "penandatangan",
+            "nomor_spt",
+            "tanggal_spt",
+            "nama",
+            "tugas",
+            "dokumen",
+            "aksi",
         )

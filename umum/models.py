@@ -58,6 +58,7 @@ class Tingkat(models.Model):
         return f"{self.tingkat}"
 
 class Pegawai(models.Model):
+    
     nip = models.CharField(max_length=30)
     nama = models.CharField(max_length=200)
 
@@ -168,3 +169,25 @@ class Penandatangan(models.Model):
 
     def __str__(self):
         return f"{self.nama} - {self.tugas} - {self.opd}"
+
+class Pemda(models.Model):
+    JENIS_KOP = [
+        ('1', 'Kepala Daerah'),
+        ('2', 'Wakil Kepala Daerah'),
+        ('3', 'Dinas/Badan/Kantor'),
+    ]
+    nama_pemda = models.CharField(max_length=200, unique=True)
+    nama_dinas = models.CharField(max_length=200, unique=True)
+    alamat = models.CharField(max_length=300, null=True, blank=True)
+    telepon = models.CharField(max_length=50, null=True, blank=True)
+    email = models.EmailField(null=True, blank=True)
+    logo = models.ImageField(upload_to='pemda_logos/', null=True, blank=True)
+    jenis_kop = models.CharField(max_length=100, choices=JENIS_KOP, null=True, blank=True)
+
+    class Meta:
+        ordering = ['nama_pemda']
+        verbose_name = 'Pemda'
+        verbose_name_plural = 'Pemda'
+
+    def __str__(self):
+        return self.nama_pemda
