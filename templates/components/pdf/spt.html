@@ -33,7 +33,7 @@ body {
 }
 
 .sheet {
-    padding: 18mm 18mm 0;
+    padding: 10mm 20mm 0;
 }
 
 .pdf-header {
@@ -175,7 +175,7 @@ body {
 
         <div class="document-title">
             <div class="title-text">SURAT TUGAS</div>
-            <div>Nomor: {{ pemberi_tugas.nomor_spt|default:"-" }}</div>
+            <div>Nomor: {{ nomor_spt|default:"-" }}</div>
         </div>
 
         {% if spt.dasar %}
@@ -195,11 +195,11 @@ body {
                 <td class="label-cell">Kepada</td>
                 <td class="colon-cell">:</td>
                 <td>
-                    {% if pelaksanaan_list %}
+                    {% if pelaksana_list %}
                         <table class="recipient-table">
-                            {% for pelaksanaan in pelaksanaan_list %}
+                            {% for pelaksana in pelaksana_list %}
                                 <tr>
-                                    {% if show_pelaksanaan_numbering %}
+                                    {% if show_pelaksana_numbering %}
                                         <td class="recipient-no">{{ forloop.counter }}.</td>
                                     {% endif %}
                                     <td>
@@ -207,22 +207,22 @@ body {
                                             <tr>
                                                 <td class="person-label">Nama</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksanaan.nama.nama|default:"-" }}</td>
+                                                <td>{{ pelaksana.nama.nama|default:"-" }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="person-label">Pangkat/Gol</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksanaan.nama.pangkat|default:"-" }}</td>
+                                                <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="person-label">NIP</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksanaan.nama.nip|default:"-" }}</td>
+                                                <td>{{ pelaksana.nama.nip|default:"-" }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="person-label">Jabatan</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksanaan.nama.jabatan|default:"-" }}</td>
+                                                <td>{{ pelaksana.nama.jabatan|default:"-" }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -233,7 +233,7 @@ body {
                             {% endfor %}
                         </table>
                     {% else %}
-                        <span class="empty-state">Belum ada pelaksanaan yang sesuai untuk surat tugas ini.</span>
+                        <span class="empty-state">Belum ada pelaksana yang sesuai untuk surat tugas ini.</span>
                     {% endif %}
                 </td>
             </tr>

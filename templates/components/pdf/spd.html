@@ -219,11 +219,11 @@ body {
                 <td class="number-col">2</td>
                 <td class="label-col">Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
                 <td>
-                    {% if primary_pelaksanaan %}
-                        {{ primary_pelaksanaan.nama.nama|default:"-" }}
-                        {% if primary_pelaksanaan.nama.nip %}<br>NIP. {{ primary_pelaksanaan.nama.nip }}{% endif %}
+                    {% if primary_pelaksana %}
+                        {{ primary_pelaksana.nama.nama|default:"-" }}
+                        {% if primary_pelaksana.nama.nip %}<br>NIP. {{ primary_pelaksana.nama.nip }}{% endif %}
                     {% else %}
-                        <span class="empty-state">Belum ada pelaksanaan.</span>
+                        <span class="empty-state">Belum ada pelaksana.</span>
                     {% endif %}
                 </td>
             </tr>
@@ -235,10 +235,10 @@ body {
                     c. Tingkat Biaya
                 </td>
                 <td>
-                    {% if primary_pelaksanaan %}
-                        a. {{ primary_pelaksanaan.nama.pangkat|default:"-" }}<br>
-                        b. {{ primary_pelaksanaan.nama.jabatan|default:"-" }}<br>
-                        c. {{ primary_pelaksanaan.nama.tingkat|default:"-" }}
+                    {% if primary_pelaksana %}
+                        a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
+                        b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
+                        c. {{ primary_pelaksana.nama.tingkat|default:"-" }}
                     {% else %}
                         -
                     {% endif %}
