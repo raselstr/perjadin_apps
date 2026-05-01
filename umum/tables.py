@@ -4,6 +4,7 @@ from django.utils.html import format_html
 from core.tables import BaseTable, action_column
 from .models import (
     Eselon,
+    KopSurat,
     Pegawai,
     Pemda,
     Penandatangan,
@@ -102,3 +103,39 @@ class PemdaTable(BaseTable):
 
     def render_jenis_kop(self, record):
         return record.get_jenis_kop_display() or "-"
+
+
+class KopSuratTable(BaseTable):
+    aksi = action_column("kop_surat_action_pk", "kop_surat_delete")
+
+    logo_size = tables.Column(
+        empty_values=(),
+        verbose_name="Ukuran Logo",
+        orderable=False,
+    )
+    font_family_display = tables.Column(
+        accessor="font_family",
+        verbose_name="Jenis Font",
+        orderable=False,
+    )
+
+    class Meta(BaseTable.Meta):
+        model = KopSurat
+        fields = (
+            "no",
+            "pemda",
+            "font_family_display",
+            "region_font_size_pt",
+            "office_font_size_pt",
+            "address_font_size_pt",
+            "contact_font_size_pt",
+            "logo_size",
+            "print_scale_percent",
+            "aksi",
+        )
+
+    def render_font_family_display(self, record):
+        return record.get_font_family_display()
+
+    def render_logo_size(self, record):
+        return f"{record.logo_width_px} x {record.logo_height_px} px"

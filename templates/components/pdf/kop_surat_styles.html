@@ -1,0 +1,70 @@
+:root {
+    --kop-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
+    --kop-region-font-size: {{ kop_surat.region_font_size_pt|default:14 }}pt;
+    --kop-office-font-size: {{ kop_surat.office_font_size_pt|default:18 }}pt;
+    --kop-address-font-size: {{ kop_surat.address_font_size_pt|default:10 }}pt;
+    --kop-contact-font-size: {{ kop_surat.contact_font_size_pt|default:10 }}pt;
+    --kop-logo-width: {{ kop_surat.logo_width_px|default:90 }}px;
+    --kop-logo-height: {{ kop_surat.logo_height_px|default:90 }}px;
+}
+
+.letterhead {
+    border-bottom: 3px solid #000;
+    font-family: var(--kop-font-family);
+    padding-bottom: 10px;
+}
+
+.letterhead-flex {
+    display: table;
+    width: 100%;
+}
+
+.letterhead-flex > div {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.logo-col {
+    width: calc(var(--kop-logo-width) + 16px);
+}
+
+.letterhead-logo {
+    display: block;
+    width: var(--kop-logo-width);
+    height: var(--kop-logo-height);
+    object-fit: contain;
+}
+
+.letterhead-centered {
+    text-align: center;
+}
+
+.letterhead-centered .letterhead-logo {
+    margin: 0 auto 8px;
+}
+
+.letterhead-text {
+    text-align: center;
+    line-height: 1.35;
+}
+
+.letterhead-region {
+    font-size: var(--kop-region-font-size);
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.letterhead-office {
+    font-size: var(--kop-office-font-size);
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.letterhead-address {
+    font-size: var(--kop-address-font-size);
+}
+
+.letterhead-contact {
+    font-size: var(--kop-contact-font-size);
+}

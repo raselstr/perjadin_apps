@@ -13,6 +13,7 @@ from profiles.utils import (
 )
 from umum.models import Pegawai, Penandatangan
 
+from .document_utils import is_eselon_two
 from .models import Pelaksana, PemberiTugas, Spt
 
 
@@ -305,6 +306,36 @@ class PemberiTugasForm(BaseAppModelForm):
             if obj.tgl_berangkat else "-"
         )
         return f"SPT #{obj.pk} - {lokasi} - {tanggal}"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        spt = cleaned_data.get("spt")
+        penandatangan = cleaned_data.get("penandatangan")
+
+        if (
+            spt
+            and penandatangan
+            and penandatangan.tugas == "Bupati"
+        ):
+            pelaksana_queryset = spt.pelaksana.select_related(
+                "nama",
+                "nama__eselon",
+            )
+            has_eselon_two = any(
+                is_eselon_two(pelaksana.nama)
+                for pelaksana in pelaksana_queryset
+            )
+
+            if not has_eselon_two:
+                self.add_error(
+                    "spt",
+                    (
+                        "SPT untuk Bupati harus memiliki minimal satu "
+                        "pelaksana dengan eselon II."
+                    ),
+                )
+
+        return cleaned_data
 
 
 PelaksanaFormSet = inlineformset_factory(

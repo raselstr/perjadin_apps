@@ -1,4 +1,5 @@
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
@@ -189,7 +190,7 @@ class Penandatangan(models.Model):
             tugas=self.tugas,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd,
-        ).exists()
+        )
 
         if not duplicates.exists():
             return
@@ -238,3 +239,169 @@ class Pemda(models.Model):
 
     def __str__(self):
         return self.nama_pemda
+
+
+class KopSurat(models.Model):
+    FONT_FAMILY_CHOICES = [
+        ("Arial, sans-serif", "Arial"),
+        ('"Times New Roman", Times, serif', "Times New Roman"),
+        ("Calibri, Arial, sans-serif", "Calibri"),
+        ("Cambria, Georgia, serif", "Cambria"),
+        ('Garamond, "Times New Roman", serif', "Garamond"),
+        ("Tahoma, Geneva, sans-serif", "Tahoma"),
+        ("Verdana, Geneva, sans-serif", "Verdana"),
+    ]
+
+    ALIGNMENT_CHOICES = [
+        ("left", "Kiri"),
+        ("center", "Tengah"),
+        ("right", "Kanan"),
+    ]
+
+    pemda = models.OneToOneField(
+        Pemda,
+        on_delete=models.CASCADE,
+        related_name="kop_surat",
+    )
+    font_family = models.CharField(
+        max_length=120,
+        choices=FONT_FAMILY_CHOICES,
+        default="Arial, sans-serif",
+        verbose_name="Jenis Font",
+    )
+    region_font_size_pt = models.PositiveSmallIntegerField(
+        default=14,
+        validators=[MinValueValidator(8), MaxValueValidator(32)],
+        verbose_name="Ukuran Font Nama Pemda (pt)",
+    )
+    office_font_size_pt = models.PositiveSmallIntegerField(
+        default=18,
+        validators=[MinValueValidator(8), MaxValueValidator(36)],
+        verbose_name="Ukuran Font Nama Dinas/Jabatan (pt)",
+    )
+    address_font_size_pt = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(8), MaxValueValidator(20)],
+        verbose_name="Ukuran Font Alamat (pt)",
+    )
+    contact_font_size_pt = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(8), MaxValueValidator(20)],
+        verbose_name="Ukuran Font Kontak (pt)",
+    )
+    logo_width_px = models.PositiveSmallIntegerField(
+        default=90,
+        validators=[MinValueValidator(40), MaxValueValidator(180)],
+        verbose_name="Lebar Logo (px)",
+    )
+    logo_height_px = models.PositiveSmallIntegerField(
+        default=90,
+        validators=[MinValueValidator(40), MaxValueValidator(180)],
+        verbose_name="Tinggi Logo (px)",
+    )
+    print_scale_percent = models.PositiveSmallIntegerField(
+        default=96,
+        validators=[MinValueValidator(75), MaxValueValidator(120)],
+        verbose_name="Skala Cetak Default (%)",
+    )
+
+    # Margin settings for paper edge distance
+    margin_top_mm = models.PositiveSmallIntegerField(
+        default=18,
+        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        verbose_name="Margin Atas (mm)",
+    )
+    margin_bottom_mm = models.PositiveSmallIntegerField(
+        default=20,
+        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        verbose_name="Margin Bawah (mm)",
+    )
+    margin_left_mm = models.PositiveSmallIntegerField(
+        default=18,
+        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        verbose_name="Margin Kiri (mm)",
+    )
+    margin_right_mm = models.PositiveSmallIntegerField(
+        default=18,
+        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        verbose_name="Margin Kanan (mm)",
+    )
+
+    # Header settings
+    header_text = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        verbose_name="Teks Header",
+    )
+    header_font_size_pt = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(8), MaxValueValidator(20)],
+        verbose_name="Ukuran Font Header (pt)",
+    )
+    header_alignment = models.CharField(
+        max_length=10,
+        choices=ALIGNMENT_CHOICES,
+        default="center",
+        verbose_name="Posisi Header",
+    )
+
+    # Footer settings
+    footer_text = models.CharField(
+        max_length=500,
+        blank=True,
+        default="",
+        verbose_name="Teks Footer",
+    )
+    footer_font_size_pt = models.PositiveSmallIntegerField(
+        default=10,
+        validators=[MinValueValidator(8), MaxValueValidator(20)],
+        verbose_name="Ukuran Font Footer (pt)",
+    )
+    footer_alignment = models.CharField(
+        max_length=10,
+        choices=ALIGNMENT_CHOICES,
+        default="center",
+        verbose_name="Posisi Footer",
+    )
+
+    # Default number format for SPT and SPD
+    default_spt_number_format = models.CharField(
+        max_length=100,
+        blank=True,
+        default="800.1.11.1/{nomor_urut}/{bulan}/{tahun}",
+        verbose_name="Format Default Nomor SPT",
+        help_text="Gunakan {nomor_urut}, {bulan}, {tahun} sebagai placeholder",
+    )
+    default_spd_number_format = models.CharField(
+        max_length=100,
+        blank=True,
+        default="800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}",
+        verbose_name="Format Default Nomor SPD",
+        help_text="Gunakan {nomor_urut}, {bulan}, {tahun} sebagai placeholder",
+    )
+
+    class Meta:
+        ordering = ["pemda__nama_pemda"]
+        verbose_name = "Kop Surat"
+        verbose_name_plural = "Kop Surat"
+
+    @property
+    def font_family_css(self):
+        return self.font_family or "Arial, sans-serif"
+
+    @property
+    def print_scale_decimal(self):
+        return round((self.print_scale_percent or 100) / 100, 2)
+
+    @property
+    def margin_css(self):
+        return (
+            f"{self.margin_top_mm}mm "
+            f"{self.margin_right_mm}mm "
+            f"{self.margin_bottom_mm}mm "
+            f"{self.margin_left_mm}mm"
+        )
+
+    def __str__(self):
+        return f"Kop Surat - {self.pemda}"

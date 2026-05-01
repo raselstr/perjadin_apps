@@ -5,9 +5,9 @@ from profiles.utils import (
     filter_penandatangan_queryset,
     filter_queryset_by_active_opd,
 )
-from .models import Eselon, Pegawai, Pemda, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
-from .forms import EselonForm, PegawaiForm, PemdaForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
-from .tables import EselonTable, PegawaiTable, PemdaTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
+from .models import Eselon, KopSurat, Pegawai, Pemda, Penandatangan, Pangkat, JenisJabatan, StatusASN, Tingkat
+from .forms import EselonForm, KopSuratForm, PegawaiForm, PemdaForm, PenandatanganForm, PangkatForm, JenisJabatanForm, StatusASNForm, TingkatForm
+from .tables import EselonTable, KopSuratTable, PegawaiTable, PemdaTable, PenandatanganTable, PangkatTable, JenisJabatanTable, StatusASNTable, TingkatTable
 
 def umum_view(request):
     context = {
@@ -166,6 +166,29 @@ class PemdaView(BaseCRUDView):
             queryset,
             self.request,
             "nama_dinas_id",
+        )
+
+
+class KopSuratView(BaseCRUDView):
+    model = KopSurat
+    form_class = KopSuratForm
+    table_class = KopSuratTable
+    enable_excel = False
+
+    title = "Daftar Kop Surat"
+    url_list = "kop_surat_list"
+    url_action = "kop_surat_action"
+    url_action_pk = "kop_surat_action_pk"
+
+    def get_base_queryset(self):
+        queryset = KopSurat.objects.select_related(
+            "pemda",
+            "pemda__nama_dinas",
+        ).order_by("pemda__nama_pemda")
+        return filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "pemda__nama_dinas_id",
         )
 
 # ===========================

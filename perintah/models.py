@@ -136,6 +136,13 @@ class PemberiTugas(models.Model):
         on_delete=models.PROTECT,
         related_name="pemberi_tugas",
     )
+    nomor_urut = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="Nomor Urut",
+        help_text="Nomor urut untuk generate nomor SPT/SPD otomatis",
+    )
     nomor_spt = models.CharField(
         max_length=150,
         blank=True,

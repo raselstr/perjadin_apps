@@ -1,7 +1,7 @@
 import re
 from datetime import date
 
-from umum.models import Pemda, Penandatangan
+from umum.models import KopSurat, Pemda, Penandatangan
 
 
 GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
@@ -22,7 +22,10 @@ def is_regional_head_task(tugas):
 
 
 def get_matching_pemda(opd=None):
-    queryset = Pemda.objects.select_related("nama_dinas").order_by("id")
+    queryset = Pemda.objects.select_related(
+        "nama_dinas",
+        "kop_surat",
+    ).order_by("id")
 
     if opd:
         pemda = queryset.filter(nama_dinas=opd).first()
@@ -63,6 +66,16 @@ def build_contact_line(pemda):
         contact_parts.append(f"Website: {pemda.website}")
 
     return " | ".join(contact_parts)
+
+
+def get_kop_surat_config(pemda):
+    if not pemda:
+        return KopSurat()
+
+    try:
+        return pemda.kop_surat
+    except KopSurat.DoesNotExist:
+        return KopSurat(pemda=pemda)
 
 
 def get_signature_location(pemda, default_location=""):
@@ -275,3 +288,56 @@ def find_ppk_penandatangan(opd=None, fallback_opd_id=None):
             return ppk
 
     return queryset.first()
+
+
+# Indonesian month names
+INDONESIAN_MONTHS = [
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+]
+
+
+def get_indonesian_month(date_obj):
+    """Get Indonesian month name from date object."""
+    if not date_obj:
+        return ""
+    try:
+        return INDONESIAN_MONTHS[date_obj.month - 1]
+    except (AttributeError, IndexError):
+        return ""
+
+
+def generate_default_document_number(
+    nomor_urut,
+    tanggal,
+    format_template,
+    is_spd=False,
+):
+    """
+    Generate default document number based on format template.
+
+    Args:
+        nomor_urut: The sequential number input from user/model
+        tanggal: The date object (tgl_spt)
+        format_template: The format string from KopSurat
+        is_spd: Whether this is for SPD (adds 'SPD' in format)
+
+    Returns:
+        Formatted document number string
+    """
+    if not tanggal:
+        return ""
+
+    bulan = get_indonesian_month(tanggal)
+    tahun = tanggal.year
+
+    # Replace placeholders in format template
+    result = format_template.replace("{nomor_urut}", str(nomor_urut or ""))
+    result = result.replace("{bulan}", bulan)
+    result = result.replace("{tahun}", str(tahun))
+
+    # Clean up double slashes or empty parts
+    result = result.replace("//", "/")
+    result = result.strip("/")
+
+    return result

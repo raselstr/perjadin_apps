@@ -15,6 +15,8 @@ from .document_utils import (
     build_penandatangan_title,
     filter_spt_pelaksana,
     find_ppk_penandatangan,
+    generate_default_document_number,
+    get_kop_surat_config,
     get_letterhead_office_name,
     get_matching_pemda,
     get_signature_location,
@@ -187,20 +189,45 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             fallback=asal_instansi_fallback or pemberi_tugas.opd,
         )
 
+        # Get kop_surat config for default number format
+        kop_surat = get_kop_surat_config(pemda)
+        tanggal_spt = pemberi_tugas.tanggal_spt or spt.tgl_berangkat
+
+        # Generate default SPT number if empty
+        nomor_spt = pemberi_tugas.nomor_spt
+        if not nomor_spt and kop_surat.default_spt_number_format:
+            nomor_urut = getattr(pemberi_tugas, 'nomor_urut', None) or ""
+            nomor_spt = generate_default_document_number(
+                nomor_urut,
+                tanggal_spt,
+                kop_surat.default_spt_number_format,
+                is_spd=False,
+            )
+
+        # Generate default SPD number if empty
+        nomor_spd = pemberi_tugas.nomor_spd
+        if not nomor_spd and kop_surat.default_spd_number_format:
+            nomor_urut = getattr(pemberi_tugas, 'nomor_urut', None) or ""
+            nomor_spd = generate_default_document_number(
+                nomor_urut,
+                tanggal_spt,
+                kop_surat.default_spd_number_format,
+                is_spd=True,
+            )
+
         return {
             "pemda": pemda,
             "pemberi_tugas": pemberi_tugas,
             "penandatangan_dokumen": penandatangan,
             "spt": spt,
-            "tanggal_dokumen": (
-                pemberi_tugas.tanggal_spt or spt.tgl_berangkat
-            ),
+            "tanggal_dokumen": tanggal_spt,
             "asal_instansi": asal_instansi,
             "kop_office_name": get_letterhead_office_name(
                 penandatangan,
                 pemda=pemda,
             ),
             "kop_contact_line": build_contact_line(pemda),
+            "kop_surat": kop_surat,
             "kop_is_regional_head": is_regional_head_task(
                 getattr(penandatangan, "tugas", "")
             ),
@@ -212,6 +239,8 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             "auto_print": (
                 self.request.GET.get("autoprint", "1") != "0"
             ),
+            "nomor_spt": nomor_spt,
+            "nomor_spd": nomor_spd,
         }
 
     def get_context_data(self, pemberi_tugas):

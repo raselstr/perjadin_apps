@@ -1,4 +1,5 @@
 {% load static %}
+{% load formatting %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,7 +8,7 @@
 <style>
 @page {
     size: A4;
-    margin: 18mm 18mm 20mm 18mm;
+    margin: {{ kop_surat.margin_css|default:"18mm 18mm 20mm 18mm" }};
 }
 
 body {
@@ -18,35 +19,8 @@ body {
     background: #eef2f7;
 }
 
-.toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 16px 20px 0;
-}
-
-.toolbar a,
-.toolbar button {
-    border: 0;
-    border-radius: 999px;
-    padding: 10px 18px;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.toolbar button {
-    background: #0d6efd;
-    color: #fff;
-}
-
-.toolbar a {
-    background: #fff;
-    color: #1f2937;
-}
+{% include "components/pdf/print_toolbar_styles.html" %}
+{% include "components/pdf/kop_surat_styles.html" %}
 
 .page {
     width: 210mm;
@@ -62,62 +36,16 @@ body {
     padding: 18mm 18mm 0;
 }
 
-.letterhead {
-    border-bottom: 3px solid #000;
-    padding-bottom: 10px;
+.pdf-header {
+    font-size: {{ kop_surat.header_font_size_pt|default:"10" }}pt;
+    text-align: {{ kop_surat.header_alignment|default:"center" }};
+    margin-bottom: 8px;
 }
 
-.letterhead-flex {
-    display: table;
-    width: 100%;
-}
-
-.letterhead-flex > div {
-    display: table-cell;
-    vertical-align: middle;
-}
-
-.logo-col {
-    width: 92px;
-}
-
-.letterhead-logo {
-    display: block;
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-}
-
-.letterhead-centered {
-    text-align: center;
-}
-
-.letterhead-centered .letterhead-logo {
-    margin: 0 auto 8px;
-}
-
-.letterhead-text {
-    text-align: center;
-    line-height: 1.35;
-}
-
-.letterhead-region {
-    font-size: 14pt;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-}
-
-.letterhead-office {
-    font-size: 16pt;
-    font-weight: bold;
-    text-transform: uppercase;
-    margin-top: 2px;
-}
-
-.letterhead-address,
-.letterhead-contact {
-    font-size: 10pt;
+.pdf-footer {
+    font-size: {{ kop_surat.footer_font_size_pt|default:"10" }}pt;
+    text-align: {{ kop_surat.footer_alignment|default:"center" }};
+    margin-top: 12px;
 }
 
 .document-title {
@@ -235,65 +163,30 @@ body {
 </style>
 </head>
 <body>
-<div class="toolbar">
-    <a href="javascript:window.close()">Tutup</a>
-    <button type="button" onclick="window.print()">Cetak PDF</button>
-</div>
+{% include "components/pdf/print_toolbar.html" with document_type="spt" %}
 
 <div class="page">
     <div class="sheet">
-        <div class="letterhead">
-            {% if kop_is_regional_head %}
-                <div class="letterhead-centered">
-                    <img
-                        src="{% if pemda and pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
-                        alt="Logo Pemda"
-                        class="letterhead-logo">
-                    <div class="letterhead-text">
-                        <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
-                        <div class="letterhead-office">{{ kop_office_name|default:"Bupati Asahan"|upper }}</div>
-                        {% if pemda and pemda.alamat %}
-                            <div class="letterhead-address">{{ pemda.alamat|upper }}</div>
-                        {% endif %}
-                        {% if kop_contact_line %}
-                            <div class="letterhead-contact">{{ kop_contact_line }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            {% else %}
-                <div class="letterhead-flex">
-                    <div class="logo-col">
-                        <img
-                            src="{% if pemda and pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
-                            alt="Logo Pemda"
-                            class="letterhead-logo">
-                    </div>
-                    <div class="letterhead-text">
-                        <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
-                        <div class="letterhead-office">{{ kop_office_name|default:"Instansi"|upper }}</div>
-                        {% if pemda and pemda.alamat %}
-                            <div class="letterhead-address">{{ pemda.alamat|upper }}</div>
-                        {% endif %}
-                        {% if kop_contact_line %}
-                            <div class="letterhead-contact">{{ kop_contact_line }}</div>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
-        </div>
+        {% include "components/pdf/kop_surat.html" %}
+
+        {% if kop_surat.header_text %}
+        <div class="pdf-header">{{ kop_surat.header_text }}</div>
+        {% endif %}
 
         <div class="document-title">
             <div class="title-text">SURAT TUGAS</div>
             <div>Nomor: {{ pemberi_tugas.nomor_spt|default:"-" }}</div>
         </div>
 
+        {% if spt.dasar %}
         <table class="detail-table">
             <tr>
                 <td class="label-cell">Dasar</td>
                 <td class="colon-cell">:</td>
-                <td>{{ spt.dasar|default:"-"|linebreaksbr }}</td>
+                <td>{{ spt.dasar|linebreaksbr }}</td>
             </tr>
         </table>
+        {% endif %}
 
         <div class="section-heading">MEMERINTAHKAN:</div>
 
@@ -302,11 +195,11 @@ body {
                 <td class="label-cell">Kepada</td>
                 <td class="colon-cell">:</td>
                 <td>
-                    {% if pelaksana_list %}
+                    {% if pelaksanaan_list %}
                         <table class="recipient-table">
-                            {% for pelaksana in pelaksana_list %}
+                            {% for pelaksanaan in pelaksanaan_list %}
                                 <tr>
-                                    {% if show_pelaksana_numbering %}
+                                    {% if show_pelaksanaan_numbering %}
                                         <td class="recipient-no">{{ forloop.counter }}.</td>
                                     {% endif %}
                                     <td>
@@ -314,22 +207,22 @@ body {
                                             <tr>
                                                 <td class="person-label">Nama</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.nama|default:"-" }}</td>
+                                                <td>{{ pelaksanaan.nama.nama|default:"-" }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="person-label">Pangkat/Gol</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
+                                                <td>{{ pelaksanaan.nama.pangkat|default:"-" }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="person-label">NIP</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.nip|default:"-" }}</td>
+                                                <td>{{ pelaksanaan.nama.nip|default:"-" }}</td>
                                             </tr>
                                             <tr>
                                                 <td class="person-label">Jabatan</td>
                                                 <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.jabatan|default:"-" }}</td>
+                                                <td>{{ pelaksanaan.nama.jabatan|default:"-" }}</td>
                                             </tr>
                                         </table>
                                     </td>
@@ -340,7 +233,7 @@ body {
                             {% endfor %}
                         </table>
                     {% else %}
-                        <span class="empty-state">Belum ada pelaksana yang sesuai untuk surat tugas ini.</span>
+                        <span class="empty-state">Belum ada pelaksanaan yang sesuai untuk surat tugas ini.</span>
                     {% endif %}
                 </td>
             </tr>
@@ -350,11 +243,11 @@ body {
                 <td>
                     <ol class="instruction-list">
                         <li>
-                            Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} hari dalam rangka
+                            Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari dalam rangka
                             {{ spt.berita|default:"-" }} ke {{ spt.tempat_tujuan|default:"-" }}
                             di {{ spt.kota_tujuan|default:"-" }} terhitung tanggal
-                            {{ spt.tgl_berangkat|date:"dd mm YYYY" }} sampai dengan
-                            {{ spt.tgl_kembali|date:"dd mm YYYY" }}.
+                            {{ spt.tgl_berangkat|date:"d F Y" }} sampai dengan
+                            {{ spt.tgl_kembali|date:"d F Y" }}.
                         </li>
                         <li>
                             Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada
@@ -366,7 +259,7 @@ body {
         </table>
 
         <div class="signature">
-            {{ signature_location }}, {{ tanggal_dokumen|date:"dd mm YYYY" }}<br>
+            {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
             {{ signature_title|default:"-" }}<br>
 
             <div class="signature-space"></div>
@@ -376,6 +269,10 @@ body {
                 NIP. {{ pemberi_tugas.nip }}
             {% endif %}
         </div>
+
+        {% if kop_surat.footer_text %}
+        <div class="pdf-footer">{{ kop_surat.footer_text }}</div>
+        {% endif %}
     </div>
 </div>
 

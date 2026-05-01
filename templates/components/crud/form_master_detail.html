@@ -247,14 +247,38 @@
         });
     }
 
+    function isDeleteInputMarked(deleteInput) {
+        if (!deleteInput) {
+            return false;
+        }
+
+        return Boolean(
+            deleteInput.checked ||
+            deleteInput.value === "on" ||
+            deleteInput.value === "true" ||
+            deleteInput.value === "True" ||
+            deleteInput.value === "1"
+        );
+    }
+
+    function setDeleteInputMarked(deleteInput, isDeleted) {
+        if (!deleteInput) {
+            return;
+        }
+
+        deleteInput.checked = isDeleted;
+        deleteInput.value = isDeleted ? "on" : "";
+    }
+
     function updateRowAppearance(row, visibleIndex) {
         const deleteInput = row.querySelector('input[name$="-DELETE"]');
-        const isDeleted = Boolean(deleteInput && deleteInput.checked);
+        const isDeleted = isDeleteInputMarked(deleteInput);
         const title = row.querySelector("[data-row-title]");
         const message = row.querySelector("[data-row-message]");
         const toggleButton = row.querySelector("[data-formset-toggle-delete]");
         const fieldWrapper = row.querySelector("[data-row-fields]");
 
+        setDeleteInputMarked(deleteInput, isDeleted);
         row.dataset.deleted = isDeleted ? "true" : "false";
         row.classList.toggle("border-danger", isDeleted);
         row.classList.toggle("bg-light", isDeleted);
@@ -350,7 +374,7 @@
             return;
         }
 
-        deleteInput.checked = !deleteInput.checked;
+        setDeleteInputMarked(deleteInput, !isDeleteInputMarked(deleteInput));
         renumberRows();
     }
 

@@ -7,6 +7,7 @@ from profiles.utils import get_active_opd_id
 
 from .models import (
     Eselon,
+    KopSurat,
     Pegawai,
     Pemda,
     Penandatangan,
@@ -203,6 +204,107 @@ class PenandatanganForm(forms.ModelForm):
             ).first()
 
         return cleaned_data
+
+
+class KopSuratForm(BaseAppModelForm):
+    field_layout = {
+        "pemda": 12,
+        "font_family": 6,
+        "print_scale_percent": 6,
+        "region_font_size_pt": 6,
+        "office_font_size_pt": 6,
+        "address_font_size_pt": 6,
+        "contact_font_size_pt": 6,
+        "logo_width_px": 6,
+        "logo_height_px": 6,
+    }
+
+    class Meta:
+        model = KopSurat
+        fields = [
+            "pemda",
+            "font_family",
+            "print_scale_percent",
+            "region_font_size_pt",
+            "office_font_size_pt",
+            "address_font_size_pt",
+            "contact_font_size_pt",
+            "logo_width_px",
+            "logo_height_px",
+        ]
+        widgets = {
+            "pemda": forms.Select(attrs={
+                "class": "form-select select2",
+                "data-placeholder": "Pilih identitas Pemda",
+            }),
+            "font_family": forms.Select(attrs={
+                "class": "form-select",
+            }),
+            "print_scale_percent": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 75,
+                "max": 120,
+            }),
+            "region_font_size_pt": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 8,
+                "max": 32,
+            }),
+            "office_font_size_pt": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 8,
+                "max": 36,
+            }),
+            "address_font_size_pt": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 8,
+                "max": 20,
+            }),
+            "contact_font_size_pt": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 8,
+                "max": 20,
+            }),
+            "logo_width_px": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 40,
+                "max": 180,
+            }),
+            "logo_height_px": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 40,
+                "max": 180,
+            }),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        active_opd_id = get_active_opd_id(self.request)
+        instance_pemda_id = self.instance.pemda_id
+
+        pemda_queryset = Pemda.objects.select_related(
+            "nama_dinas"
+        ).order_by("nama_pemda")
+
+        if active_opd_id:
+            pemda_queryset = pemda_queryset.filter(
+                Q(nama_dinas_id=active_opd_id) |
+                Q(pk=instance_pemda_id)
+            )
+
+        if not self.instance.pk:
+            pemda_queryset = pemda_queryset.filter(kop_surat__isnull=True)
+
+        self.fields["pemda"].queryset = pemda_queryset.distinct()
+        self.fields["pemda"].label_from_instance = self._format_pemda_label
+        self.fields["print_scale_percent"].help_text = (
+            "Dipakai sebagai zoom awal di halaman cetak SPT dan SPD."
+        )
+
+    @staticmethod
+    def _format_pemda_label(obj):
+        dinas = obj.nama_dinas.nama if obj.nama_dinas else "-"
+        return f"{obj.nama_pemda} - {dinas}"
 
 
 class PemdaForm(BaseAppModelForm):

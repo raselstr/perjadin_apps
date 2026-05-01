@@ -3,6 +3,94 @@ import re
 
 MONEY_IDENTIFIER_KEYWORDS = {"biaya", "uang", "nominal", "harga", "tarif", "pagu"}
 
+# Indonesian number to words (terbilang)
+TERBILANG_ONES = [
+    "", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan"
+]
+
+TERBILANG_TENS = [
+    "", "sepuluh", "dua puluh", "tiga puluh", "empat puluh",
+    "lima puluh", "enam puluh", "tujuh puluh", "delapan puluh", "sembilan puluh"
+]
+
+TERBILANG_TEENS = [
+    "sepuluh", "sebelas", "dua belas", "tiga belas", "empat belas",
+    "lima belas", "enam belas", "tujuh belas", "delapan belas", "sembilan belas"
+]
+
+
+def number_to_words(number):
+    """
+    Convert number to Indonesian words (terbilang).
+
+    Examples:
+        0 -> "nol"
+        1 -> "satu"
+        2 -> "dua"
+        10 -> "sepuluh"
+        21 -> "dua puluh satu"
+        100 -> "seratus"
+        1000 -> "seribu"
+    """
+    if not isinstance(number, int):
+        try:
+            number = int(number)
+        except (TypeError, ValueError):
+            return ""
+
+    if number == 0:
+        return "nol"
+
+    if number < 0:
+        return f"minus {number_to_words(abs(number))}"
+
+    if number < 10:
+        return TERBILANG_ONES[number]
+
+    if number < 20:
+        return TERBILANG_TEENS[number - 10]
+
+    if number < 100:
+        tens = number // 10
+        ones = number % 10
+        if ones == 0:
+            return TERBILANG_TENS[tens]
+        return f"{TERBILANG_TENS[tens]} {TERBILANG_ONES[ones]}"
+
+    if number < 200:
+        return f"seratus {number_to_words(number - 100)}"
+
+    if number < 1000:
+        hundreds = number // 100
+        remainder = number % 100
+        if remainder == 0:
+            return f"{TERBILANG_ONES[hundreds]} ratus"
+        return f"{TERBILANG_ONES[hundreds]} ratus {number_to_words(remainder)}"
+
+    if number < 2000:
+        return f"seribu {number_to_words(number - 1000)}"
+
+    if number < 1000000:
+        thousands = number // 1000
+        remainder = number % 1000
+        if remainder == 0:
+            return f"{number_to_words(thousands)} ribu"
+        return f"{number_to_words(thousands)} ribu {number_to_words(remainder)}"
+
+    if number < 1000000000:
+        millions = number // 1000000
+        remainder = number % 1000000
+        if remainder == 0:
+            return f"{number_to_words(millions)} juta"
+        return f"{number_to_words(millions)} juta {number_to_words(remainder)}"
+
+    # For larger numbers
+    billions = number // 1000000000
+    remainder = number % 1000000000
+    if remainder == 0:
+        return f"{number_to_words(billions)} miliar"
+    return f"{number_to_words(billions)} miliar {number_to_words(remainder)}"
+
 
 def is_money_identifier(name):
     if not name:

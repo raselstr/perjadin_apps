@@ -1,4 +1,5 @@
 {% load static %}
+{% load formatting %}
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -7,7 +8,7 @@
 <style>
 @page {
     size: A4;
-    margin: 15mm 15mm 18mm 15mm;
+    margin: {{ kop_surat.margin_css|default:"15mm 15mm 18mm 15mm" }};
 }
 
 body {
@@ -18,35 +19,8 @@ body {
     background: #eef2f7;
 }
 
-.toolbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-    padding: 16px 20px 0;
-}
-
-.toolbar a,
-.toolbar button {
-    border: 0;
-    border-radius: 999px;
-    padding: 10px 18px;
-    font-size: 14px;
-    cursor: pointer;
-    text-decoration: none;
-}
-
-.toolbar button {
-    background: #0d6efd;
-    color: #fff;
-}
-
-.toolbar a {
-    background: #fff;
-    color: #1f2937;
-}
+{% include "components/pdf/print_toolbar_styles.html" %}
+{% include "components/pdf/kop_surat_styles.html" %}
 
 .page {
     width: 210mm;
@@ -60,52 +34,16 @@ body {
     padding: 15mm 15mm 12mm;
 }
 
-.letterhead {
-    border-bottom: 3px solid #000;
-    padding-bottom: 10px;
+.pdf-header {
+    font-size: {{ kop_surat.header_font_size_pt|default:"10" }}pt;
+    text-align: {{ kop_surat.header_alignment|default:"center" }};
+    margin-bottom: 8px;
 }
 
-.letterhead-flex {
-    display: table;
-    width: 100%;
-}
-
-.letterhead-flex > div {
-    display: table-cell;
-    vertical-align: middle;
-}
-
-.logo-col {
-    width: 90px;
-}
-
-.letterhead-logo {
-    width: 78px;
-    height: 78px;
-    object-fit: contain;
-    display: block;
-}
-
-.letterhead-text {
-    text-align: center;
-    line-height: 1.35;
-}
-
-.letterhead-region {
-    font-size: 14pt;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.letterhead-office {
-    font-size: 16pt;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.letterhead-address,
-.letterhead-contact {
-    font-size: 10pt;
+.pdf-footer {
+    font-size: {{ kop_surat.footer_font_size_pt|default:"10" }}pt;
+    text-align: {{ kop_surat.footer_alignment|default:"center" }};
+    margin-top: 12px;
 }
 
 .meta-table {
@@ -233,33 +171,15 @@ body {
 </style>
 </head>
 <body>
-<div class="toolbar">
-    <a href="javascript:window.close()">Tutup</a>
-    <button type="button" onclick="window.print()">Cetak PDF</button>
-</div>
+{% include "components/pdf/print_toolbar.html" with document_type="spd" %}
 
 <div class="page">
     <div class="sheet">
-        <div class="letterhead">
-            <div class="letterhead-flex">
-                <div class="logo-col">
-                    <img
-                        src="{% if pemda and pemda.logo %}{{ pemda.logo.url }}{% else %}{% static 'assets/images/logo.png' %}{% endif %}"
-                        alt="Logo Pemda"
-                        class="letterhead-logo">
-                </div>
-                <div class="letterhead-text">
-                    <div class="letterhead-region">{{ pemda.nama_pemda|default:"Pemerintah Daerah"|upper }}</div>
-                    <div class="letterhead-office">{{ kop_office_name|default:"Instansi"|upper }}</div>
-                    {% if pemda and pemda.alamat %}
-                        <div class="letterhead-address">{{ pemda.alamat|upper }}</div>
-                    {% endif %}
-                    {% if kop_contact_line %}
-                        <div class="letterhead-contact">{{ kop_contact_line }}</div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
+        {% include "components/pdf/kop_surat.html" %}
+
+        {% if kop_surat.header_text %}
+        <div class="pdf-header">{{ kop_surat.header_text }}</div>
+        {% endif %}
 
         <table class="meta-table">
             <tr>
@@ -278,7 +198,7 @@ body {
                 <td></td>
                 <td class="meta-label">Nomor</td>
                 <td class="meta-colon">:</td>
-                <td>{{ pemberi_tugas.nomor_spt|default:"-" }}</td>
+                <td>{{ pemberi_tugas.nomor_spd|default:pemberi_tugas.nomor_spt|default:"-" }}</td>
             </tr>
         </table>
 
@@ -299,11 +219,11 @@ body {
                 <td class="number-col">2</td>
                 <td class="label-col">Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
                 <td>
-                    {% if primary_pelaksana %}
-                        {{ primary_pelaksana.nama.nama|default:"-" }}
-                        {% if primary_pelaksana.nama.nip %}<br>NIP. {{ primary_pelaksana.nama.nip }}{% endif %}
+                    {% if primary_pelaksanaan %}
+                        {{ primary_pelaksanaan.nama.nama|default:"-" }}
+                        {% if primary_pelaksanaan.nama.nip %}<br>NIP. {{ primary_pelaksanaan.nama.nip }}{% endif %}
                     {% else %}
-                        <span class="empty-state">Belum ada pelaksana.</span>
+                        <span class="empty-state">Belum ada pelaksanaan.</span>
                     {% endif %}
                 </td>
             </tr>
@@ -315,10 +235,10 @@ body {
                     c. Tingkat Biaya
                 </td>
                 <td>
-                    {% if primary_pelaksana %}
-                        a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
-                        b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
-                        c. {{ primary_pelaksana.nama.tingkat|default:"-" }}
+                    {% if primary_pelaksanaan %}
+                        a. {{ primary_pelaksanaan.nama.pangkat|default:"-" }}<br>
+                        b. {{ primary_pelaksanaan.nama.jabatan|default:"-" }}<br>
+                        c. {{ primary_pelaksanaan.nama.tingkat|default:"-" }}
                     {% else %}
                         -
                     {% endif %}
@@ -354,7 +274,7 @@ body {
                     c. Tanggal kembali
                 </td>
                 <td>
-                    a. {{ spt.lama_perjalanan }} hari<br>
+                    a. {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari<br>
                     b. {{ spt.tgl_berangkat|date:"d/m/Y" }}<br>
                     c. {{ spt.tgl_kembali|date:"d/m/Y" }}
                 </td>
@@ -419,6 +339,10 @@ body {
                 NIP. {{ penandatangan_dokumen.nip }}
             {% endif %}
         </div>
+
+        {% if kop_surat.footer_text %}
+        <div class="pdf-footer">{{ kop_surat.footer_text }}</div>
+        {% endif %}
     </div>
 </div>
 
