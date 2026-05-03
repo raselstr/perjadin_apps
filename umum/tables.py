@@ -123,7 +123,7 @@ class KopSuratTable(BaseTable):
         model = KopSurat
         fields = (
             "no",
-            "pemda",
+            "pemda.nama_dinas",
             "font_family_display",
             "region_font_size_pt",
             "office_font_size_pt",
@@ -131,6 +131,8 @@ class KopSuratTable(BaseTable):
             "contact_font_size_pt",
             "logo_size",
             "print_scale_percent",
+            "default_spt_number_format",
+            "default_spd_number_format",
             "aksi",
         )
 
