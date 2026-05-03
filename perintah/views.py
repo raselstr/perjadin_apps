@@ -45,6 +45,27 @@ def _get_primary_instansi_name(pemda, penandatangan=None, fallback=""):
     return fallback or "Instansi Asal"
 
 
+def _get_active_opd_name(request, fallback=""):
+    if not request:
+        return fallback or "-"
+
+    session_opd_name = request.session.get("session_opd_nama")
+    if session_opd_name and session_opd_name != "Administrator Pusat":
+        return session_opd_name
+
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated:
+        try:
+            profile = user.userprofile
+        except UserProfile.DoesNotExist:
+            profile = None
+
+        if profile and profile.opd:
+            return profile.opd.nama
+
+    return fallback or session_opd_name or "-"
+
+
 def _build_number_from_format(raw_number, fallback_number, tanggal, format_template):
     nomor_urut = (raw_number or fallback_number or "").strip()
     if not format_template or not nomor_urut:
@@ -230,6 +251,10 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             "spt": spt,
             "tanggal_dokumen": tanggal_spt,
             "asal_instansi": asal_instansi,
+            "active_opd_name": _get_active_opd_name(
+                self.request,
+                fallback=asal_instansi,
+            ),
             "kop_office_name": get_letterhead_office_name(
                 penandatangan,
                 pemda=pemda,

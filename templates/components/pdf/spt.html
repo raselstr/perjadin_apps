@@ -20,6 +20,7 @@ body {
 
 {% include "components/pdf/print_toolbar_styles.html" %}
 {% include "components/pdf/kop_surat_styles.html" %}
+{% include "components/pdf/page_footer_styles.html" %}
 
 .page {
     width: 210mm;
@@ -297,12 +298,10 @@ body {
                 NIP. {{ pemberi_tugas.nip|format_nip }}
             {% endif %}
         </div>
-
-        {% if kop_surat.footer_text %}
-        <div class="pdf-footer">{{ kop_surat.footer_text }}</div>
-        {% endif %}
     </div>
 </div>
+
+{% include "components/pdf/page_footer.html" %}
 
 {% if auto_print %}
 <script>
