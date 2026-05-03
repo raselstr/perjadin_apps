@@ -196,7 +196,7 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
         # Generate default SPT number if empty
         nomor_spt = pemberi_tugas.nomor_spt
         if not nomor_spt and kop_surat.default_spt_number_format:
-            nomor_urut = getattr(pemberi_tugas, 'nomor_urut', None) or ""
+            nomor_urut = getattr(pemberi_tugas, 'nomor_spd', None) or ""
             nomor_spt = generate_default_document_number(
                 nomor_urut,
                 tanggal_spt,
