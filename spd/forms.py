@@ -8,7 +8,10 @@ class DasarPeraturanForm(forms.ModelForm):
         widgets = {
             'nama_peraturan': forms.TextInput(attrs={'class': 'form-control'}),
             'nomor_peraturan': forms.TextInput(attrs={'class': 'form-control'}),
-            'tanggal_peraturan': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'tanggal_peraturan': forms.DateInput(
+                attrs={'class': 'form-control', 'type': 'date'},
+                format="%Y-%m-%d",
+            ),
             'keterangan': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'aktif': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
 
@@ -106,5 +109,3 @@ class StandardRepresentasiForm(forms.ModelForm):
             'jenis_spd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Jenis SPD'}),   
             'biaya': forms.NumberInput(attrs={'class': 'form-control'}),
         }
-
-        

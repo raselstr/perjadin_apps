@@ -13,6 +13,7 @@ from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
 from .document_utils import (
     build_contact_line,
     build_penandatangan_title,
+    build_spt_signature_title_parts,
     filter_spt_pelaksana,
     find_ppk_penandatangan,
     generate_default_document_number,
@@ -42,6 +43,39 @@ def _get_primary_instansi_name(pemda, penandatangan=None, fallback=""):
         return penandatangan.opd.nama
 
     return fallback or "Instansi Asal"
+
+
+def _get_active_opd_name(request, fallback=""):
+    if not request:
+        return fallback or "-"
+
+    session_opd_name = request.session.get("session_opd_nama")
+    if session_opd_name and session_opd_name != "Administrator Pusat":
+        return session_opd_name
+
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated:
+        try:
+            profile = user.userprofile
+        except UserProfile.DoesNotExist:
+            profile = None
+
+        if profile and profile.opd:
+            return profile.opd.nama
+
+    return fallback or session_opd_name or "-"
+
+
+def _build_number_from_format(raw_number, fallback_number, tanggal, format_template):
+    nomor_urut = (raw_number or fallback_number or "").strip()
+    if not format_template or not nomor_urut:
+        return raw_number or fallback_number or ""
+
+    return generate_default_document_number(
+        nomor_urut,
+        tanggal,
+        format_template,
+    )
 
 
 class PerintahPermissionMixin(LoginRequiredMixin):
@@ -193,27 +227,22 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
         kop_surat = get_kop_surat_config(pemda)
         tanggal_spt = pemberi_tugas.tanggal_spt or spt.tgl_berangkat
 
-        # Generate default SPT number if empty
-        nomor_spt = pemberi_tugas.nomor_spt
-        if not nomor_spt and kop_surat.default_spt_number_format:
-            nomor_urut = getattr(pemberi_tugas, 'nomor_spd', None) or ""
-            nomor_spt = generate_default_document_number(
-                nomor_urut,
-                tanggal_spt,
-                kop_surat.default_spt_number_format,
-                is_spd=False,
-            )
-
-        # Generate default SPD number if empty
-        nomor_spd = pemberi_tugas.nomor_spd
-        if not nomor_spd and kop_surat.default_spd_number_format:
-            nomor_urut = getattr(pemberi_tugas, 'nomor_urut', None) or ""
-            nomor_spd = generate_default_document_number(
-                nomor_urut,
-                tanggal_spt,
-                kop_surat.default_spd_number_format,
-                is_spd=True,
-            )
+        nomor_spt = _build_number_from_format(
+            pemberi_tugas.nomor_spt,
+            pemberi_tugas.nomor_urut,
+            tanggal_spt,
+            kop_surat.default_spt_number_format,
+        )
+        nomor_spd = _build_number_from_format(
+            pemberi_tugas.nomor_spd,
+            pemberi_tugas.nomor_urut,
+            tanggal_spt,
+            kop_surat.default_spd_number_format,
+        )
+        spt_signature_title_parts = build_spt_signature_title_parts(
+            penandatangan,
+            pemda=pemda,
+        )
 
         return {
             "pemda": pemda,
@@ -222,6 +251,10 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             "spt": spt,
             "tanggal_dokumen": tanggal_spt,
             "asal_instansi": asal_instansi,
+            "active_opd_name": _get_active_opd_name(
+                self.request,
+                fallback=asal_instansi,
+            ),
             "kop_office_name": get_letterhead_office_name(
                 penandatangan,
                 pemda=pemda,
@@ -232,6 +265,10 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
                 getattr(penandatangan, "tugas", "")
             ),
             "signature_title": build_penandatangan_title(penandatangan),
+            "spt_signature_title_prefix": (
+                spt_signature_title_parts["prefix"]
+            ),
+            "spt_signature_title_lines": spt_signature_title_parts["lines"],
             "signature_location": get_signature_location(
                 pemda,
                 default_location=default_signature_location,

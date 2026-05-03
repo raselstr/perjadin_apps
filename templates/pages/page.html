@@ -269,10 +269,15 @@
   function initSelect2() {
     destroySelect2();
     if (window.jQuery) {
-      $('.select2, .select2-ajax').select2({
-        width: '100%',
-        dropdownParent: $('#modal'),
-        theme: 'bootstrap-5'
+      $('.select2, .select2-ajax').each(function () {
+        const $field = $(this);
+        const $dropdownParent = $field.closest('[data-formset-row], .modal');
+
+        $field.select2({
+          width: '100%',
+          dropdownParent: $dropdownParent.length ? $dropdownParent : $(document.body),
+          theme: 'bootstrap-5'
+        });
       });
     }
   }

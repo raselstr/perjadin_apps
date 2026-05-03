@@ -62,7 +62,7 @@
         <div id="formset-container" class="d-grid gap-3">
             {% for child_form in formset %}
                 <div
-                    class="card border shadow-sm formset-row"
+                    class="card border shadow-sm position-relative formset-row"
                     data-formset-row
                     data-deleted="{% if child_form.DELETE.value %}true{% else %}false{% endif %}">
 
@@ -140,7 +140,7 @@
 </form>
 
 <template id="pelaksana-empty-form-template">
-    <div class="card border shadow-sm formset-row" data-formset-row data-deleted="false">
+    <div class="card border shadow-sm position-relative formset-row" data-formset-row data-deleted="false">
         <div class="card-body">
             __ID_FIELD__
             __DELETE_FIELD__
@@ -234,6 +234,7 @@
 
         window.jQuery(row).find(".select2, .select2-ajax").each(function () {
             const $field = window.jQuery(this);
+            const $dropdownParent = $field.closest("[data-formset-row], .modal");
 
             if ($field.hasClass("select2-hidden-accessible")) {
                 $field.select2("destroy");
@@ -241,7 +242,9 @@
 
             $field.select2({
                 width: "100%",
-                dropdownParent: window.jQuery("#modal"),
+                dropdownParent: $dropdownParent.length
+                    ? $dropdownParent
+                    : window.jQuery(document.body),
                 theme: "bootstrap-5",
             });
         });

@@ -20,6 +20,7 @@ body {
 
 {% include "components/pdf/print_toolbar_styles.html" %}
 {% include "components/pdf/kop_surat_styles.html" %}
+{% include "components/pdf/page_footer_styles.html" %}
 
 .page {
     width: 210mm;
@@ -144,6 +145,25 @@ body {
     text-decoration: underline;
 }
 
+.signature-title {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 5px;
+    align-items: start;
+}
+
+.signature-title-prefix {
+    min-width: 0;
+}
+
+.signature-title-text {
+    min-width: 0;
+}
+
+.signature-title-prefix:empty {
+    display: none;
+}
+
 @media print {
     body {
         background: #fff;
@@ -260,7 +280,16 @@ body {
 
         <div class="signature">
             {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
-            {{ signature_title|default:"-" }}<br>
+            <div class="signature-title">
+                <span class="signature-title-prefix">{{ spt_signature_title_prefix }}</span>
+                <span class="signature-title-text">
+                    {% for title_line in spt_signature_title_lines %}
+                        {{ title_line|default:"-" }}{% if not forloop.last %}<br>{% endif %}
+                    {% empty %}
+                        {{ signature_title|default:"-" }}
+                    {% endfor %}
+                </span>
+            </div>
 
             <div class="signature-space"></div>
 
@@ -269,12 +298,10 @@ body {
                 NIP. {{ pemberi_tugas.nip|format_nip }}
             {% endif %}
         </div>
-
-        {% if kop_surat.footer_text %}
-        <div class="pdf-footer">{{ kop_surat.footer_text }}</div>
-        {% endif %}
     </div>
 </div>
+
+{% include "components/pdf/page_footer.html" %}
 
 {% if auto_print %}
 <script>
