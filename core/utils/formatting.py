@@ -160,3 +160,18 @@ def parse_localized_decimal(value):
         return Decimal(normalized)
     except (InvalidOperation, TypeError, ValueError) as exc:
         raise ValueError("Format angka tidak valid.") from exc
+
+def format_nip(nip):
+    """
+    Format NIP menjadi: 19830929 201101 1 013
+    """
+    if not nip:
+        return ""
+
+    nip_str = re.sub(r"\D", "", str(nip))  # ambil angka saja
+
+    # Pastikan panjang minimal 18 digit
+    if len(nip_str) != 18:
+        return nip  # fallback kalau format tidak valid
+
+    return f"{nip_str[0:8]} {nip_str[8:14]} {nip_str[14:15]} {nip_str[15:18]}"

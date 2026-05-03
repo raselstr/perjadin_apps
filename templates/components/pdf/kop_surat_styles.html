@@ -9,9 +9,18 @@
 }
 
 .letterhead {
-    border-bottom: 3px solid #000;
+    position: relative;
+    border-bottom: 2px solid #000;
     font-family: var(--kop-font-family);
-    padding-bottom: 10px;
+    padding-bottom: 1px;
+}
+.letterhead::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 2px;
+    width: 100%;
+    border-bottom: 4px solid #000;
 }
 
 .letterhead-flex {

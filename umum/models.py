@@ -308,61 +308,23 @@ class KopSurat(models.Model):
     # Margin settings for paper edge distance
     margin_top_mm = models.PositiveSmallIntegerField(
         default=18,
-        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        validators=[MinValueValidator(1), MaxValueValidator(50)],
         verbose_name="Margin Atas (mm)",
     )
     margin_bottom_mm = models.PositiveSmallIntegerField(
         default=20,
-        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        validators=[MinValueValidator(1), MaxValueValidator(50)],
         verbose_name="Margin Bawah (mm)",
     )
     margin_left_mm = models.PositiveSmallIntegerField(
         default=18,
-        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        validators=[MinValueValidator(1), MaxValueValidator(50)],
         verbose_name="Margin Kiri (mm)",
     )
     margin_right_mm = models.PositiveSmallIntegerField(
         default=18,
-        validators=[MinValueValidator(5), MaxValueValidator(50)],
+        validators=[MinValueValidator(1), MaxValueValidator(50)],
         verbose_name="Margin Kanan (mm)",
-    )
-
-    # Header settings
-    header_text = models.CharField(
-        max_length=500,
-        blank=True,
-        default="",
-        verbose_name="Teks Header",
-    )
-    header_font_size_pt = models.PositiveSmallIntegerField(
-        default=10,
-        validators=[MinValueValidator(8), MaxValueValidator(20)],
-        verbose_name="Ukuran Font Header (pt)",
-    )
-    header_alignment = models.CharField(
-        max_length=10,
-        choices=ALIGNMENT_CHOICES,
-        default="center",
-        verbose_name="Posisi Header",
-    )
-
-    # Footer settings
-    footer_text = models.CharField(
-        max_length=500,
-        blank=True,
-        default="",
-        verbose_name="Teks Footer",
-    )
-    footer_font_size_pt = models.PositiveSmallIntegerField(
-        default=10,
-        validators=[MinValueValidator(8), MaxValueValidator(20)],
-        verbose_name="Ukuran Font Footer (pt)",
-    )
-    footer_alignment = models.CharField(
-        max_length=10,
-        choices=ALIGNMENT_CHOICES,
-        default="center",
-        verbose_name="Posisi Footer",
     )
 
     # Default number format for SPT and SPD

@@ -1,6 +1,6 @@
 from django import template
 
-from core.utils.formatting import number_to_words as _number_to_words
+from core.utils.formatting import number_to_words as _number_to_words, format_nip as _format_nip
 
 register = template.Library()
 
@@ -19,3 +19,17 @@ def number_to_words(value):
     if value is None:
         return ""
     return _number_to_words(value)
+
+@register.filter
+def format_nip(value):
+    """
+    Format NIP (Nomor Induk Pegawai) with dots and spaces.
+
+    Usage: {{ penandatangan.nip|format_nip }}
+
+    Example:
+        "198001012010011001" -> "19800101 2010 011 001"
+    """
+    if value is None:
+        return ""
+    return _format_nip(value)

@@ -8,7 +8,6 @@
 <style>
 @page {
     size: A4;
-    margin: {{ kop_surat.margin_css|default:"15mm 15mm 18mm 15mm" }};
 }
 
 body {
@@ -31,7 +30,7 @@ body {
 }
 
 .sheet {
-    padding: 2mm 2mm 2mm 2mm;
+    padding: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm; 
 }
 
 .pdf-header {
@@ -133,7 +132,7 @@ body {
 }
 
 .footer {
-    width: 300px;
+    width: 350px;
     margin-left: auto;
     margin-top: 26px;
     line-height: 1.5;
@@ -221,7 +220,7 @@ body {
                 <td colspan="2">
                     {% if primary_pelaksana %}
                         {{ primary_pelaksana.nama.nama|default:"-" }}
-                        {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip }}{% endif %}
+                        {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip|format_nip }}{% endif %}
                     {% else %}
                         <span class="empty-state">Belum ada pelaksana.</span>
                     {% endif %}
@@ -337,7 +336,7 @@ body {
 
             <div class="signature-name">{{ penandatangan_dokumen.nama|default:"-" }}</div>
             {% if penandatangan_dokumen.nip %}
-                NIP. {{ penandatangan_dokumen.nip }}
+                NIP. {{ penandatangan_dokumen.nip|format_nip }}
             {% endif %}
         </div>
 

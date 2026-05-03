@@ -217,6 +217,20 @@ class KopSuratForm(BaseAppModelForm):
         "contact_font_size_pt": 6,
         "logo_width_px": 6,
         "logo_height_px": 6,
+        "print_scale_percent": 6,
+        "margin_top_mm": 6,
+        "margin_bottom_mm": 6,
+        "margin_left_mm": 6,
+        "margin_right_mm": 6,
+        "header_text": 12,
+        "header_font_size_pt": 12,
+        "header_alignment": 12,
+        "footer_text": 12,
+        "footer_font_size_pt": 12,
+        "footer_alignment": 12,
+        "default_spt_number_format": 12,
+        "default_spd_number_format": 12,
+        
     }
 
     class Meta:
@@ -231,6 +245,12 @@ class KopSuratForm(BaseAppModelForm):
             "contact_font_size_pt",
             "logo_width_px",
             "logo_height_px",
+            "margin_top_mm",
+            "margin_bottom_mm",
+            "margin_left_mm",
+            "margin_right_mm",
+            "default_spt_number_format",
+            "default_spd_number_format",
         ]
         widgets = {
             "pemda": forms.Select(attrs={
@@ -274,6 +294,34 @@ class KopSuratForm(BaseAppModelForm):
                 "class": "form-control",
                 "min": 40,
                 "max": 180,
+            }),
+            "margin_top_mm": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 0,
+                "max": 50,
+            }),
+            "margin_bottom_mm": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 0,
+                "max": 50,
+            }),
+            "margin_left_mm": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 0,
+                "max": 50,
+            }),
+            "margin_right_mm": forms.NumberInput(attrs={
+                "class": "form-control",
+                "min": 0,
+                "max": 50,
+            }),
+            "default_spt_number_format": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Contoh: {nomor_urut}/{kode_pemda}/{bulan}/{tahun}",
+            }),
+            "default_spd_number_format": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Contoh: {nomor_urut}/{kode_pemda}/{bulan}/{tahun}",
             }),
         }
 
