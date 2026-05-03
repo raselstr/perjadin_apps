@@ -331,7 +331,7 @@ class KopSurat(models.Model):
     default_spt_number_format = models.CharField(
         max_length=100,
         blank=True,
-        default="800.1.11.1/{nomor_urut}/{bulan}/{tahun}",
+        default="800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}",
         verbose_name="Format Default Nomor SPT",
         help_text="Gunakan {nomor_urut}, {bulan}, {tahun} sebagai placeholder",
     )

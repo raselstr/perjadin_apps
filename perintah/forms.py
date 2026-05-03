@@ -33,11 +33,12 @@ class SptForm(BaseAppModelForm):
 
     tgl_kembali = forms.DateField(
         required=False,
+        input_formats=["%Y-%m-%d", "%d/%m/%Y"],
         widget=forms.DateInput(attrs={
             "class": "form-control",
             "type": "date",
             "readonly": "readonly",
-        })
+        }, format="%Y-%m-%d")
     )
 
     class Meta:
@@ -93,7 +94,7 @@ class SptForm(BaseAppModelForm):
             "tgl_berangkat": forms.DateInput(attrs={
                 "class": "form-control",
                 "type": "date",
-            }),
+            }, format="%Y-%m-%d"),
 
             "jenis_kegiatan": forms.Select(attrs={
                 "class": "form-select select2",
@@ -262,7 +263,7 @@ class PemberiTugasForm(BaseAppModelForm):
             "tanggal_spt": forms.DateInput(attrs={
                 "class": "form-control",
                 "type": "date",
-            }),
+            }, format="%Y-%m-%d"),
         }
 
     def __init__(self, *args, **kwargs):
@@ -304,6 +305,7 @@ class PemberiTugasForm(BaseAppModelForm):
             "spt",
             "penandatangan",
             "nomor_spt",
+            "nomor_spd",
             "tanggal_spt",
         ])
 

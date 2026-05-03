@@ -144,6 +144,25 @@ body {
     text-decoration: underline;
 }
 
+.signature-title {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    column-gap: 5px;
+    align-items: start;
+}
+
+.signature-title-prefix {
+    min-width: 0;
+}
+
+.signature-title-text {
+    min-width: 0;
+}
+
+.signature-title-prefix:empty {
+    display: none;
+}
+
 @media print {
     body {
         background: #fff;
@@ -260,7 +279,16 @@ body {
 
         <div class="signature">
             {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
-            {{ signature_title|default:"-" }}<br>
+            <div class="signature-title">
+                <span class="signature-title-prefix">{{ spt_signature_title_prefix }}</span>
+                <span class="signature-title-text">
+                    {% for title_line in spt_signature_title_lines %}
+                        {{ title_line|default:"-" }}{% if not forloop.last %}<br>{% endif %}
+                    {% empty %}
+                        {{ signature_title|default:"-" }}
+                    {% endfor %}
+                </span>
+            </div>
 
             <div class="signature-space"></div>
 

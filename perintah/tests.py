@@ -9,6 +9,10 @@ from profiles.models import OPD, UserProfile
 from spd.models import JenisKegiatan, Lokasi
 from umum.models import Eselon, JenisJabatan, Pangkat, Pegawai, Pemda, Penandatangan
 
+from .document_utils import (
+    build_spt_signature_title_parts,
+    generate_default_document_number,
+)
 from .forms import PemberiTugasForm
 from .models import PemberiTugas, Spt
 
@@ -242,6 +246,42 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         self.assertIn(
             "minimal satu pelaksana dengan eselon II",
             form.errors["spt"][0],
+        )
+
+
+class DocumentUtilsTests(PerintahBaseTestCase):
+    def test_default_document_number_uses_roman_month(self):
+        result = generate_default_document_number(
+            "091",
+            date(2026, 5, 1),
+            "800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}",
+        )
+
+        self.assertEqual(result, "800.1.11.1/091/BKAD/V/2026")
+
+    def test_spt_signature_title_separates_prefix_from_title_lines(self):
+        plt = JenisJabatan.objects.create(nama="Plt.")
+        pemda = Pemda.objects.get(nama_dinas=self.opd_bk)
+        pemda.nama_kabupaten = "Asahan"
+        pemda.save()
+        penandatangan = Penandatangan.objects.create(
+            nama="Plt Kepala BKAD",
+            nip="197501011999011001",
+            pangkat=self.pangkat_iva,
+            tugas="Kepala",
+            jenis_jabatan=plt,
+            opd=self.opd_bk,
+        )
+
+        result = build_spt_signature_title_parts(
+            penandatangan,
+            pemda=pemda,
+        )
+
+        self.assertEqual(result["prefix"], "Plt.")
+        self.assertEqual(
+            result["lines"],
+            ["Kepala Badan Keuangan", "Daerah Kabupaten Asahan"],
         )
 
 

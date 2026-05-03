@@ -101,13 +101,94 @@ def build_penandatangan_title(penandatangan):
     if tugas == "PPK":
         tugas = TUGAS_DISPLAY_MAP.get("PPK", tugas)
 
-    if jenis_jabatan.lower() == "definitif":
+    if jenis_jabatan.lower() in ("definitif", "defenitif"):
         jenis_jabatan = ""
 
     if jenis_jabatan and tugas:
         return f"{jenis_jabatan} {tugas}".strip()
 
     return tugas or jenis_jabatan or "-"
+
+
+def _get_jabatan_prefix(penandatangan):
+    jenis_jabatan = ""
+    jenis_jabatan_value = getattr(penandatangan, "jenis_jabatan", None)
+    if hasattr(jenis_jabatan_value, "nama"):
+        jenis_jabatan = jenis_jabatan_value.nama
+    elif jenis_jabatan_value:
+        jenis_jabatan = str(jenis_jabatan_value)
+
+    if jenis_jabatan.lower() in ("definitif", "defenitif"):
+        return ""
+
+    return jenis_jabatan
+
+
+def _format_kabupaten_name(pemda):
+    nama_kabupaten = (getattr(pemda, "nama_kabupaten", "") or "").strip()
+    if nama_kabupaten:
+        if nama_kabupaten.lower().startswith("kabupaten "):
+            return nama_kabupaten
+        return f"Kabupaten {nama_kabupaten}"
+
+    nama_pemda = (getattr(pemda, "nama_pemda", "") or "").strip()
+    if not nama_pemda:
+        return ""
+
+    words = nama_pemda.split()
+    if len(words) >= 2 and words[-2].lower() == "kabupaten":
+        return f"Kabupaten {words[-1]}"
+
+    return nama_pemda.title()
+
+
+def build_spt_signature_title_parts(penandatangan, pemda=None):
+    if not penandatangan:
+        return {
+            "prefix": "",
+            "lines": ["-"],
+        }
+
+    opd_name = ""
+    if getattr(penandatangan, "opd", None):
+        opd_name = penandatangan.opd.nama
+    elif pemda and pemda.nama_dinas:
+        opd_name = pemda.nama_dinas.nama
+
+    if getattr(penandatangan, "tugas", "") != "Kepala":
+        return {
+            "prefix": "",
+            "lines": [opd_name or build_penandatangan_title(penandatangan)],
+        }
+
+    title_parts = ["Kepala", opd_name]
+    title = " ".join(part for part in title_parts if part).strip()
+    kabupaten = _format_kabupaten_name(pemda)
+
+    if not kabupaten:
+        lines = [title or "-"]
+    else:
+        daerah_marker = " Daerah"
+        if daerah_marker in title:
+            before_daerah, after_daerah = title.split(daerah_marker, 1)
+            lines = [
+                before_daerah,
+                f"Daerah {kabupaten}{after_daerah}",
+            ]
+        else:
+            lines = [f"{title} {kabupaten}".strip()]
+
+    return {
+        "prefix": _get_jabatan_prefix(penandatangan),
+        "lines": lines,
+    }
+
+
+def build_spt_signature_title_lines(penandatangan, pemda=None):
+    return build_spt_signature_title_parts(
+        penandatangan,
+        pemda=pemda,
+    )["lines"]
 
 
 def normalize_text(value):
@@ -290,19 +371,18 @@ def find_ppk_penandatangan(opd=None, fallback_opd_id=None):
     return queryset.first()
 
 
-# Indonesian month names
-INDONESIAN_MONTHS = [
-    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-    "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+# Month values used in document numbers
+ROMAN_MONTHS = [
+    "I", "II", "III", "IV", "V", "VI",
+    "VII", "VIII", "IX", "X", "XI", "XII"
 ]
 
 
-def get_indonesian_month(date_obj):
-    """Get Indonesian month name from date object."""
+def get_roman_month(date_obj):
     if not date_obj:
         return ""
     try:
-        return INDONESIAN_MONTHS[date_obj.month - 1]
+        return ROMAN_MONTHS[date_obj.month - 1]
     except (AttributeError, IndexError):
         return ""
 
@@ -328,7 +408,7 @@ def generate_default_document_number(
     if not tanggal:
         return ""
 
-    bulan = get_indonesian_month(tanggal)
+    bulan = get_roman_month(tanggal)
     tahun = tanggal.year
 
     # Replace placeholders in format template

@@ -100,8 +100,7 @@ body {
     border-collapse: collapse;
 }
 
-.sub-table td,
-.followers-table td {
+.sub-table td {
     border: 0;
     padding: 0 0 2px;
     vertical-align: top;
@@ -118,8 +117,10 @@ body {
 
 .followers-table th,
 .followers-table td {
+    border: 1px solid #000;
     font-size: 11pt;
-    padding: 2px 4px 2px 0;
+    padding: 3px 5px;
+    vertical-align: top;
 }
 
 .followers-table th {
@@ -128,7 +129,16 @@ body {
 }
 
 .followers-no {
-    width: 22px;
+    width: 28px;
+    text-align: center;
+}
+
+.followers-name {
+    width: 42%;
+}
+
+.followers-birthdate {
+    width: 105px;
 }
 
 .footer {
@@ -197,7 +207,7 @@ body {
                 <td></td>
                 <td class="meta-label">Nomor</td>
                 <td class="meta-colon">:</td>
-                <td>{{ pemberi_tugas.nomor_spd|default:pemberi_tugas.nomor_spt|default:"-" }}</td>
+                <td>{{ nomor_spd|default:nomor_spt|default:"-" }}</td>
             </tr>
         </table>
 
@@ -279,35 +289,35 @@ body {
                 </td>
             </tr>
             <tr>
-            <td class="number-col">8</td>
-            <td class="label-col">Pengikut</td>
-            <td colspan="2">
-                {% if show_followers %}
-                <table class="followers-table">
-                    <thead>
-                        <tr>
-                            <th style="width:30px;">No</th>
-                            <th>Nama</th>
-                            <th style="width:110px;">Tgl Lahir</th>
-                            <th>Keterangan</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for follower in followers %}
-                        <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>{{ follower.nama.nama|default:"-" }}</td>
-                            <td>{{ follower.nama.tgl_lahir|date:"d/m/Y"|default:"-" }}</td>
-                            <td>{{ follower.nama.jabatan|default:"-" }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% else %}
-                    -
-                {% endif %}
-            </td>
-        </tr>
+                <td class="number-col">8</td>
+                <td colspan="3">
+                    Pengikut
+                    {% if show_followers %}
+                    <table class="followers-table">
+                        <thead>
+                            <tr>
+                                <th class="followers-no">No.</th>
+                                <th class="followers-name">Nama</th>
+                                <th class="followers-birthdate">Tanggal Lahir</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for follower in followers %}
+                            <tr>
+                                <td>{{ forloop.counter }}.</td>
+                                <td>{{ follower.nama.nama|default:"-" }}</td>
+                                <td>{{ follower.nama.tgl_lahir|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ follower.nama.jabatan|default:"-" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                        <br>-
+                    {% endif %}
+                </td>
+            </tr>
             <tr>
                 <td class="number-col">9</td>
                 <td class="label-col">
