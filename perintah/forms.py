@@ -107,6 +107,8 @@ class SptForm(BaseAppModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        self.fields["kota_tujuan"].label_from_instance = self.label_lokasi
 
         # Isi otomatis tanggal kembali
         self.fields["tgl_kembali"].initial = (
@@ -125,7 +127,14 @@ class SptForm(BaseAppModelForm):
             "dasar",
             "berita",
         ])
-
+    
+    def label_lokasi(self, obj):
+        if obj.jenis_spd and obj.jenis_spd.id == 1:
+            return f"Provinsi {obj.lokasi} - {obj.kota}"
+        if obj.jenis_spd and obj.jenis_spd.id == 2:
+            return f"{obj.lokasi} - {obj.kota}"
+        return obj.kota or obj.lokasi
+    
     def _get_calculated_return_date(self):
         """
         Hitung otomatis:
