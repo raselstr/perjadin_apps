@@ -31,7 +31,7 @@ body {
 }
 
 .sheet {
-    padding: 15mm 15mm 12mm;
+    padding: 2mm 2mm 2mm 2mm;
 }
 
 .pdf-header {
@@ -208,20 +208,20 @@ body {
             <tr>
                 <td class="number-col">1</td>
                 <td class="label-col">Pejabat Pembuat Komitmen</td>
-                <td>
+                <td colspan="2">
                     {{ penandatangan_dokumen.nama|default:"-" }}
-                    {% if penandatangan_dokumen.nip %}<br>NIP. {{ penandatangan_dokumen.nip }}{% endif %}
+                    {% comment %} {% if penandatangan_dokumen.nip %}<br>NIP. {{ penandatangan_dokumen.nip }}{% endif %}
                     {% if penandatangan_dokumen.pangkat %}<br>{{ penandatangan_dokumen.pangkat }}{% endif %}
-                    <br>{{ signature_title|default:"-" }}
+                    <br>{{ signature_title|default:"-" }} {% endcomment %}
                 </td>
             </tr>
             <tr>
                 <td class="number-col">2</td>
-                <td class="label-col">Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
-                <td>
+                <td class="label-col">Nama/Nip Pegawai yang melaksanakan perjalanan dinas</td>
+                <td colspan="2">
                     {% if primary_pelaksana %}
                         {{ primary_pelaksana.nama.nama|default:"-" }}
-                        {% if primary_pelaksana.nama.nip %}<br>NIP. {{ primary_pelaksana.nama.nip }}{% endif %}
+                        {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip }}{% endif %}
                     {% else %}
                         <span class="empty-state">Belum ada pelaksana.</span>
                     {% endif %}
@@ -230,11 +230,11 @@ body {
             <tr>
                 <td class="number-col">3</td>
                 <td class="label-col">
-                    a. Pangkat/Golongan<br>
-                    b. Jabatan<br>
-                    c. Tingkat Biaya
+                    a. Pangkat dan Golongan<br>
+                    b. Jabatan/ Instansi<br>
+                    c. Tingkat Biaya Perjalanan Dinas
                 </td>
-                <td>
+                <td colspan="2">
                     {% if primary_pelaksana %}
                         a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
                         b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
@@ -247,76 +247,77 @@ body {
             <tr>
                 <td class="number-col">4</td>
                 <td class="label-col">Maksud Perjalanan Dinas</td>
-                <td>{{ spt.berita|default:"-" }}</td>
+                <td colspan="2">{{ spt.berita|default:"-" }}</td>
             </tr>
             <tr>
                 <td class="number-col">5</td>
-                <td class="label-col">Alat Angkutan</td>
-                <td>{{ spt.get_kendaraan_display|default:"-" }}</td>
+                <td class="label-col">Alat Angkutan yang dipergunakan</td>
+                <td colspan="2">{{ spt.get_kendaraan_display|default:"-" }}</td>
             </tr>
             <tr>
                 <td class="number-col">6</td>
                 <td class="label-col">
                     a. Tempat berangkat<br>
-                    b. Tujuan
+                    b. Tempat Tujuan
                 </td>
-                <td>
+                <td colspan="2">
                     a. {{ asal_instansi|default:"-" }}<br>
-                    b. {{ spt.tempat_tujuan|default:spt.kota_tujuan|default:"-" }}
-                    {% if spt.kota_tujuan %}<br>{{ spt.kota_tujuan }}{% endif %}
+                    b. {% if spt.kota_tujuan %}{{ spt.kota_tujuan }}{% endif %}
+                    
                 </td>
             </tr>
             <tr>
                 <td class="number-col">7</td>
                 <td class="label-col">
-                    a. Lama perjalanan<br>
+                    a. Lamanya Perjalanan Dinas<br>
                     b. Tanggal berangkat<br>
-                    c. Tanggal kembali
+                    c. Tanggal harus kembali/tiba di tempat baru *)
                 </td>
-                <td>
+                <td colspan="2">
                     a. {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari<br>
-                    b. {{ spt.tgl_berangkat|date:"d/m/Y" }}<br>
-                    c. {{ spt.tgl_kembali|date:"d/m/Y" }}
+                    b. {{ spt.tgl_berangkat|date:"d F Y" }}<br>
+                    c. {{ spt.tgl_kembali|date:"d F Y" }}
                 </td>
             </tr>
             <tr>
-                <td class="number-col">8</td>
-                <td class="label-col">Pengikut</td>
-                <td>
-                    {% if show_followers %}
-                        <table class="followers-table">
-                            <thead>
-                                <tr>
-                                    <th class="followers-no">No</th>
-                                    <th>Nama</th>
-                                    <th>Tanggal Lahir</th>
-                                    <th>Jabatan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for follower in followers %}
-                                    <tr>
-                                        <td class="followers-no">{{ forloop.counter }}.</td>
-                                        <td>{{ follower.nama.nama|default:"-" }}</td>
-                                        <td>{{ follower.nama.tgl_lahir|date:"d/m/Y"|default:"-" }}</td>
-                                        <td>{{ follower.nama.jabatan|default:"-" }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
+            <td class="number-col">8</td>
+            <td class="label-col">Pengikut</td>
+            <td colspan="2">
+                {% if show_followers %}
+                <table class="followers-table">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">No</th>
+                            <th>Nama</th>
+                            <th style="width:110px;">Tgl Lahir</th>
+                            <th>Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for follower in followers %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ follower.nama.nama|default:"-" }}</td>
+                            <td>{{ follower.nama.tgl_lahir|date:"d/m/Y"|default:"-" }}</td>
+                            <td>{{ follower.nama.jabatan|default:"-" }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                    -
+                {% endif %}
+            </td>
+        </tr>
             <tr>
                 <td class="number-col">9</td>
                 <td class="label-col">
                     Pembebanan Anggaran<br>
                     a. SKPD<br>
-                    b. Rekening
+                    b. Kode Rekening
                 </td>
-                <td>
+                <td colspan="2">
+                    <br>
                     a. {{ asal_instansi|default:"-" }}<br>
                     b. -
                 </td>
@@ -324,12 +325,12 @@ body {
             <tr>
                 <td class="number-col">10</td>
                 <td class="label-col">Keterangan</td>
-                <td>-</td>
+                <td colspan="2">-</td>
             </tr>
         </table>
 
         <div class="footer">
-            {{ signature_location }}, {{ tanggal_dokumen|date:"d/m/Y" }}<br>
+            {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
             {{ signature_title|default:"-" }}<br>
 
             <div class="signature-space"></div>
