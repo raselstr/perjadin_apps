@@ -8,6 +8,10 @@ from .models import PemberiTugas, Spt
 class SptTable(BaseTable):
     aksi = action_column("spt_action_pk", "spt_delete")
 
+    berita = tables.Column(
+        verbose_name="Tujuan Pelaksanaan"
+    )
+
     tempat_tujuan = tables.Column(
         verbose_name="Tempat Tujuan"
     )
@@ -63,6 +67,7 @@ class SptTable(BaseTable):
 
 
 class PemberiTugasTable(BaseTable):
+    
     dokumen = tables.TemplateColumn(
         verbose_name="Cetak",
         orderable=False,
@@ -89,11 +94,32 @@ class PemberiTugasTable(BaseTable):
         </div>
         """,
     )
+    spt = tables.TemplateColumn(
+        verbose_name="Maksud dan Tujuan Perjalanan Dinas",
+        orderable=False,
+        template_code="""
+        {{ record.spt.tempat_tujuan }}<br>
+        <span class="text-muted small fst-italic">
+            {{ record.spt.berita }}
+        </span>
+        """
+    )
+    penandatangan = tables.TemplateColumn(
+        verbose_name="Pejabat yang menugaskan",
+        orderable=False,
+        template_code="""
+        {{ record.penandatangan.nama }}<br>
+        <span class="text-muted small fst-italic">
+            {{ record.penandatangan.tugas }}
+        </span>
+        """
+    )
+    
 
     aksi = action_column("pemberi_tugas_action_pk", "pemberi_tugas_delete")
 
     tanggal_spt = tables.DateColumn(
-        verbose_name="Tanggal SPT",
+        verbose_name="Tanggal Dokumen",
         format="d M Y"
     )
 
@@ -104,9 +130,9 @@ class PemberiTugasTable(BaseTable):
             "spt",
             "penandatangan",
             "nomor_spt",
+            "nomor_spd",
             "tanggal_spt",
-            "nama",
-            "tugas",
             "dokumen",
             "aksi",
         )
+        

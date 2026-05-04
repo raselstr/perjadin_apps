@@ -38,11 +38,11 @@ def get_matching_pemda(opd=None):
 def get_letterhead_office_name(penandatangan, pemda=None):
     tugas = getattr(penandatangan, "tugas", "")
 
-    if tugas == "Bupati":
-        return "Bupati Asahan"
+    if pemda and tugas == "Bupati":
+        return penandatangan.opd.nama
 
-    if tugas == "Wakil Bupati":
-        return "Wakil Bupati Asahan"
+    if pemda and tugas == "Wakil Bupati":
+        return penandatangan.opd.nama
 
     if pemda and pemda.nama_dinas:
         return pemda.nama_dinas.nama
