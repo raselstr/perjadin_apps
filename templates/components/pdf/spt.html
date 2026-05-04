@@ -50,15 +50,15 @@ body {
 
 .document-title {
     text-align: center;
-    margin: 18px 0 20px;
-    line-height: 1.5;
+    margin: 30px 0 30px;
+    line-height: 1;
 }
 
 .document-title .title-text {
     font-size: 14pt;
     font-weight: bold;
     text-decoration: underline;
-    letter-spacing: 0.4px;
+    letter-spacing: 10.4px;
 }
 
 .detail-table {
@@ -133,7 +133,7 @@ body {
     width: 350px;
     margin-left: auto;
     margin-top: 34px;
-    line-height: 1.5;
+    line-height: 1.2;
 }
 
 .signature-space {
@@ -152,6 +152,10 @@ body {
     align-items: start;
 }
 
+.signature-title-no-prefix {
+    grid-template-columns: 1fr;
+}
+
 .signature-title-prefix {
     min-width: 0;
 }
@@ -160,8 +164,18 @@ body {
     min-width: 0;
 }
 
-.signature-title-prefix:empty {
-    display: none;
+.signature-space {
+    grid-column: 2;
+}
+
+.signature-identity {
+    grid-column: 2;
+}
+
+.signature-title-no-prefix .signature-title-text,
+.signature-title-no-prefix .signature-space,
+.signature-title-no-prefix .signature-identity {
+    grid-column: 1;
 }
 
 @media print {
@@ -280,8 +294,10 @@ body {
 
         <div class="signature">
             {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
-            <div class="signature-title">
+            <div class="signature-title{% if not spt_signature_title_prefix %} signature-title-no-prefix{% endif %}">
+                {% if spt_signature_title_prefix %}
                 <span class="signature-title-prefix">{{ spt_signature_title_prefix }}</span>
+                {% endif %}
                 <span class="signature-title-text">
                     {% for title_line in spt_signature_title_lines %}
                         {{ title_line|default:"-" }}{% if not forloop.last %}<br>{% endif %}
@@ -289,14 +305,13 @@ body {
                         {{ signature_title|default:"-" }}
                     {% endfor %}
                 </span>
+                <div class="signature-space"></div>
+                <div class="signature-identity">
+                    <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
+                    <div>{{ pemberi_tugas.pangkat|default:"-" }}</div>
+                    <div>NIP. {{ pemberi_tugas.nip|default:"-"|format_nip }}</div>
+                </div>
             </div>
-
-            <div class="signature-space"></div>
-
-            <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
-            {% if pemberi_tugas.nip %}
-                NIP. {{ pemberi_tugas.nip|format_nip }}
-            {% endif %}
         </div>
     </div>
 </div>

@@ -5,6 +5,7 @@ from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
+from core.utils.formatting import format_nip
 from profiles.models import OPD, UserProfile
 from spd.models import JenisKegiatan, Lokasi
 from umum.models import Eselon, JenisJabatan, Pangkat, Pegawai, Pemda, Penandatangan
@@ -317,6 +318,44 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertContains(response, "BUPATI ASAHAN")
         self.assertContains(response, self.pegawai_eselon_ii.nama)
         self.assertNotContains(response, self.pegawai_eselon_iii.nama)
+        self.assertContains(response, self.pemberi_tugas_bupati.pangkat)
+        self.assertContains(
+            response,
+            f"NIP. {format_nip(self.bupati.nip)}",
+            html=False,
+        )
+
+    def test_print_spt_aligns_signature_identity_with_title_text(self):
+        plt = JenisJabatan.objects.create(nama="Plt.")
+        penandatangan = Penandatangan.objects.create(
+            nama="Plt Kepala BKAD",
+            nip="197501011999011001",
+            pangkat=self.pangkat_iva,
+            tugas="Kepala",
+            jenis_jabatan=plt,
+            opd=self.opd_bk,
+        )
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=self.spt_setda,
+            penandatangan=penandatangan,
+            nomor_spt="092/ST/BK/2026",
+            tanggal_spt=date(2026, 5, 3),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="signature-title-prefix">Plt.')
+        self.assertContains(response, 'class="signature-identity"')
+        self.assertContains(response, self.pangkat_iva.pangkat)
+        self.assertContains(
+            response,
+            f"NIP. {format_nip(penandatangan.nip)}",
+            html=False,
+        )
 
     def test_print_spd_uses_ppk_and_shows_followers(self):
         self.client.force_login(self.superuser)
