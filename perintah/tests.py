@@ -55,6 +55,14 @@ class PerintahBaseTestCase(TestCase):
             eselon="III",
             keterangan="Administrator",
         )
+        self.eselon_iv = Eselon.objects.create(
+            eselon="IV",
+            keterangan="Pengawas",
+        )
+        self.eselon_i = Eselon.objects.create(
+            eselon="I",
+            keterangan="Pimpinan Tinggi Madya",
+        )
 
         self.jenis_jabatan = JenisJabatan.objects.create(
             nama="Definitif",
@@ -94,6 +102,22 @@ class PerintahBaseTestCase(TestCase):
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_setda,
         )
+        self.wakil_bupati = Penandatangan.objects.create(
+            nama="Wakil Bupati Asahan",
+            nip="197501011999051001",
+            pangkat=self.pangkat_ivc,
+            tugas="Wakil Bupati",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+        self.sekretaris_daerah = Penandatangan.objects.create(
+            nama="Sekretaris Daerah Asahan",
+            nip="197601012000061001",
+            pangkat=self.pangkat_ivc,
+            tugas="Sekretaris Daerah",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
 
         self.pegawai_eselon_ii = Pegawai.objects.create(
             nip="198001012005011001",
@@ -115,6 +139,16 @@ class PerintahBaseTestCase(TestCase):
             opd=self.opd_bk,
             tgl_lahir=date(1982, 2, 2),
         )
+        self.pegawai_eselon_i = Pegawai.objects.create(
+            nip="197901012004011000",
+            nama="Pelaksana Eselon I",
+            pangkat=self.pangkat_ivc,
+            jabatan="Asisten Daerah",
+            eselon=self.eselon_i,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1979, 1, 1),
+        )
         self.pegawai_non_eselon = Pegawai.objects.create(
             nip="198503032007031003",
             nama="Pelaksana Non Eselon",
@@ -124,8 +158,18 @@ class PerintahBaseTestCase(TestCase):
             opd=self.opd_bk,
             tgl_lahir=date(1985, 3, 3),
         )
+        self.pegawai_eselon_iv = Pegawai.objects.create(
+            nip="198604042008041004",
+            nama="Pelaksana Eselon IV",
+            pangkat=self.pangkat_iiic,
+            jabatan="Kepala Sub Bagian Umum",
+            eselon=self.eselon_iv,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1986, 4, 4),
+        )
         self.pegawai_setda = Pegawai.objects.create(
-            nip="198704042008041004",
+            nip="198704042009041005",
             nama="Pelaksana Setda",
             pangkat=self.pangkat_iiic,
             jabatan="Analis Pemerintahan",
@@ -190,6 +234,20 @@ class PerintahBaseTestCase(TestCase):
         )
         self.spt_setda.pelaksana.create(nama=self.pegawai_setda)
 
+        self.spt_only_eselon_ii = Spt.objects.create(
+            dasar="Dasar khusus eselon dua",
+            berita="Koordinasi pimpinan saja",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Kementerian",
+            lama_perjalanan=1,
+            tgl_berangkat=date(2026, 5, 4),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        self.spt_only_eselon_ii.pelaksana.create(
+            nama=self.pegawai_eselon_ii
+        )
+
         Pemda.objects.create(
             nama_pemda="Pemerintah Kabupaten Asahan",
             nama_dinas=self.opd_bk,
@@ -248,6 +306,71 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             "minimal satu pelaksana dengan eselon II",
             form.errors["spt"][0],
         )
+
+    def test_form_allows_same_spt_with_different_penandatangan(self):
+        PemberiTugas.objects.create(
+            spt=self.spt_bupati,
+            penandatangan=self.bupati,
+            nomor_spt="090/ST/BUP/2026",
+            tanggal_spt=date(2026, 4, 30),
+        )
+
+        form = PemberiTugasForm(data={
+            "spt": self.spt_bupati.pk,
+            "penandatangan": self.kepala_bk.pk,
+            "nomor_spt": "091/ST/BK/2026",
+            "tanggal_spt": "2026-05-01",
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+
+    def test_form_rejects_duplicate_spt_and_penandatangan(self):
+        PemberiTugas.objects.create(
+            spt=self.spt_bupati,
+            penandatangan=self.bupati,
+            nomor_spt="090/ST/BUP/2026",
+            tanggal_spt=date(2026, 4, 30),
+        )
+
+        form = PemberiTugasForm(data={
+            "spt": self.spt_bupati.pk,
+            "penandatangan": self.bupati.pk,
+            "nomor_spt": "091/ST/BUP/2026",
+            "tanggal_spt": "2026-05-01",
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("spt", form.errors)
+        self.assertIn("penandatangan", form.errors)
+        self.assertIn(
+            "pemberi tugas yang sama sudah terdaftar",
+            form.errors["spt"][0],
+        )
+
+    def test_form_rejects_kepala_when_spt_has_no_eselon_three_or_non_eselon(self):
+        form = PemberiTugasForm(data={
+            "spt": self.spt_only_eselon_ii.pk,
+            "penandatangan": self.kepala_bk.pk,
+            "nomor_spt": "092/ST/BK/2026",
+            "tanggal_spt": "2026-05-04",
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("spt", form.errors)
+        self.assertIn(
+            "minimal satu pelaksana dengan eselon III sampai non eselon",
+            form.errors["spt"][0],
+        )
+
+    def test_form_allows_sekretaris_daerah_for_eselon_two_to_non_eselon(self):
+        form = PemberiTugasForm(data={
+            "spt": self.spt_spd.pk,
+            "penandatangan": self.sekretaris_daerah.pk,
+            "nomor_spt": "093/ST/SETDA/2026",
+            "tanggal_spt": "2026-05-01",
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
 
 
 class DocumentUtilsTests(PerintahBaseTestCase):
@@ -313,13 +436,22 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         response = self.client.get(
             reverse("pemberi_tugas_print_spt", args=[self.pemberi_tugas_bupati.pk])
         )
+        response_html = response.content.decode()
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "BUPATI ASAHAN")
         self.assertContains(response, self.pegawai_eselon_ii.nama)
         self.assertNotContains(response, self.pegawai_eselon_iii.nama)
-        self.assertContains(response, self.pemberi_tugas_bupati.pangkat)
-        self.assertContains(
+        self.assertRegex(
+            response_html,
+            (
+                r'<div class="signature-identity">\s*'
+                r'<div class="signature-name signature-name-no-underline">'
+                r'Bupati Asahan</div>\s*'
+                r'</div>'
+            ),
+        )
+        self.assertNotContains(
             response,
             f"NIP. {format_nip(self.bupati.nip)}",
             html=False,
@@ -357,6 +489,161 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             html=False,
         )
 
+    def test_print_spt_filters_pelaksana_for_kepala(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[self.pemberi_tugas_spd.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            f"<td>{self.pegawai_eselon_ii.nama}</td>",
+            response_html,
+        )
+        self.assertIn(
+            f"<td>{self.pegawai_eselon_iii.nama}</td>",
+            response_html,
+        )
+        self.assertIn(
+            f"<td>{self.pegawai_non_eselon.nama}</td>",
+            response_html,
+        )
+
+    def test_print_spt_sorts_pelaksana_by_eselon_priority(self):
+        spt = Spt.objects.create(
+            dasar="Dasar urutan eselon",
+            berita="Koordinasi urutan pelaksana",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 6),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt.pelaksana.create(nama=self.pegawai_non_eselon)
+        spt.pelaksana.create(nama=self.pegawai_eselon_iv)
+        spt.pelaksana.create(nama=self.pegawai_eselon_iii)
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=spt,
+            penandatangan=self.kepala_bk,
+            nomor_spt="094/ST/BK/2026",
+            tanggal_spt=date(2026, 5, 6),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertLess(
+            response_html.index(self.pegawai_eselon_iii.nama),
+            response_html.index(self.pegawai_eselon_iv.nama),
+        )
+        self.assertLess(
+            response_html.index(self.pegawai_eselon_iv.nama),
+            response_html.index(self.pegawai_non_eselon.nama),
+        )
+
+    def test_print_spt_filters_pelaksana_for_wakil_bupati(self):
+        spt_wakil = Spt.objects.create(
+            dasar="Dasar Wakil Bupati",
+            berita="Koordinasi lintas perangkat daerah",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Provinsi",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 5),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt_wakil.pelaksana.create(nama=self.pegawai_eselon_i)
+        spt_wakil.pelaksana.create(nama=self.pegawai_eselon_ii)
+        spt_wakil.pelaksana.create(nama=self.pegawai_eselon_iii)
+        spt_wakil.pelaksana.create(nama=self.pegawai_non_eselon)
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=spt_wakil,
+            penandatangan=self.wakil_bupati,
+            nomor_spt="095/ST/WABUP/2026",
+            tanggal_spt=date(2026, 5, 5),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn(
+            f"<td>{self.pegawai_eselon_i.nama}</td>",
+            response_html,
+        )
+        self.assertIn(
+            f"<td>{self.pegawai_eselon_ii.nama}</td>",
+            response_html,
+        )
+        self.assertIn(
+            f"<td>{self.pegawai_eselon_iii.nama}</td>",
+            response_html,
+        )
+        self.assertIn(
+            f"<td>{self.pegawai_non_eselon.nama}</td>",
+            response_html,
+        )
+
+    def test_print_spt_shows_sekretaris_daerah_title_and_name_only(self):
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=self.spt_spd,
+            penandatangan=self.sekretaris_daerah,
+            nomor_spt="096/ST/SETDA/2026",
+            tanggal_spt=date(2026, 5, 1),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Sekretaris Daerah")
+        self.assertRegex(
+            response_html,
+            (
+                r'<div class="signature-identity">\s*'
+                r'<div class="signature-name signature-name-no-underline">'
+                r'Sekretaris Daerah Asahan</div>\s*'
+                r'</div>'
+            ),
+        )
+        self.assertNotContains(
+            response,
+            f"NIP. {format_nip(self.sekretaris_daerah.nip)}",
+            html=False,
+        )
+
+    def test_print_spt_shows_blank_number_placeholder_when_number_empty(self):
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=self.spt_setda,
+            penandatangan=self.kepala_setda,
+            tanggal_spt=date(2026, 5, 1),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRegex(
+            response_html,
+            r'<span class="document-number-value">&nbsp;</span>',
+        )
+
     def test_print_spd_uses_ppk_and_shows_followers(self):
         self.client.force_login(self.superuser)
 
@@ -370,6 +657,78 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertContains(response, self.pegawai_eselon_ii.nama)
         self.assertContains(response, self.pegawai_eselon_iii.nama)
         self.assertContains(response, self.pegawai_non_eselon.nama)
+
+    def test_print_spd_sorts_pelaksana_by_priority_for_ppk_opd(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spd", args=[self.pemberi_tugas_spd.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.pegawai_eselon_ii.nama, response_html)
+        self.assertIn(self.pegawai_eselon_iii.nama, response_html)
+        self.assertIn(self.pegawai_non_eselon.nama, response_html)
+        self.assertLess(
+            response_html.index(self.pegawai_eselon_ii.nama),
+            response_html.index(self.pegawai_eselon_iii.nama),
+        )
+        self.assertLess(
+            response_html.index(self.pegawai_eselon_iii.nama),
+            response_html.index(self.pegawai_non_eselon.nama),
+        )
+
+    def test_print_spd_filters_pelaksana_by_ppk_opd(self):
+        spt = Spt.objects.create(
+            dasar="Dasar SPD campuran OPD",
+            berita="Koordinasi lintas OPD",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 7),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt.pelaksana.create(nama=self.pegawai_eselon_ii)
+        spt.pelaksana.create(nama=self.pegawai_eselon_iii)
+        spt.pelaksana.create(nama=self.pegawai_setda)
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=spt,
+            penandatangan=self.kepala_bk,
+            nomor_spt="097/ST/BK/2026",
+            tanggal_spt=date(2026, 5, 7),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spd", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.pegawai_eselon_ii.nama, response_html)
+        self.assertIn(self.pegawai_eselon_iii.nama, response_html)
+        self.assertNotIn(self.pegawai_setda.nama, response_html)
+
+    def test_print_spd_shows_blank_number_placeholder_when_number_empty(self):
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=self.spt_without_eselon_ii,
+            penandatangan=self.sekretaris_daerah,
+            tanggal_spt=date(2026, 5, 1),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spd", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertRegex(
+            response_html,
+            r'<span class="document-number-value">&nbsp;</span>',
+        )
 
     def test_print_spd_returns_404_for_bupati_signatory(self):
         self.client.force_login(self.superuser)

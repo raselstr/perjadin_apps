@@ -51,6 +51,11 @@ body {
 .document-title {
     text-align: center;
     margin: 30px 0 30px;
+}
+
+.document-title-body {
+    display: inline-block;
+    text-align: center;
     line-height: 1;
 }
 
@@ -59,6 +64,19 @@ body {
     font-weight: bold;
     text-decoration: underline;
     letter-spacing: 10.4px;
+}
+
+.document-number-line {
+    display: grid;
+    grid-template-columns: auto 12px minmax(250px, auto);
+    column-gap: 4px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.document-number-value {
+    display: inline-block;
+    min-width: 250px;
 }
 
 .detail-table {
@@ -145,6 +163,10 @@ body {
     text-decoration: underline;
 }
 
+.signature-name-no-underline {
+    text-decoration: none;
+}
+
 .signature-title {
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -208,8 +230,14 @@ body {
         {% endif %}
 
         <div class="document-title">
-            <div class="title-text">SURAT TUGAS</div>
-            <div>Nomor: {{ nomor_spt|default:"-" }}</div>
+            <div class="document-title-body">
+                <div class="title-text">SURAT TUGAS</div>
+                <div class="document-number-line">
+                    <span>Nomor</span>
+                    <span>:</span>
+                    <span class="document-number-value">{% if nomor_spt %}{{ nomor_spt }}{% else %}&nbsp;{% endif %}</span>
+                </div>
+            </div>
         </div>
 
         {% if spt.dasar %}
@@ -307,9 +335,15 @@ body {
                 </span>
                 <div class="signature-space"></div>
                 <div class="signature-identity">
-                    <div class="signature-name">{{ pemberi_tugas.nama|default:"-" }}</div>
-                    <div>{{ pemberi_tugas.pangkat|default:"-" }}</div>
-                    <div>NIP. {{ pemberi_tugas.nip|default:"-"|format_nip }}</div>
+                    <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ pemberi_tugas.nama|default:"-" }}</div>
+                    {% if show_signature_identity_details %}
+                        {% if pemberi_tugas.pangkat %}
+                        <div>{{ pemberi_tugas.pangkat }}</div>
+                        {% endif %}
+                        {% if pemberi_tugas.nip %}
+                        <div>NIP. {{ pemberi_tugas.nip|format_nip }}</div>
+                        {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>

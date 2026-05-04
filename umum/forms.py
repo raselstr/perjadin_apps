@@ -359,11 +359,12 @@ class PemdaForm(BaseAppModelForm):
     field_layout = {
         "nama_pemda": 12,
         "nama_dinas": 12,
+        "nama_kabupaten": 6,  
+        "ibukota": 6,
         "alamat": 12,
         "telepon": 4,
         "email": 4,
         "website": 4,
-        "ibukota": 6,   
         "logo": 6,
     }
 
@@ -372,11 +373,12 @@ class PemdaForm(BaseAppModelForm):
         fields = [
             "nama_pemda",
             "nama_dinas",
+            "nama_kabupaten",
+            "ibukota",
             "alamat",
             "telepon",
             "email",
             "website",
-            "ibukota",
             "logo",
         ]
         labels = {
@@ -391,6 +393,14 @@ class PemdaForm(BaseAppModelForm):
             "nama_dinas": forms.Select(attrs={
                 "class": "form-control select2",
                 "placeholder": "Masukkan nama dinas/badan/kantor",
+            }),
+            "nama_kabupaten":forms.TextInput(attrs={
+                "class":"form-control",
+                "placeholder":"Masukkan Nama Kabupaten Termasuk Kata 'Kabupatebn'"
+            }),
+            "ibukota": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan nama ibukota Lokasi Penandatangan",
             }),
             "alamat": forms.Textarea(attrs={
                 "class": "form-control",
@@ -408,10 +418,6 @@ class PemdaForm(BaseAppModelForm):
             "website": forms.URLInput(attrs={
                 "class": "form-control",
                 "placeholder": "Masukkan alamat website",
-            }),
-            "ibukota": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "Masukkan nama ibukota Lokasi Penandatangan",
             }),
             "logo": forms.ClearableFileInput(attrs={
                 "class": "form-control",

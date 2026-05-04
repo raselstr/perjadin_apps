@@ -13,7 +13,7 @@ from profiles.utils import (
 )
 from umum.models import Pegawai, Penandatangan
 
-from .document_utils import is_eselon_two
+from .document_utils import filter_spt_pelaksana
 from .models import Pelaksana, PemberiTugas, Spt
 
 
@@ -219,6 +219,25 @@ class PelaksanaForm(BaseAppModelForm):
 
 
 class PemberiTugasForm(BaseAppModelForm):
+    TASK_VALIDATION_MESSAGES = {
+        "Bupati": (
+            "SPT untuk Bupati harus memiliki minimal satu "
+            "pelaksana dengan eselon II."
+        ),
+        "Kepala": (
+            "SPT untuk Kepala harus memiliki minimal satu "
+            "pelaksana dengan eselon III sampai non eselon."
+        ),
+        "Sekretaris Daerah": (
+            "SPT untuk Sekretaris Daerah harus memiliki minimal satu "
+            "pelaksana mulai eselon II sampai non eselon."
+        ),
+        "Wakil Bupati": (
+            "SPT untuk Wakil Bupati harus memiliki minimal satu "
+            "pelaksana mulai eselon II sampai non eselon."
+        ),
+    }
+
     field_layout = {
         "spt": 12,
         "penandatangan": 12,
@@ -323,27 +342,23 @@ class PemberiTugasForm(BaseAppModelForm):
         spt = cleaned_data.get("spt")
         penandatangan = cleaned_data.get("penandatangan")
 
-        if (
-            spt
-            and penandatangan
-            and penandatangan.tugas == "Bupati"
-        ):
+        if spt and penandatangan:
             pelaksana_queryset = spt.pelaksana.select_related(
                 "nama",
                 "nama__eselon",
             )
-            has_eselon_two = any(
-                is_eselon_two(pelaksana.nama)
-                for pelaksana in pelaksana_queryset
+            matching_pelaksana = filter_spt_pelaksana(
+                pelaksana_queryset,
+                penandatangan.tugas,
+            )
+            validation_message = self.TASK_VALIDATION_MESSAGES.get(
+                penandatangan.tugas,
             )
 
-            if not has_eselon_two:
+            if validation_message and not matching_pelaksana:
                 self.add_error(
                     "spt",
-                    (
-                        "SPT untuk Bupati harus memiliki minimal satu "
-                        "pelaksana dengan eselon II."
-                    ),
+                    validation_message,
                 )
 
         return cleaned_data

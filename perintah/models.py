@@ -170,8 +170,8 @@ class PemberiTugas(models.Model):
         verbose_name_plural = "Pemberi Tugas"
         constraints = [
             models.UniqueConstraint(
-                fields=["spt", "penandatangan", "nomor_spt", "nomor_spd"],
-                name="unique_pemberi_tugas_spt_penandatangan_nomor_spt_nomor_spd",
+                fields=["spt", "penandatangan"],
+                name="unique_pemberi_tugas_spt_penandatangan",
             ),
         ]
 
@@ -200,30 +200,21 @@ class PemberiTugas(models.Model):
             return
 
         duplicates = PemberiTugas.objects.exclude(pk=self.pk).filter(
-            spt_id=self.spt_id
+            spt_id=self.spt_id,
+            penandatangan_id=self.penandatangan_id,
         )
 
         errors = {}
 
-        if duplicates.exists():
+        if self.penandatangan_id and duplicates.exists():
             errors["spt"] = (
-                "SPT yang dipilih sudah memiliki data pemberi tugas."
+                "SPT dengan pemberi tugas yang sama sudah terdaftar."
             )
-            errors[NON_FIELD_ERRORS] = [
-                "Setiap SPT hanya boleh memiliki satu data pemberi tugas."
-            ]
-
-        if (
-            self.penandatangan_id
-            and duplicates.filter(
-                penandatangan_id=self.penandatangan_id
-            ).exists()
-        ):
             errors["penandatangan"] = (
-                "Penandatangan untuk SPT tersebut sudah terdaftar."
+                "Pemberi tugas untuk SPT tersebut sudah terdaftar."
             )
             errors[NON_FIELD_ERRORS] = [
-                "Kombinasi SPT dan penandatangan tidak boleh ganda."
+                "Kombinasi SPT dan pemberi tugas tidak boleh ganda."
             ]
 
         if errors:

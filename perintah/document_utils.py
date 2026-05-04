@@ -59,7 +59,7 @@ def build_contact_line(pemda):
 
     contact_parts = []
     if pemda.telepon:
-        contact_parts.append(f"Telp. {pemda.telepon}")
+        contact_parts.append(f"{pemda.telepon}")
     if pemda.email:
         contact_parts.append(f"Email: {pemda.email}")
     if pemda.website:
@@ -149,13 +149,26 @@ def build_spt_signature_title_parts(penandatangan, pemda=None):
             "lines": ["-"],
         }
 
+    tugas = getattr(penandatangan, "tugas", "") or ""
     opd_name = ""
     if getattr(penandatangan, "opd", None):
         opd_name = penandatangan.opd.nama
     elif pemda and pemda.nama_dinas:
         opd_name = pemda.nama_dinas.nama
 
-    if getattr(penandatangan, "tugas", "") != "Kepala":
+    if tugas in GLOBAL_SIGNATORY_TASKS:
+        return {
+            "prefix": "",
+            "lines": [get_letterhead_office_name(penandatangan, pemda=pemda)],
+        }
+
+    if tugas == "Sekretaris Daerah":
+        return {
+            "prefix": "",
+            "lines": [tugas],
+        }
+
+    if tugas != "Kepala":
         return {
             "prefix": "",
             "lines": [opd_name or build_penandatangan_title(penandatangan)],
@@ -237,6 +250,11 @@ def is_eselon_two(pegawai):
     return get_eselon_level(pegawai) == 2
 
 
+def is_eselon_two_to_non(pegawai):
+    eselon_level = get_eselon_level(pegawai)
+    return eselon_level is None or eselon_level >= 2
+
+
 def is_eselon_three_to_non(pegawai):
     eselon_level = get_eselon_level(pegawai)
     return eselon_level is None or eselon_level >= 3
@@ -244,18 +262,39 @@ def is_eselon_three_to_non(pegawai):
 
 def filter_spt_pelaksana(pelaksana_list, tugas):
     if tugas == "Bupati":
-        return [
+        filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
             if is_eselon_two(pelaksana.nama)
         ]
+        return sort_pelaksana_by_priority(filtered_pelaksana)
 
     if tugas == "Kepala":
-        return [
+        filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
             if is_eselon_three_to_non(pelaksana.nama)
         ]
+        return sort_pelaksana_by_priority(filtered_pelaksana)
 
-    return list(pelaksana_list)
+    if tugas in ("Sekretaris Daerah", "Wakil Bupati"):
+        filtered_pelaksana = [
+            pelaksana for pelaksana in pelaksana_list
+            if is_eselon_two_to_non(pelaksana.nama)
+        ]
+        return sort_pelaksana_by_priority(filtered_pelaksana)
+
+    return sort_pelaksana_by_priority(pelaksana_list)
+
+
+def filter_spd_pelaksana(pelaksana_list, opd_id=None):
+    filtered_pelaksana = list(pelaksana_list)
+
+    if opd_id:
+        filtered_pelaksana = [
+            pelaksana for pelaksana in filtered_pelaksana
+            if getattr(pelaksana.nama, "opd_id", None) == opd_id
+        ]
+
+    return sort_pelaksana_by_priority(filtered_pelaksana)
 
 
 def _get_pangkat_rank(pegawai):
@@ -291,62 +330,25 @@ def _sort_key_for_eselon_priority(pelaksana):
     )
 
 
-def _sort_key_for_non_eselon_priority(pelaksana):
-    pegawai = pelaksana.nama
-    golongan_rank, ruang_rank = _get_pangkat_rank(pegawai)
-
-    return (
-        -golongan_rank,
-        -ruang_rank,
-        _get_birthdate_sort_value(pegawai),
-        _get_name_sort_value(pegawai),
+def sort_pelaksana_by_priority(pelaksana_list):
+    return sorted(
+        list(pelaksana_list),
+        key=_sort_key_for_eselon_priority,
     )
 
 
-def _sort_key_for_birthdate_priority(pelaksana):
-    pegawai = pelaksana.nama
-    return (
-        _get_birthdate_sort_value(pegawai),
-        _get_name_sort_value(pegawai),
-    )
+def should_hide_signatory_identity_details(penandatangan):
+    tugas = getattr(penandatangan, "tugas", "") or ""
+    return tugas in ("Bupati", "Wakil Bupati", "Sekretaris Daerah")
 
 
 def select_spd_primary_pelaksana(pelaksana_list):
-    pelaksana_list = list(pelaksana_list)
+    pelaksana_list = sort_pelaksana_by_priority(pelaksana_list)
     if not pelaksana_list:
         return None, []
 
-    with_eselon = [
-        pelaksana for pelaksana in pelaksana_list
-        if get_eselon_level(pelaksana.nama) is not None
-    ]
-
-    if with_eselon:
-        primary = sorted(
-            with_eselon,
-            key=_sort_key_for_eselon_priority,
-        )[0]
-    else:
-        with_pangkat = [
-            pelaksana for pelaksana in pelaksana_list
-            if _get_pangkat_rank(pelaksana.nama) > (0, 0)
-        ]
-
-        if with_pangkat:
-            primary = sorted(
-                with_pangkat,
-                key=_sort_key_for_non_eselon_priority,
-            )[0]
-        else:
-            primary = sorted(
-                pelaksana_list,
-                key=_sort_key_for_birthdate_priority,
-            )[0]
-
-    followers = [
-        pelaksana for pelaksana in pelaksana_list
-        if pelaksana.pk != primary.pk
-    ]
+    primary = pelaksana_list[0]
+    followers = pelaksana_list[1:]
 
     return primary, followers
 

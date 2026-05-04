@@ -13,6 +13,7 @@ from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
 from .document_utils import (
     build_contact_line,
     build_penandatangan_title,
+    filter_spd_pelaksana,
     build_spt_signature_title_parts,
     filter_spt_pelaksana,
     find_ppk_penandatangan,
@@ -23,6 +24,7 @@ from .document_utils import (
     get_signature_location,
     is_regional_head_task,
     select_spd_primary_pelaksana,
+    should_hide_signatory_identity_details,
 )
 from .forms import PelaksanaFormSet, PemberiTugasForm, SptForm
 from .models import Pelaksana, PemberiTugas, Spt
@@ -69,7 +71,7 @@ def _get_active_opd_name(request, fallback=""):
 def _build_number_from_format(raw_number, fallback_number, tanggal, format_template):
     nomor_urut = (raw_number or fallback_number or "").strip()
     if not format_template or not nomor_urut:
-        return raw_number or fallback_number or ""
+        return (raw_number or fallback_number or "").strip()
 
     return generate_default_document_number(
         nomor_urut,
@@ -269,6 +271,9 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
                 spt_signature_title_parts["prefix"]
             ),
             "spt_signature_title_lines": spt_signature_title_parts["lines"],
+            "show_signature_identity_details": (
+                not should_hide_signatory_identity_details(penandatangan)
+            ),
             "signature_location": get_signature_location(
                 pemda,
                 default_location=default_signature_location,
@@ -326,8 +331,12 @@ class PemberiTugasPrintSpdView(PemberiTugasPrintBaseView):
         ) or pemberi_tugas.penandatangan
 
         pemda = get_matching_pemda(getattr(ppk, "opd", None))
+        pelaksana_list = filter_spd_pelaksana(
+            pemberi_tugas.spt.pelaksana.all(),
+            opd_id=getattr(ppk, "opd_id", None) or active_opd_id,
+        )
         primary_pelaksana, followers = select_spd_primary_pelaksana(
-            pemberi_tugas.spt.pelaksana.all()
+            pelaksana_list
         )
 
         context = self.build_document_context(

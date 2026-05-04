@@ -83,6 +83,7 @@ class PemdaTable(BaseTable):
             'logo_preview',
             'nama_pemda',
             'nama_dinas',
+            'nama_kabupaten',
             'ibukota',
             'telepon',
             'email',

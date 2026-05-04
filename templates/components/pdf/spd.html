@@ -68,10 +68,31 @@ body {
 
 .document-title {
     text-align: center;
+    margin-bottom: 14px;
+}
+
+.document-title-body {
+    display: inline-block;
+    text-align: center;
+}
+
+.document-title .title-text {
     font-size: 14pt;
     font-weight: bold;
     text-decoration: underline;
-    margin-bottom: 14px;
+}
+
+.document-number-line {
+    display: grid;
+    grid-template-columns: auto 12px minmax(250px, auto);
+    column-gap: 4px;
+    margin-top: 8px;
+    text-align: left;
+}
+
+.document-number-value {
+    display: inline-block;
+    min-width: 250px;
 }
 
 .main-table {
@@ -171,6 +192,10 @@ body {
     text-decoration: underline;
 }
 
+.signature-name-no-underline {
+    text-decoration: none;
+}
+
 .empty-state {
     font-style: italic;
 }
@@ -219,13 +244,17 @@ body {
             </tr>
             <tr>
                 <td></td>
-                <td class="meta-label">Nomor</td>
+                <td class="meta-label">Nomor </td>
                 <td class="meta-colon">:</td>
-                <td>{{ nomor_spd|default:nomor_spt|default:"-" }}</td>
+                <td>{% if nomor_spd or nomor_spt %}{{ nomor_spd|default:nomor_spt }}{% else %}&nbsp;{% endif %}</td>
             </tr>
         </table>
 
-        <div class="document-title">SURAT PERJALANAN DINAS (SPD)</div>
+        <div class="document-title">
+            <div class="document-title-body">
+                <div class="title-text">SURAT PERJALANAN DINAS (SPD)</div>
+            </div>
+        </div>
 
         <table class="main-table">
             <colgroup>
@@ -364,8 +393,8 @@ body {
 
             <div class="signature-space"></div>
 
-            <div class="signature-name">{{ penandatangan_dokumen.nama|default:"-" }}</div>
-            {% if penandatangan_dokumen.nip %}
+            <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ penandatangan_dokumen.nama|default:"-" }}</div>
+            {% if show_signature_identity_details and penandatangan_dokumen.nip %}
                 NIP. {{ penandatangan_dokumen.nip|format_nip }}
             {% endif %}
         </div>
