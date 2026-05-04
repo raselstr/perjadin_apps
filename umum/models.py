@@ -291,12 +291,12 @@ class KopSurat(models.Model):
     )
     logo_width_px = models.PositiveSmallIntegerField(
         default=90,
-        validators=[MinValueValidator(40), MaxValueValidator(180)],
+        validators=[MinValueValidator(0), MaxValueValidator(180)],
         verbose_name="Lebar Logo (px)",
     )
     logo_height_px = models.PositiveSmallIntegerField(
         default=90,
-        validators=[MinValueValidator(40), MaxValueValidator(180)],
+        validators=[MinValueValidator(0), MaxValueValidator(180)],
         verbose_name="Tinggi Logo (px)",
     )
     print_scale_percent = models.PositiveSmallIntegerField(
