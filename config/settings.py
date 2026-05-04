@@ -33,7 +33,7 @@ SECRET_KEY = read_secret('secret_key') or env('SECRET_KEY', default=None)
 if not SECRET_KEY:
     raise Exception("SECRET_KEY not found in secrets or .env!")
 
-DEBUG = env('DEBUG')
+DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost', '192.168.66.167'])
 USE_HTTPS = env.bool('USE_HTTPS', default=False)
@@ -187,7 +187,7 @@ DATE_INPUT_FORMATS = [
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 STATIC_URL = '/static/'
-STATIC_ROOT = '/staticfiles'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
