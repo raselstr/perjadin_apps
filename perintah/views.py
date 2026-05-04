@@ -301,6 +301,7 @@ class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
         pelaksana_list = filter_spt_pelaksana(
             pemberi_tugas.spt.pelaksana.all(),
             pemberi_tugas.penandatangan.tugas,
+            opd_id=getattr(pemberi_tugas.penandatangan, "opd_id", None),
         )
         pemda = get_matching_pemda(pemberi_tugas.penandatangan.opd)
         context = self.build_document_context(

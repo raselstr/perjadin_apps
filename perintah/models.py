@@ -225,5 +225,22 @@ class PemberiTugas(models.Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
+    @property
+    def can_print_spt(self):
+        from .document_utils import can_print_spt_document
+
+        if not self.spt_id:
+            return False
+
+        return can_print_spt_document(
+            self.spt.pelaksana.select_related("nama", "nama__eselon").all(),
+            self.tugas,
+            opd_id=getattr(self.penandatangan, "opd_id", None),
+        )
+
+    @property
+    def can_print_spd(self):
+        return self.tugas not in ("Bupati", "Wakil Bupati")
+
     def __str__(self):
         return str(self.penandatangan)

@@ -68,14 +68,16 @@ class PemberiTugasTable(BaseTable):
         orderable=False,
         template_code="""
         <div class="d-flex gap-1 justify-content-center">
-            <a
-                class="btn btn-sm btn-outline-primary"
-                href="{% url 'pemberi_tugas_print_spt' record.id %}"
-                target="_blank"
-                rel="noopener">
-                SPT
-            </a>
-            {% if record.tugas != "Bupati" and record.tugas != "Wakil Bupati" %}
+            {% if record.can_print_spt %}
+                <a
+                    class="btn btn-sm btn-outline-primary"
+                    href="{% url 'pemberi_tugas_print_spt' record.id %}"
+                    target="_blank"
+                    rel="noopener">
+                    SPT
+                </a>
+            {% endif %}
+            {% if record.can_print_spd %}
                 <a
                     class="btn btn-sm btn-outline-info"
                     href="{% url 'pemberi_tugas_print_spd' record.id %}"

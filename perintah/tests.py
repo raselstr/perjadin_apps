@@ -6,7 +6,7 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from core.utils.formatting import format_nip
-from profiles.models import OPD, UserProfile
+from profiles.models import OPD, Role, UserProfile
 from spd.models import JenisKegiatan, Lokasi
 from umum.models import Eselon, JenisJabatan, Pangkat, Pegawai, Pemda, Penandatangan
 
@@ -14,8 +14,9 @@ from .document_utils import (
     build_spt_signature_title_parts,
     generate_default_document_number,
 )
-from .forms import PemberiTugasForm
+from .forms import PelaksanaForm, PemberiTugasForm
 from .models import PemberiTugas, Spt
+from .tables import PemberiTugasTable
 
 
 def attach_session(request):
@@ -30,6 +31,8 @@ class PerintahBaseTestCase(TestCase):
         self.factory = RequestFactory()
         self.opd_bk = OPD.objects.create(nama="Badan Keuangan Daerah")
         self.opd_setda = OPD.objects.create(nama="Sekretariat Daerah")
+        self.role_operator = Role.objects.create(nama="Operator")
+        self.role_administrator = Role.objects.create(nama="Administrator")
 
         self.pangkat_ivc = Pangkat.objects.create(
             pangkat="Pembina Utama Muda",
@@ -177,6 +180,16 @@ class PerintahBaseTestCase(TestCase):
             opd=self.opd_setda,
             tgl_lahir=date(1987, 4, 4),
         )
+        self.pegawai_setda_eselon_ii = Pegawai.objects.create(
+            nip="198105052006051006",
+            nama="Pelaksana Setda Eselon II",
+            pangkat=self.pangkat_ivc,
+            jabatan="Asisten Administrasi",
+            eselon=self.eselon_ii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+            tgl_lahir=date(1981, 5, 5),
+        )
 
         self.spt_bupati = Spt.objects.create(
             dasar="Dasar surat tugas bupati",
@@ -275,6 +288,7 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             password="secret123",
         )
         user.userprofile.opd = self.opd_bk
+        user.userprofile.role = self.role_operator
         user.userprofile.save()
 
         request = attach_session(self.factory.get("/perintah/pemberi-tugas/form/"))
@@ -290,7 +304,115 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         self.assertNotIn(self.spt_setda, form.fields["spt"].queryset)
         self.assertIn(self.kepala_bk, form.fields["penandatangan"].queryset)
         self.assertIn(self.bupati, form.fields["penandatangan"].queryset)
+        self.assertNotIn(self.sekretaris_daerah, form.fields["penandatangan"].queryset)
+        self.assertNotIn(self.ppk_bk, form.fields["penandatangan"].queryset)
         self.assertNotIn(self.kepala_setda, form.fields["penandatangan"].queryset)
+
+    def test_pelaksana_form_expands_queryset_for_administrator_role(self):
+        user = User.objects.create_user(
+            username="administrator-bk",
+            password="secret123",
+        )
+        user.userprofile.opd = self.opd_bk
+        user.userprofile.role = self.role_administrator
+        user.userprofile.save()
+
+        request = attach_session(self.factory.get("/perintah/spt/form/"))
+        request.user = user
+        request.session["session_opd_id"] = self.opd_bk.id
+        request.session["session_opd_nama"] = self.opd_bk.nama
+
+        form = PelaksanaForm(request=request)
+
+        self.assertIn(self.pegawai_eselon_ii, form.fields["nama"].queryset)
+        self.assertIn(self.pegawai_eselon_iii, form.fields["nama"].queryset)
+        self.assertIn(self.pegawai_non_eselon, form.fields["nama"].queryset)
+        self.assertIn(
+            self.pegawai_setda_eselon_ii,
+            form.fields["nama"].queryset,
+        )
+        self.assertNotIn(self.pegawai_setda, form.fields["nama"].queryset)
+
+    def test_form_includes_sekretaris_daerah_for_administrator_role(self):
+        user = User.objects.create_user(
+            username="administrator-signatory",
+            password="secret123",
+        )
+        user.userprofile.opd = self.opd_bk
+        user.userprofile.role = self.role_administrator
+        user.userprofile.save()
+
+        request = attach_session(self.factory.get("/perintah/pemberi-tugas/form/"))
+        request.user = user
+        request.session["session_opd_id"] = self.opd_bk.id
+        request.session["session_opd_nama"] = self.opd_bk.nama
+
+        form = PemberiTugasForm(request=request)
+
+        self.assertIn(self.bupati, form.fields["penandatangan"].queryset)
+        self.assertIn(self.wakil_bupati, form.fields["penandatangan"].queryset)
+        self.assertIn(
+            self.sekretaris_daerah,
+            form.fields["penandatangan"].queryset,
+        )
+        self.assertNotIn(self.ppk_bk, form.fields["penandatangan"].queryset)
+
+    def test_administrator_can_select_mixed_opd_spt_and_only_get_spd_for_kepala(self):
+        spt = Spt.objects.create(
+            dasar="Dasar SPT campuran untuk administrator",
+            berita="Koordinasi gabungan",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Gabungan",
+            lama_perjalanan=1,
+            tgl_berangkat=date(2026, 5, 8),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt.pelaksana.create(nama=self.pegawai_eselon_ii)
+        spt.pelaksana.create(nama=self.pegawai_setda)
+        PemberiTugas.objects.create(
+            spt=spt,
+            penandatangan=self.bupati,
+            nomor_spt="098/ST/BUP/2026",
+            tanggal_spt=date(2026, 5, 8),
+        )
+
+        user = User.objects.create_user(
+            username="administrator-mixed-opd",
+            password="secret123",
+        )
+        user.userprofile.opd = self.opd_bk
+        user.userprofile.role = self.role_administrator
+        user.userprofile.save()
+
+        request = attach_session(self.factory.get("/perintah/pemberi-tugas/form/"))
+        request.user = user
+        request.session["session_opd_id"] = self.opd_bk.id
+        request.session["session_opd_nama"] = self.opd_bk.nama
+
+        form = PemberiTugasForm(
+            data={
+                "spt": spt.pk,
+                "penandatangan": self.kepala_bk.pk,
+                "nomor_spt": "099/ST/BK/2026",
+                "tanggal_spt": "2026-05-08",
+            },
+            request=request,
+        )
+
+        self.assertIn(spt, form.fields["spt"].queryset)
+        self.assertTrue(form.is_valid(), form.errors)
+
+        pemberi_tugas = PemberiTugas(
+            spt=spt,
+            penandatangan=self.kepala_bk,
+            nomor_spt="099/ST/BK/2026",
+            tanggal_spt=date(2026, 5, 8),
+        )
+        pemberi_tugas.sync_from_penandatangan()
+
+        self.assertFalse(pemberi_tugas.can_print_spt)
+        self.assertTrue(pemberi_tugas.can_print_spd)
 
     def test_form_rejects_bupati_when_spt_has_no_eselon_ii(self):
         form = PemberiTugasForm(data={
@@ -347,7 +469,7 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             form.errors["spt"][0],
         )
 
-    def test_form_rejects_kepala_when_spt_has_no_eselon_three_or_non_eselon(self):
+    def test_form_allows_kepala_when_spt_has_single_eselon_two_pelaksana(self):
         form = PemberiTugasForm(data={
             "spt": self.spt_only_eselon_ii.pk,
             "penandatangan": self.kepala_bk.pk,
@@ -355,12 +477,7 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             "tanggal_spt": "2026-05-04",
         })
 
-        self.assertFalse(form.is_valid())
-        self.assertIn("spt", form.errors)
-        self.assertIn(
-            "minimal satu pelaksana dengan eselon III sampai non eselon",
-            form.errors["spt"][0],
-        )
+        self.assertTrue(form.is_valid(), form.errors)
 
     def test_form_allows_sekretaris_daerah_for_eselon_two_to_non_eselon(self):
         form = PemberiTugasForm(data={
@@ -429,6 +546,23 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             nomor_spt="091/ST/BK/2026",
             tanggal_spt=date(2026, 5, 1),
         )
+
+    def test_table_hides_spt_button_for_single_eselon_two_kepala(self):
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=self.spt_only_eselon_ii,
+            penandatangan=self.kepala_bk,
+            nomor_spt="092/ST/BK/2026",
+            tanggal_spt=date(2026, 5, 4),
+        )
+        request = self.factory.get("/perintah/pemberi-tugas/")
+        request.user = self.superuser
+        table = PemberiTugasTable([pemberi_tugas])
+        rendered_cell = table.rows[0].get_cell("dokumen")
+
+        self.assertFalse(pemberi_tugas.can_print_spt)
+        self.assertTrue(pemberi_tugas.can_print_spd)
+        self.assertNotIn("/cetak/spt/", rendered_cell)
+        self.assertIn("/cetak/spd/", rendered_cell)
 
     def test_print_spt_filters_pelaksana_for_bupati(self):
         self.client.force_login(self.superuser)
@@ -727,7 +861,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertRegex(
             response_html,
-            r'<span class="document-number-value">&nbsp;</span>',
+            r'<td>&nbsp;</td>',
         )
 
     def test_print_spd_returns_404_for_bupati_signatory(self):

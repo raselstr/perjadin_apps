@@ -260,7 +260,35 @@ def is_eselon_three_to_non(pegawai):
     return eselon_level is None or eselon_level >= 3
 
 
-def filter_spt_pelaksana(pelaksana_list, tugas):
+def _filter_pelaksana_by_opd(pelaksana_list, opd_id=None):
+    if not opd_id:
+        return list(pelaksana_list)
+
+    return [
+        pelaksana for pelaksana in pelaksana_list
+        if getattr(pelaksana.nama, "opd_id", None) == opd_id
+    ]
+
+
+def get_spt_pelaksana_scope(pelaksana_list, tugas, opd_id=None):
+    pelaksana_list = list(pelaksana_list)
+
+    if tugas not in ("Bupati", "Wakil Bupati", "Sekretaris Daerah"):
+        return _filter_pelaksana_by_opd(
+            pelaksana_list,
+            opd_id=opd_id,
+        )
+
+    return pelaksana_list
+
+
+def filter_spt_pelaksana(pelaksana_list, tugas, opd_id=None):
+    pelaksana_list = get_spt_pelaksana_scope(
+        pelaksana_list,
+        tugas,
+        opd_id=opd_id,
+    )
+
     if tugas == "Bupati":
         filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
@@ -295,6 +323,11 @@ def filter_spd_pelaksana(pelaksana_list, opd_id=None):
         ]
 
     return sort_pelaksana_by_priority(filtered_pelaksana)
+
+
+def is_single_eselon_two_pelaksana(pelaksana_list):
+    pelaksana_list = list(pelaksana_list)
+    return len(pelaksana_list) == 1 and is_eselon_two(pelaksana_list[0].nama)
 
 
 def _get_pangkat_rank(pegawai):
@@ -351,6 +384,10 @@ def select_spd_primary_pelaksana(pelaksana_list):
     followers = pelaksana_list[1:]
 
     return primary, followers
+
+
+def can_print_spt_document(pelaksana_list, tugas, opd_id=None):
+    return bool(filter_spt_pelaksana(pelaksana_list, tugas, opd_id=opd_id))
 
 
 def find_ppk_penandatangan(opd=None, fallback_opd_id=None):
