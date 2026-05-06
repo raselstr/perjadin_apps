@@ -131,7 +131,6 @@ class KopSuratTable(BaseTable):
             "address_font_size_pt",
             "contact_font_size_pt",
             "logo_size",
-            "print_scale_percent",
             "default_spt_number_format",
             "default_spd_number_format",
             "aksi",

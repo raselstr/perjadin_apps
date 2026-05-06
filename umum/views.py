@@ -21,7 +21,7 @@ def get_paginate_by(self, queryset):
     per_page = self.request.GET.get("per_page")
 
     if per_page == "all":
-        return None  # disable pagination
+        return 25
 
     try:
         return int(per_page)

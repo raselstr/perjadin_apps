@@ -102,6 +102,46 @@
 {% block extra_js %}
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
+  window.openPrintPreviewWindow = function (url, windowName = 'print-preview') {
+    if (!url) {
+      return true;
+    }
+
+    const screenWidth = window.screen?.availWidth || 1366;
+    const screenHeight = window.screen?.availHeight || 900;
+    const popupWidth = Math.min(
+      screenWidth,
+      Math.max(720, Math.min(1280, screenWidth - 80))
+    );
+    const popupHeight = Math.min(
+      screenHeight,
+      Math.max(640, Math.min(900, screenHeight - 80))
+    );
+    const popupLeft = Math.max(0, Math.round((screenWidth - popupWidth) / 2));
+    const popupTop = Math.max(0, Math.round((screenHeight - popupHeight) / 2));
+    const popupFeatures = [
+      'popup=yes',
+      'noopener',
+      'noreferrer',
+      'resizable=yes',
+      'scrollbars=yes',
+      `width=${popupWidth}`,
+      `height=${popupHeight}`,
+      `left=${popupLeft}`,
+      `top=${popupTop}`
+    ].join(',');
+
+    const popupWindow = window.open('', windowName, popupFeatures);
+
+    if (!popupWindow) {
+      return true;
+    }
+
+    popupWindow.location = url;
+    popupWindow.focus();
+    return false;
+  };
+
   function getToastContainer() {
     let container = document.getElementById('toastContainer');
 

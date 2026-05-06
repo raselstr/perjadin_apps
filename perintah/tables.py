@@ -80,8 +80,7 @@ class PemberiTugasTable(BaseTable):
                 <a
                     class="btn btn-sm btn-outline-primary"
                     href="{% url 'pemberi_tugas_print_spt' record.id %}"
-                    target="_blank"
-                    rel="noopener">
+                    onclick="return window.openPrintPreviewWindow(this.href, 'print-preview-spt-{{ record.id }}');">
                     SPT
                 </a>
             {% endif %}
@@ -89,8 +88,7 @@ class PemberiTugasTable(BaseTable):
                 <a
                     class="btn btn-sm btn-outline-info"
                     href="{% url 'pemberi_tugas_print_spd' record.id %}"
-                    target="_blank"
-                    rel="noopener">
+                    onclick="return window.openPrintPreviewWindow(this.href, 'print-preview-spd-{{ record.id }}');">
                     SPD
                 </a>
             {% endif %}

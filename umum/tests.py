@@ -6,7 +6,7 @@ from openpyxl import Workbook
 from core.utils.excel_handler import ExcelImporter
 from profiles.models import OPD
 
-from .forms import PegawaiForm, PenandatanganForm
+from .forms import KopSuratForm, PegawaiForm, PenandatanganForm
 from .models import Eselon, JenisJabatan, Pangkat, Pegawai, Penandatangan, StatusASN, Tingkat
 
 
@@ -124,6 +124,17 @@ class PenandatanganFormTests(TestCase):
         self.assertIn(
             "Penandatangan dengan NIP, nama, tugas, jenis jabatan, dan OPD yang sama sudah ada.",
             form.errors["__all__"][0],
+        )
+
+
+class KopSuratFormTests(TestCase):
+    def test_print_scale_field_is_available_for_content_only(self):
+        form = KopSuratForm()
+
+        self.assertIn("print_scale_percent", form.fields)
+        self.assertIn(
+            "KOP tidak ikut berubah",
+            form.fields["print_scale_percent"].help_text,
         )
 
 

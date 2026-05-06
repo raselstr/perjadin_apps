@@ -25,6 +25,8 @@
   data-is-authenticated="{% if request.user.is_authenticated %}true{% else %}false{% endif %}"
   data-login-url="{% url 'masuk' %}"
   data-logout-url="{% url 'logout' %}"
+  data-timeout-logout-url="{% url 'timeout_logout' %}"
+  data-session-heartbeat-url="{% url 'session_heartbeat' %}"
   data-idle-timeout-ms="300000">
   {% block loader %}
     {% include 'includes/loader.html' %}
@@ -51,19 +53,36 @@
 
       const idleTimeoutMs = Number(body.dataset.idleTimeoutMs || 300000);
       const loginUrl = body.dataset.loginUrl;
-      const logoutUrl = body.dataset.logoutUrl;
-      const activityEvents = ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'];
+      const timeoutLogoutUrl = body.dataset.timeoutLogoutUrl;
+      const heartbeatUrl = body.dataset.sessionHeartbeatUrl;
+      const heartbeatIntervalMs = Math.max(
+        60000,
+        Math.floor(idleTimeoutMs / 3)
+      );
+      const heartbeatPollMs = Math.max(
+        30000,
+        Math.min(heartbeatIntervalMs, 60000)
+      );
+      const activityEvents = [
+        'click',
+        'keydown',
+        'input',
+        'change',
+        'focusin',
+        'pointerdown',
+        'scroll',
+        'touchstart',
+        'mousemove',
+      ];
       let idleTimer = null;
+      let heartbeatTimer = null;
       let isHandlingTimeout = false;
-
-      function getCookie(name) {
-        const cookie = document.cookie
-          .split(';')
-          .map((item) => item.trim())
-          .find((item) => item.startsWith(`${name}=`));
-
-        return cookie ? decodeURIComponent(cookie.split('=').slice(1).join('=')) : '';
-      }
+      let lastActivityAt = Date.now();
+      let lastHeartbeatAt = Date.now();
+      let lastTrackedMousemoveAt = 0;
+      let activityRevision = 0;
+      let lastHeartbeatActivityRevision = 0;
+      let heartbeatInFlight = false;
 
       function clearClientStorage() {
         try {
@@ -89,16 +108,16 @@
         }
 
         isHandlingTimeout = true;
+        window.clearTimeout(idleTimer);
+        window.clearInterval(heartbeatTimer);
         clearClientStorage();
 
-        fetch(logoutUrl, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          credentials: 'same-origin',
-        }).finally(redirectToLogin);
+        if (timeoutLogoutUrl) {
+          window.location.replace(timeoutLogoutUrl);
+          return;
+        }
+
+        redirectToLogin();
       }
 
       function resetIdleTimer() {
@@ -110,16 +129,117 @@
         idleTimer = window.setTimeout(handleIdleTimeout, idleTimeoutMs);
       }
 
+      function markActivity(eventName) {
+        if (isHandlingTimeout) {
+          return;
+        }
+
+        const now = Date.now();
+        if (eventName === 'mousemove' && now - lastTrackedMousemoveAt < 1000) {
+          return;
+        }
+
+        if (eventName === 'mousemove') {
+          lastTrackedMousemoveAt = now;
+        }
+
+        lastActivityAt = now;
+        activityRevision += 1;
+        resetIdleTimer();
+      }
+
+      async function sendHeartbeat() {
+        if (
+          !heartbeatUrl ||
+          isHandlingTimeout ||
+          heartbeatInFlight ||
+          document.visibilityState === 'hidden'
+        ) {
+          return;
+        }
+
+        const revisionAtSend = activityRevision;
+        heartbeatInFlight = true;
+
+        try {
+          const response = await fetch(`${heartbeatUrl}?t=${Date.now()}`, {
+            method: 'GET',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+            cache: 'no-store',
+          });
+
+          if (response.redirected) {
+            handleIdleTimeout();
+            return;
+          }
+
+          if (!response.ok) {
+            throw new Error(`Heartbeat gagal dengan status ${response.status}`);
+          }
+
+          lastHeartbeatAt = Date.now();
+          lastHeartbeatActivityRevision = Math.max(
+            lastHeartbeatActivityRevision,
+            revisionAtSend
+          );
+        } catch (error) {
+          if (!isHandlingTimeout) {
+            console.warn('Gagal menjaga sesi aktif.', error);
+          }
+        } finally {
+          heartbeatInFlight = false;
+        }
+      }
+
+      function maybeSendHeartbeat() {
+        if (isHandlingTimeout || !heartbeatUrl) {
+          return;
+        }
+
+        const now = Date.now();
+        const hasNewActivity = activityRevision > lastHeartbeatActivityRevision;
+        const isRecentlyActive = now - lastActivityAt <= heartbeatPollMs;
+        const isHeartbeatDue = now - lastHeartbeatAt >= heartbeatIntervalMs;
+
+        if (hasNewActivity && isRecentlyActive && isHeartbeatDue) {
+          sendHeartbeat();
+        }
+      }
+
       activityEvents.forEach(function (eventName) {
-        document.addEventListener(eventName, resetIdleTimer, { passive: true });
+        const listenerOptions = (
+          eventName === 'scroll' ||
+          eventName === 'touchstart' ||
+          eventName === 'mousemove'
+        ) ? { passive: true } : undefined;
+
+        document.addEventListener(eventName, function () {
+          markActivity(eventName);
+        }, listenerOptions);
+      });
+
+      document.addEventListener('submit', function () {
+        markActivity('submit');
+      }, true);
+
+      window.addEventListener('focus', function () {
+        markActivity('focus');
       });
 
       document.addEventListener('visibilitychange', function () {
         if (document.visibilityState === 'visible') {
-          resetIdleTimer();
+          markActivity('visibilitychange');
+          maybeSendHeartbeat();
         }
       });
 
+      heartbeatTimer = window.setInterval(
+        maybeSendHeartbeat,
+        heartbeatPollMs
+      );
       resetIdleTimer();
     })();
   </script>

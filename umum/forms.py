@@ -217,7 +217,6 @@ class KopSuratForm(BaseAppModelForm):
         "contact_font_size_pt": 6,
         "logo_width_px": 6,
         "logo_height_px": 6,
-        "print_scale_percent": 6,
         "margin_top_mm": 6,
         "margin_bottom_mm": 6,
         "margin_left_mm": 6,
@@ -346,7 +345,7 @@ class KopSuratForm(BaseAppModelForm):
         self.fields["pemda"].queryset = pemda_queryset.distinct()
         self.fields["pemda"].label_from_instance = self._format_pemda_label
         self.fields["print_scale_percent"].help_text = (
-            "Dipakai sebagai zoom awal di halaman cetak SPT dan SPD."
+            "Hanya memengaruhi isi surat. KOP tidak ikut berubah."
         )
 
     @staticmethod

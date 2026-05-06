@@ -292,20 +292,18 @@ class BaseCRUDView(ExcelMixin, ListView):
         }
 
         per_page = self.request.GET.get("per_page", 10)
+        normalized_per_page = 25 if per_page == "all" else per_page
 
-        if per_page == "all":
-            paginate_config = False
-        else:
-            try:
-                paginate_config = {
-                    "per_page": int(per_page),
-                    "silent": True,
-                }
-            except ValueError:
-                paginate_config = {
-                    "per_page": 10,
-                    "silent": True,
-                }
+        try:
+            paginate_config = {
+                "per_page": int(normalized_per_page),
+                "silent": True,
+            }
+        except ValueError:
+            paginate_config = {
+                "per_page": 10,
+                "silent": True,
+            }
 
         RequestConfig(self.request, paginate=paginate_config).configure(table)
 

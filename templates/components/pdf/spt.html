@@ -8,17 +8,28 @@
 <style>
 @page {
     size: A4;
+    margin: 0;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
     font-size: 12pt;
     color: #111;
     background: #eef2f7;
 }
 
-{% include "components/pdf/print_toolbar_styles.html" %}
+:root {
+    --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
+    --letterhead-top-padding: 14mm;
+    --letterhead-side-padding: 18mm;
+}
+
 {% include "components/pdf/kop_surat_styles.html" %}
 {% include "components/pdf/page_footer_styles.html" %}
 
@@ -26,14 +37,28 @@ body {
     width: 210mm;
     min-height: 297mm;
     margin: 12px auto 24px;
-    padding: 0 0 10mm;
     box-sizing: border-box;
     background: #fff;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
 }
 
 .sheet {
-    padding: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.letterhead-shell {
+    padding: var(--letterhead-top-padding) var(--letterhead-side-padding) 0;
+}
+
+.document-body-frame {
+    margin: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm;
+}
+
+.document-body-scale {
+    width: calc(100% / var(--content-scale));
+    transform-origin: top left;
+    zoom: var(--content-scale);
 }
 
 .pdf-header {
@@ -200,18 +225,21 @@ body {
     grid-column: 1;
 }
 
+@supports not (zoom: 1) {
+    .document-body-scale {
+        width: calc(100% / var(--content-scale));
+        transform: scale(var(--content-scale));
+    }
+}
+
 @media print {
     body {
         background: #fff;
     }
 
-    .toolbar {
-        display: none;
-    }
-
     .page {
-        width: auto;
-        min-height: auto;
+        width: 210mm;
+        min-height: 297mm;
         margin: 0;
         box-shadow: none;
     }
@@ -219,131 +247,135 @@ body {
 </style>
 </head>
 <body>
-<!-- {% include "components/pdf/print_toolbar.html" with document_type="spt" %} -->
-
 <div class="page">
     <div class="sheet">
-        {% include "components/pdf/kop_surat.html" %}
-
-        {% if kop_surat.header_text %}
-        <div class="pdf-header">{{ kop_surat.header_text }}</div>
-        {% endif %}
-
-        <div class="document-title">
-            <div class="document-title-body">
-                <div class="title-text">SURAT TUGAS</div>
-                <div class="document-number-line">
-                    <span>Nomor</span>
-                    <span>:</span>
-                    <span class="document-number-value">{% if nomor_spt %}{{ nomor_spt }}{% else %}&nbsp;{% endif %}</span>
-                </div>
-            </div>
+        <div class="letterhead-shell">
+            {% include "components/pdf/kop_surat.html" %}
         </div>
 
-        {% if spt.dasar %}
-        <table class="detail-table">
-            <tr>
-                <td class="label-cell">Dasar</td>
-                <td class="colon-cell">:</td>
-                <td>{{ spt.dasar|linebreaksbr }}</td>
-            </tr>
-        </table>
-        {% endif %}
-
-        <div class="section-heading">MEMERINTAHKAN:</div>
-
-        <table class="detail-table">
-            <tr>
-                <td class="label-cell">Kepada</td>
-                <td class="colon-cell">:</td>
-                <td>
-                    {% if pelaksana_list %}
-                        <table class="recipient-table">
-                            {% for pelaksana in pelaksana_list %}
-                                <tr>
-                                    {% if show_pelaksana_numbering %}
-                                        <td class="recipient-no">{{ forloop.counter }}.</td>
-                                    {% endif %}
-                                    <td>
-                                        <table class="person-table">
-                                            <tr>
-                                                <td class="person-label">Nama</td>
-                                                <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.nama|default:"-" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="person-label">Pangkat/Gol</td>
-                                                <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="person-label">NIP</td>
-                                                <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.nip|default:"-"|format_nip }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="person-label">Jabatan</td>
-                                                <td class="person-colon">:</td>
-                                                <td>{{ pelaksana.nama.jabatan|default:"-" }}</td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                                {% if not forloop.last %}
-                                    <tr><td colspan="2" style="height:2px;"></td></tr>
-                                {% endif %}
-                            {% endfor %}
-                        </table>
-                    {% else %}
-                        <span class="empty-state">Belum ada pelaksana yang sesuai untuk surat tugas ini.</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td class="label-cell">Untuk</td>
-                <td class="colon-cell">:</td>
-                <td>
-                    <ol class="instruction-list">
-                        <li>
-                            Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari dalam rangka
-                            {{ spt.berita|default:"-" }} ke {{ spt.tempat_tujuan|default:"-" }}
-                            di {{ spt.kota_tujuan|default:"-" }} terhitung tanggal
-                            {{ spt.tgl_berangkat|date:"d F Y" }} sampai dengan
-                            {{ spt.tgl_kembali|date:"d F Y" }}.
-                        </li>
-                        <li>
-                            Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada
-                            {{ pemberi_tugas.penandatangan.tugas|default:"pejabat pemberi tugas" }}.
-                        </li>
-                    </ol>
-                </td>
-            </tr>
-        </table>
-
-        <div class="signature">
-            {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
-            <div class="signature-title{% if not spt_signature_title_prefix %} signature-title-no-prefix{% endif %}">
-                {% if spt_signature_title_prefix %}
-                <span class="signature-title-prefix">{{ spt_signature_title_prefix }}</span>
+        <div class="document-body-frame">
+            <div class="document-body-scale">
+                {% if kop_surat.header_text %}
+                <div class="pdf-header">{{ kop_surat.header_text }}</div>
                 {% endif %}
-                <span class="signature-title-text">
-                    {% for title_line in spt_signature_title_lines %}
-                        {{ title_line|default:"-" }}{% if not forloop.last %}<br>{% endif %}
-                    {% empty %}
-                        {{ signature_title|default:"-" }}
-                    {% endfor %}
-                </span>
-                <div class="signature-space"></div>
-                <div class="signature-identity">
-                    <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ pemberi_tugas.nama|default:"-" }}</div>
-                    {% if show_signature_identity_details %}
-                        {% if pemberi_tugas.pangkat %}
-                        <div>{{ pemberi_tugas.pangkat }}</div>
+
+                <div class="document-title">
+                    <div class="document-title-body">
+                        <div class="title-text">SURAT TUGAS</div>
+                        <div class="document-number-line">
+                            <span>Nomor</span>
+                            <span>:</span>
+                            <span class="document-number-value">{% if nomor_spt %}{{ nomor_spt }}{% else %}&nbsp;{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if spt.dasar %}
+                <table class="detail-table">
+                    <tr>
+                        <td class="label-cell">Dasar</td>
+                        <td class="colon-cell">:</td>
+                        <td>{{ spt.dasar|linebreaksbr }}</td>
+                    </tr>
+                </table>
+                {% endif %}
+
+                <div class="section-heading">MEMERINTAHKAN:</div>
+
+                <table class="detail-table">
+                    <tr>
+                        <td class="label-cell">Kepada</td>
+                        <td class="colon-cell">:</td>
+                        <td>
+                            {% if pelaksana_list %}
+                                <table class="recipient-table">
+                                    {% for pelaksana in pelaksana_list %}
+                                        <tr>
+                                            {% if show_pelaksana_numbering %}
+                                                <td class="recipient-no">{{ forloop.counter }}.</td>
+                                            {% endif %}
+                                            <td>
+                                                <table class="person-table">
+                                                    <tr>
+                                                        <td class="person-label">Nama</td>
+                                                        <td class="person-colon">:</td>
+                                                        <td>{{ pelaksana.nama.nama|default:"-" }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="person-label">Pangkat/Gol</td>
+                                                        <td class="person-colon">:</td>
+                                                        <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="person-label">NIP</td>
+                                                        <td class="person-colon">:</td>
+                                                        <td>{{ pelaksana.nama.nip|default:"-"|format_nip }}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="person-label">Jabatan</td>
+                                                        <td class="person-colon">:</td>
+                                                        <td>{{ pelaksana.nama.jabatan|default:"-" }}</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        {% if not forloop.last %}
+                                            <tr><td colspan="2" style="height:2px;"></td></tr>
+                                        {% endif %}
+                                    {% endfor %}
+                                </table>
+                            {% else %}
+                                <span class="empty-state">Belum ada pelaksana yang sesuai untuk surat tugas ini.</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label-cell">Untuk</td>
+                        <td class="colon-cell">:</td>
+                        <td>
+                            <ol class="instruction-list">
+                                <li>
+                                    Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari dalam rangka
+                                    {{ spt.berita|default:"-" }} ke {{ spt.tempat_tujuan|default:"-" }}
+                                    di {{ spt.kota_tujuan|default:"-" }} terhitung tanggal
+                                    {{ spt.tgl_berangkat|date:"d F Y" }} sampai dengan
+                                    {{ spt.tgl_kembali|date:"d F Y" }}.
+                                </li>
+                                <li>
+                                    Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada
+                                    {{ pemberi_tugas.penandatangan.tugas|default:"pejabat pemberi tugas" }}.
+                                </li>
+                            </ol>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="signature">
+                    {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
+                    <div class="signature-title{% if not spt_signature_title_prefix %} signature-title-no-prefix{% endif %}">
+                        {% if spt_signature_title_prefix %}
+                        <span class="signature-title-prefix">{{ spt_signature_title_prefix }}</span>
                         {% endif %}
-                        {% if pemberi_tugas.nip %}
-                        <div>NIP. {{ pemberi_tugas.nip|format_nip }}</div>
-                        {% endif %}
-                    {% endif %}
+                        <span class="signature-title-text">
+                            {% for title_line in spt_signature_title_lines %}
+                                {{ title_line|default:"-" }}{% if not forloop.last %}<br>{% endif %}
+                            {% empty %}
+                                {{ signature_title|default:"-" }}
+                            {% endfor %}
+                        </span>
+                        <div class="signature-space"></div>
+                        <div class="signature-identity">
+                            <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ pemberi_tugas.nama|default:"-" }}</div>
+                            {% if show_signature_identity_details %}
+                                {% if pemberi_tugas.pangkat %}
+                                <div>{{ pemberi_tugas.pangkat }}</div>
+                                {% endif %}
+                                {% if pemberi_tugas.nip %}
+                                <div>NIP. {{ pemberi_tugas.nip|format_nip }}</div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

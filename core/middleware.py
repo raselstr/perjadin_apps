@@ -37,6 +37,7 @@ class SessionSecurityMiddleware:
         public_paths = {
             reverse("masuk"),
             reverse("logout"),
+            reverse("timeout_logout"),
         }
 
         if path in public_paths or path == "/favicon.ico":

@@ -10,9 +10,8 @@
         class="form-select form-select-sm"
         style="width:90px;">
       <option value="10" {% if request.GET.per_page == "10" %}selected{% endif %}>10</option>
-      <option value="25" {% if request.GET.per_page == "25" %}selected{% endif %}>25</option>
+      <option value="25" {% if request.GET.per_page == "25" or request.GET.per_page == "all" %}selected{% endif %}>25</option>
       <option value="50" {% if request.GET.per_page == "50" %}selected{% endif %}>50</option>
-      <option value="all" {% if request.GET.per_page == "all" %}selected{% endif %}>Semua</option>
     </select>
 
     <!-- search -->
@@ -72,13 +71,8 @@
         const url = new URL(window.location.href);
         const targetPage = page || getStoredPage();
 
-        if ((perPageSelect?.value || '10') === 'all') {
-            url.searchParams.set('per_page', 'all');
-            url.searchParams.delete('page');
-        } else {
-            url.searchParams.set('page', targetPage);
-            url.searchParams.set('per_page', perPageSelect?.value || '10');
-        }
+        url.searchParams.set('page', targetPage);
+        url.searchParams.set('per_page', perPageSelect?.value || '10');
 
         if (searchInput?.value) {
             url.searchParams.set('search', searchInput.value);

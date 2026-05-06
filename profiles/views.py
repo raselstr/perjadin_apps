@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.views.decorators.http import require_POST
+from django.urls import reverse
+from django.views.decorators.http import require_GET, require_POST
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from types import SimpleNamespace
@@ -74,6 +76,26 @@ def logout_view(request):
         return response
 
     return redirect('masuk')
+
+
+@require_GET
+def timeout_logout_view(request):
+    logout(request)
+
+    target_url = f"{reverse('masuk')}?expired=1"
+
+    if request.headers.get("HX-Request"):
+        response = HttpResponse(status=204)
+        response["HX-Redirect"] = target_url
+        return response
+
+    return redirect(target_url)
+
+
+@require_GET
+@login_required
+def session_heartbeat(request):
+    return HttpResponse(status=204)
 
 
 # ========================

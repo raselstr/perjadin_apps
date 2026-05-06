@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django import forms
 from django.db.models import Q
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.utils.dateparse import parse_date
 
 from core.forms import BaseAppModelForm
@@ -200,6 +200,7 @@ class PelaksanaForm(BaseAppModelForm):
             "nama": forms.Select(attrs={
                 "class": "form-select select2",
                 "data-placeholder": "Pilih Nama Pelaksana",
+                "data-pelaksana-select": "true",
             }),
         }
 
@@ -223,6 +224,56 @@ class PelaksanaForm(BaseAppModelForm):
             queryset = queryset.filter(filters).distinct()
 
         self.fields["nama"].queryset = queryset
+        self.fields["nama"].label_from_instance = (
+            self._format_pelaksana_label
+        )
+
+    @staticmethod
+    def _format_pelaksana_label(obj):
+        if obj.nip:
+            return f"{obj.nama} - {obj.nip} - {obj.jabatan}"
+        return f"{obj.nama} - {obj.jabatan}"
+
+
+class BasePelaksanaInlineFormSet(BaseInlineFormSet):
+    duplicate_message = (
+        "Pelaksana yang sama tidak boleh dipilih lebih dari satu kali "
+        "dalam satu SPT."
+    )
+
+    def clean(self):
+        super().clean()
+
+        selected_rows = {}
+        has_duplicate = False
+
+        for index, form in enumerate(self.forms, start=1):
+            if not hasattr(form, "cleaned_data") or not form.cleaned_data:
+                continue
+
+            if form.cleaned_data.get("DELETE"):
+                continue
+
+            pelaksana = form.cleaned_data.get("nama")
+            if not pelaksana:
+                continue
+
+            if pelaksana.pk in selected_rows:
+                first_index = selected_rows[pelaksana.pk]
+                form.add_error(
+                    "nama",
+                    (
+                        f"{pelaksana.nama} sudah dipilih pada "
+                        f"Pelaksana {first_index}."
+                    ),
+                )
+                has_duplicate = True
+                continue
+
+            selected_rows[pelaksana.pk] = index
+
+        if has_duplicate:
+            raise forms.ValidationError(self.duplicate_message)
 
 
 class PemberiTugasForm(BaseAppModelForm):
@@ -391,6 +442,7 @@ PelaksanaFormSet = inlineformset_factory(
     parent_model=Spt,
     model=Pelaksana,
     form=PelaksanaForm,
+    formset=BasePelaksanaInlineFormSet,
     extra=1,
     can_delete=True,
 )

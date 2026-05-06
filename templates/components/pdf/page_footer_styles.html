@@ -17,7 +17,11 @@
 }
 
 @media print {
+    .document-body-frame {
+        padding-bottom: 8mm;
+    }
+
     .sheet {
-        padding-bottom: calc({{ kop_surat.margin_bottom_mm|default:"20" }}mm + 8mm);
+        padding-bottom: 8mm;
     }
 }

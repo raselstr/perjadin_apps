@@ -7,6 +7,8 @@ urlpatterns = [
     # LOGIN
     # ========================
     path('masuk/', login_view, name='masuk'),
+    path('logout/timeout/', timeout_logout_view, name='timeout_logout'),
+    path('session/heartbeat/', session_heartbeat, name='session_heartbeat'),
 
     # ========================
     # OPD CRUD

@@ -1,8 +1,192 @@
+<style>
+.pelaksana-section {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: 1px solid #e7ebf3;
+    border-radius: 1.25rem;
+    background: linear-gradient(180deg, #fbfcfe 0%, #f4f7fb 100%);
+}
+
+.pelaksana-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.pelaksana-section-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1f2937;
+}
+
+.pelaksana-section-caption {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.pelaksana-section-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 999px;
+    background: #e8f0ff;
+    color: #1d4ed8;
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pelaksana-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 0.9rem;
+}
+
+.pelaksana-item {
+    border: 1px solid #dbe4f0;
+    border-radius: 1rem;
+    background: #fff;
+    padding: 0.9rem;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pelaksana-item:hover {
+    border-color: #bfdbfe;
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.08);
+}
+
+.pelaksana-item-shell {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.75rem;
+    align-items: start;
+}
+
+.pelaksana-index {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 0.875rem;
+    font-weight: 700;
+}
+
+.pelaksana-field {
+    min-width: 0;
+}
+
+.pelaksana-label {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #334155;
+}
+
+.pelaksana-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.pelaksana-icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border-radius: 0.85rem;
+}
+
+.pelaksana-item .select2-container .select2-selection--single {
+    min-height: 2.75rem;
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+    border-radius: 0.85rem;
+}
+
+.pelaksana-item .select2-container .select2-selection__rendered {
+    padding-left: 0.15rem;
+    line-height: 1.45rem !important;
+    white-space: normal;
+}
+
+.pelaksana-item .select2-container .select2-selection__arrow {
+    height: 2.65rem !important;
+}
+
+.pelaksana-item-state {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.pelaksana-item-state-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.875rem;
+    color: #b45309;
+    font-weight: 600;
+}
+
+.pelaksana-item-deleted {
+    border-style: dashed;
+    border-color: #f59e0b;
+    background: #fffaf0;
+    box-shadow: none;
+}
+
+.pelaksana-empty {
+    text-align: center;
+    color: #64748b;
+    border: 1px dashed #cbd5e1;
+    border-radius: 1rem;
+    padding: 1.25rem 1rem;
+    background: rgba(255, 255, 255, 0.7);
+}
+
+@media (max-width: 576px) {
+    .pelaksana-section {
+        padding: 0.9rem;
+    }
+
+    .pelaksana-section-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .pelaksana-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pelaksana-item-shell {
+        grid-template-columns: 1fr;
+    }
+
+    .pelaksana-actions {
+        justify-content: flex-end;
+    }
+}
+</style>
+
 <div class="modal-header border-0 pb-0">
     <div>
         <h5 class="modal-title">{{ title }}</h5>
         <div class="text-muted small">
-            Lengkapi data SPT dan atur daftar pelaksana pada form yang sama.
+            Lengkapi data SPT dan pilih pelaksana pada daftar ringkas di bawah.
         </div>
     </div>
     <button
@@ -34,93 +218,109 @@
 
         {% include "components/crud/form_fields.html" with form=form %}
 
-        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mt-4 mb-3">
-            <div>
-                <h6 class="mb-1">Daftar Pelaksana</h6>
-                <div class="text-muted small">
-                    Tambahkan atau kurangi pelaksana sesuai kebutuhan surat tugas.
+        <section class="pelaksana-section">
+            <div class="pelaksana-section-header">
+                <div>
+                    <h6 class="pelaksana-section-title">Daftar Pelaksana</h6>
+                    <div class="pelaksana-section-caption">
+                        Nama yang sudah dipilih otomatis disembunyikan dari baris lain.
+                    </div>
+                </div>
+                <div class="pelaksana-section-count">
+                    <i class="ti ti-users"></i>
+                    <span data-pelaksana-count>0</span>
                 </div>
             </div>
 
-            <button
-                type="button"
-                class="btn btn-primary"
-                data-formset-add>
-                <i class="ti ti-plus me-1"></i>
-                Tambah Pelaksana
-            </button>
-        </div>
+            {% if formset.non_form_errors %}
+                <div class="alert alert-danger py-2">
+                    {{ formset.non_form_errors }}
+                </div>
+            {% endif %}
 
-        {% if formset.non_form_errors %}
-            <div class="alert alert-danger">
-                {{ formset.non_form_errors }}
-            </div>
-        {% endif %}
+            {{ formset.management_form }}
 
-        {{ formset.management_form }}
-
-        <div id="formset-container" class="d-grid gap-3">
-            {% for child_form in formset %}
-                <div
-                    class="card border shadow-sm position-relative formset-row"
-                    data-formset-row
-                    data-deleted="{% if child_form.DELETE.value %}true{% else %}false{% endif %}">
-
-                    <div class="card-body">
+            <div id="formset-container" class="pelaksana-grid">
+                {% for child_form in formset %}
+                    <div
+                        class="pelaksana-item formset-row"
+                        data-formset-row
+                        data-deleted="{% if child_form.DELETE.value %}true{% else %}false{% endif %}">
                         {{ child_form.id }}
                         {{ child_form.DELETE.as_hidden }}
 
-                        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
-                            <div>
-                                <div class="d-inline-flex align-items-center gap-2">
-                                    <span class="badge bg-primary text-white" data-row-title>
-                                        Pelaksana {{ forloop.counter }}
-                                    </span>
-                                </div>
-                                <div class="small text-muted mt-1" data-row-message>
-                                    Pilih pegawai yang ditugaskan untuk perjalanan dinas ini.
-                                </div>
-                            </div>
+                        <div class="pelaksana-item-shell" data-row-fields>
+                            <div class="pelaksana-index" data-row-title>{{ forloop.counter }}</div>
 
-                            <button
-                                type="button"
-                                class="btn btn-outline-danger align-self-start"
-                                data-formset-toggle-delete>
-                                <i class="ti ti-trash me-1"></i>
-                                Hapus
-                            </button>
-                        </div>
-
-                        <div class="row g-3" data-row-fields>
-                            <div class="col-md-12">
-                                <label class="form-label fw-semibold" for="{{ child_form.nama.id_for_label }}">
+                            <div class="pelaksana-field">
+                                <label class="pelaksana-label" for="{{ child_form.nama.id_for_label }}">
                                     {{ child_form.nama.label }}
                                     <span class="text-danger">*</span>
                                 </label>
 
                                 {{ child_form.nama }}
 
-                                {% if child_form.nama.errors %}
-                                    <div class="text-danger small mt-1">
+                                <div
+                                    class="text-danger small mt-1 {% if not child_form.nama.errors %}d-none{% endif %}"
+                                    data-row-field-error>
+                                    {% if child_form.nama.errors %}
                                         {{ child_form.nama.errors|striptags }}
-                                    </div>
-                                {% endif %}
+                                    {% endif %}
+                                </div>
+
+                                <div class="text-danger small mt-1 d-none" data-row-duplicate-error></div>
 
                                 {% if child_form.non_field_errors %}
-                                    <div class="text-danger small mt-2">
+                                    <div class="text-danger small mt-1">
                                         {{ child_form.non_field_errors|striptags }}
                                     </div>
                                 {% endif %}
                             </div>
+
+                            <div class="pelaksana-actions">
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-primary pelaksana-icon-btn"
+                                    data-formset-add
+                                    title="Tambah pelaksana"
+                                    aria-label="Tambah pelaksana">
+                                    <i class="ti ti-plus"></i>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-danger pelaksana-icon-btn"
+                                    data-formset-toggle-delete
+                                    title="Hapus pelaksana"
+                                    aria-label="Hapus pelaksana">
+                                    <i class="ti ti-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="pelaksana-item-state d-none" data-row-state>
+                            <div class="pelaksana-item-state-text" data-row-state-label>
+                                <i class="ti ti-alert-circle"></i>
+                                <span>Pelaksana ditandai untuk dihapus.</span>
+                            </div>
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-secondary pelaksana-icon-btn"
+                                data-formset-toggle-delete
+                                title="Batalkan hapus pelaksana"
+                                aria-label="Batalkan hapus pelaksana">
+                                <i class="ti ti-arrow-back-up"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-            {% empty %}
-                <div class="text-center text-muted border rounded-3 py-4 px-3 bg-light">
-                    Belum ada pelaksana. Klik tombol tambah untuk membuat baris baru.
-                </div>
-            {% endfor %}
-        </div>
+                {% empty %}
+                    <div class="pelaksana-empty">
+                        Belum ada pelaksana. Klik tombol tambah untuk membuat baris baru.
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
     </div>
 
     <div class="modal-footer border-0 pt-0">
@@ -140,42 +340,60 @@
 </form>
 
 <template id="pelaksana-empty-form-template">
-    <div class="card border shadow-sm position-relative formset-row" data-formset-row data-deleted="false">
-        <div class="card-body">
-            __ID_FIELD__
-            __DELETE_FIELD__
+    <div class="pelaksana-item formset-row" data-formset-row data-deleted="false">
+        __ID_FIELD__
+        __DELETE_FIELD__
 
-            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
-                <div>
-                    <div class="d-inline-flex align-items-center gap-2">
-                        <span class="badge bg-primary text-white" data-row-title>
-                            Pelaksana
-                        </span>
-                    </div>
-                    <div class="small text-muted mt-1" data-row-message>
-                        Pilih pegawai yang ditugaskan untuk perjalanan dinas ini.
-                    </div>
-                </div>
+        <div class="pelaksana-item-shell" data-row-fields>
+            <div class="pelaksana-index" data-row-title>0</div>
+
+            <div class="pelaksana-field">
+                <label class="pelaksana-label" for="{{ formset.empty_form.nama.id_for_label }}">
+                    {{ formset.empty_form.nama.label }}
+                    <span class="text-danger">*</span>
+                </label>
+
+                {{ formset.empty_form.nama }}
+
+                <div class="text-danger small mt-1 d-none" data-row-field-error></div>
+                <div class="text-danger small mt-1 d-none" data-row-duplicate-error></div>
+            </div>
+
+            <div class="pelaksana-actions">
+                <button
+                    type="button"
+                    class="btn btn-outline-primary pelaksana-icon-btn"
+                    data-formset-add
+                    title="Tambah pelaksana"
+                    aria-label="Tambah pelaksana">
+                    <i class="ti ti-plus"></i>
+                </button>
 
                 <button
                     type="button"
-                    class="btn btn-outline-danger align-self-start"
-                    data-formset-toggle-delete>
-                    <i class="ti ti-trash me-1"></i>
-                    Hapus
+                    class="btn btn-outline-danger pelaksana-icon-btn"
+                    data-formset-toggle-delete
+                    title="Hapus pelaksana"
+                    aria-label="Hapus pelaksana">
+                    <i class="ti ti-trash"></i>
                 </button>
             </div>
+        </div>
 
-            <div class="row g-3" data-row-fields>
-                <div class="col-md-12">
-                    <label class="form-label fw-semibold" for="{{ formset.empty_form.nama.id_for_label }}">
-                        {{ formset.empty_form.nama.label }}
-                        <span class="text-danger">*</span>
-                    </label>
-
-                    {{ formset.empty_form.nama }}
-                </div>
+        <div class="pelaksana-item-state d-none" data-row-state>
+            <div class="pelaksana-item-state-text" data-row-state-label>
+                <i class="ti ti-alert-circle"></i>
+                <span>Pelaksana ditandai untuk dihapus.</span>
             </div>
+
+            <button
+                type="button"
+                class="btn btn-outline-secondary pelaksana-icon-btn"
+                data-formset-toggle-delete
+                title="Batalkan hapus pelaksana"
+                aria-label="Batalkan hapus pelaksana">
+                <i class="ti ti-arrow-back-up"></i>
+            </button>
         </div>
     </div>
 </template>
@@ -227,27 +445,14 @@
         hitungTanggalKembali();
     }
 
-    function initSelect2ForRow(row) {
-        if (!window.jQuery) {
-            return;
-        }
+    function getFormsetRows() {
+        return Array.from(
+            document.querySelectorAll("[data-formset-row]")
+        );
+    }
 
-        window.jQuery(row).find(".select2, .select2-ajax").each(function () {
-            const $field = window.jQuery(this);
-            const $dropdownParent = $field.closest("[data-formset-row], .modal");
-
-            if ($field.hasClass("select2-hidden-accessible")) {
-                $field.select2("destroy");
-            }
-
-            $field.select2({
-                width: "100%",
-                dropdownParent: $dropdownParent.length
-                    ? $dropdownParent
-                    : window.jQuery(document.body),
-                theme: "bootstrap-5",
-            });
-        });
+    function getPelaksanaSelect(row) {
+        return row ? row.querySelector('select[name$="-nama"]') : null;
     }
 
     function isDeleteInputMarked(deleteInput) {
@@ -273,55 +478,234 @@
         deleteInput.value = isDeleted ? "on" : "";
     }
 
+    function initSelect2ForRow(row) {
+        if (!window.jQuery) {
+            return;
+        }
+
+        window.jQuery(row).find(".select2, .select2-ajax").each(function () {
+            const $field = window.jQuery(this);
+            const $dropdownParent = $field.closest("[data-formset-row], .modal");
+
+            if ($field.hasClass("select2-hidden-accessible")) {
+                $field.select2("destroy");
+            }
+
+            $field.select2({
+                width: "100%",
+                dropdownParent: $dropdownParent.length
+                    ? $dropdownParent
+                    : window.jQuery(document.body),
+                theme: "bootstrap-5",
+                placeholder: $field.data("placeholder") || "",
+            });
+        });
+    }
+
+    function updateActivePelaksanaCount() {
+        const countElement = document.querySelector("[data-pelaksana-count]");
+
+        if (!countElement) {
+            return;
+        }
+
+        const activeCount = getFormsetRows().filter(function (row) {
+            const deleteInput = row.querySelector('input[name$="-DELETE"]');
+            return !isDeleteInputMarked(deleteInput);
+        }).length;
+
+        countElement.textContent = String(activeCount);
+    }
+
+    function clearPelaksanaFieldError(row) {
+        const errorElement = row.querySelector("[data-row-field-error]");
+
+        if (!errorElement) {
+            return;
+        }
+
+        if (!errorElement.textContent.trim()) {
+            errorElement.classList.add("d-none");
+        }
+    }
+
+    function resetPelaksanaFieldError(row) {
+        const errorElement = row.querySelector("[data-row-field-error]");
+
+        if (!errorElement) {
+            return;
+        }
+
+        errorElement.textContent = "";
+        errorElement.classList.add("d-none");
+    }
+
     function updateRowAppearance(row, visibleIndex) {
         const deleteInput = row.querySelector('input[name$="-DELETE"]');
         const isDeleted = isDeleteInputMarked(deleteInput);
         const title = row.querySelector("[data-row-title]");
-        const message = row.querySelector("[data-row-message]");
-        const toggleButton = row.querySelector("[data-formset-toggle-delete]");
-        const fieldWrapper = row.querySelector("[data-row-fields]");
+        const fieldShell = row.querySelector("[data-row-fields]");
+        const stateShell = row.querySelector("[data-row-state]");
+        const stateLabel = row.querySelector("[data-row-state-label] span");
 
-        setDeleteInputMarked(deleteInput, isDeleted);
         row.dataset.deleted = isDeleted ? "true" : "false";
-        row.classList.toggle("border-danger", isDeleted);
-        row.classList.toggle("bg-light", isDeleted);
-        row.classList.toggle("opacity-75", isDeleted);
-
-        if (fieldWrapper) {
-            fieldWrapper.classList.toggle("d-none", isDeleted);
-        }
+        row.classList.toggle("pelaksana-item-deleted", isDeleted);
 
         if (title) {
-            title.textContent = `Pelaksana ${visibleIndex}`;
-            title.classList.toggle("bg-danger", isDeleted);
-            title.classList.toggle("bg-primary", !isDeleted);
-            title.classList.toggle("text-white", true);
+            title.textContent = String(visibleIndex);
         }
 
-        if (message) {
-            message.textContent = isDeleted
-                ? "Baris ini akan dihapus saat data disimpan."
-                : "Pilih pegawai yang ditugaskan untuk perjalanan dinas ini.";
+        if (fieldShell) {
+            fieldShell.classList.toggle("d-none", isDeleted);
         }
 
-        if (toggleButton) {
-            toggleButton.classList.toggle("btn-outline-danger", !isDeleted);
-            toggleButton.classList.toggle("btn-outline-secondary", isDeleted);
-            toggleButton.innerHTML = isDeleted
-                ? '<i class="ti ti-arrow-back-up me-1"></i>Batalkan Hapus'
-                : '<i class="ti ti-trash me-1"></i>Hapus';
+        if (stateShell) {
+            stateShell.classList.toggle("d-none", !isDeleted);
+        }
+
+        if (stateLabel) {
+            stateLabel.textContent = `Pelaksana ${visibleIndex} ditandai untuk dihapus.`;
+        }
+
+        if (!isDeleted) {
+            clearPelaksanaFieldError(row);
         }
     }
 
+    function getSelectedPelaksanaMap() {
+        const selectedMap = new Map();
+
+        getFormsetRows().forEach(function (row) {
+            const deleteInput = row.querySelector('input[name$="-DELETE"]');
+            const select = getPelaksanaSelect(row);
+
+            if (!select || isDeleteInputMarked(deleteInput) || !select.value) {
+                return;
+            }
+
+            if (!selectedMap.has(select.value)) {
+                selectedMap.set(select.value, []);
+            }
+
+            selectedMap.get(select.value).push(row);
+        });
+
+        return selectedMap;
+    }
+
+    function refreshSelect2Field(select) {
+        if (!window.jQuery || !select) {
+            return;
+        }
+
+        const $select = window.jQuery(select);
+
+        if ($select.hasClass("select2-hidden-accessible")) {
+            $select.trigger("change.select2");
+        }
+    }
+
+    function syncPelaksanaOptions() {
+        const selectedMap = getSelectedPelaksanaMap();
+
+        getFormsetRows().forEach(function (row) {
+            const select = getPelaksanaSelect(row);
+            const deleteInput = row.querySelector('input[name$="-DELETE"]');
+
+            if (!select) {
+                return;
+            }
+
+            if (isDeleteInputMarked(deleteInput)) {
+                Array.from(select.options).forEach(function (option) {
+                    option.disabled = false;
+                    option.hidden = false;
+                });
+                refreshSelect2Field(select);
+                return;
+            }
+
+            const currentValue = select.value;
+
+            Array.from(select.options).forEach(function (option) {
+                if (!option.value) {
+                    option.disabled = false;
+                    option.hidden = false;
+                    return;
+                }
+
+                const isSelectedElsewhere = (
+                    selectedMap.has(option.value) &&
+                    option.value !== currentValue
+                );
+
+                option.disabled = isSelectedElsewhere;
+                option.hidden = isSelectedElsewhere;
+            });
+
+            refreshSelect2Field(select);
+        });
+    }
+
+    function syncDuplicateState() {
+        const selectedMap = getSelectedPelaksanaMap();
+
+        getFormsetRows().forEach(function (row) {
+            const select = getPelaksanaSelect(row);
+            const duplicateError = row.querySelector("[data-row-duplicate-error]");
+
+            if (select) {
+                select.setCustomValidity("");
+            }
+
+            if (duplicateError) {
+                duplicateError.textContent = "";
+                duplicateError.classList.add("d-none");
+            }
+        });
+
+        selectedMap.forEach(function (rows, selectedValue) {
+            if (!selectedValue || rows.length < 2) {
+                return;
+            }
+
+            rows.forEach(function (row, rowIndex) {
+                const select = getPelaksanaSelect(row);
+                const duplicateError = row.querySelector("[data-row-duplicate-error]");
+                const title = rows[0].querySelector("[data-row-title]");
+                const firstRowLabel = title ? title.textContent.trim() : "1";
+                const message = rowIndex === 0
+                    ? "Pelaksana ini dipilih lebih dari satu kali."
+                    : `Pelaksana ini sudah dipilih pada Pelaksana ${firstRowLabel}.`;
+
+                if (select) {
+                    select.setCustomValidity(message);
+                }
+
+                if (duplicateError) {
+                    duplicateError.textContent = message;
+                    duplicateError.classList.remove("d-none");
+                }
+            });
+        });
+    }
+
     function renumberRows() {
-        const rows = document.querySelectorAll("[data-formset-row]");
+        const rows = getFormsetRows();
         let counter = 1;
 
         rows.forEach(function (row) {
             updateRowAppearance(row, counter);
 
-            counter += 1;
+            const deleteInput = row.querySelector('input[name$="-DELETE"]');
+            if (!isDeleteInputMarked(deleteInput)) {
+                counter += 1;
+            }
         });
+
+        updateActivePelaksanaCount();
+        syncPelaksanaOptions();
+        syncDuplicateState();
     }
 
     function buildEmptyRowHtml(index) {
@@ -367,6 +751,11 @@
 
         initSelect2ForRow(newRow);
         renumberRows();
+
+        const newSelect = getPelaksanaSelect(newRow);
+        if (newSelect) {
+            newSelect.focus();
+        }
     }
 
     function handleToggleDelete(button) {
@@ -382,21 +771,30 @@
     }
 
     function bindFormsetActions() {
-        const addButton = document.querySelector("[data-formset-add]");
         const container = document.getElementById("formset-container");
-
-        if (addButton && !addButton.dataset.bound) {
-            addButton.dataset.bound = "true";
-            addButton.addEventListener("click", addFormsetRow);
-        }
 
         if (container && !container.dataset.bound) {
             container.dataset.bound = "true";
             container.addEventListener("click", function (event) {
-                const toggleButton = event.target.closest("[data-formset-toggle-delete]");
+                const addButton = event.target.closest("[data-formset-add]");
+                if (addButton) {
+                    addFormsetRow();
+                    return;
+                }
 
+                const toggleButton = event.target.closest("[data-formset-toggle-delete]");
                 if (toggleButton) {
                     handleToggleDelete(toggleButton);
+                }
+            });
+
+            container.addEventListener("change", function (event) {
+                if (event.target.matches('select[name$="-nama"]')) {
+                    const row = event.target.closest("[data-formset-row]");
+                    if (row) {
+                        resetPelaksanaFieldError(row);
+                    }
+                    renumberRows();
                 }
             });
         }
@@ -406,7 +804,7 @@
         bindFormsetActions();
         initTanggalKembali();
 
-        document.querySelectorAll("[data-formset-row]").forEach(function (row) {
+        getFormsetRows().forEach(function (row) {
             initSelect2ForRow(row);
         });
 

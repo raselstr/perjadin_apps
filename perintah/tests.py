@@ -14,7 +14,7 @@ from .document_utils import (
     build_spt_signature_title_parts,
     generate_default_document_number,
 )
-from .forms import PelaksanaForm, PemberiTugasForm
+from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
 from .models import PemberiTugas, Spt
 from .tables import PemberiTugasTable
 
@@ -333,6 +333,37 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         )
         self.assertNotIn(self.pegawai_setda, form.fields["nama"].queryset)
 
+    def test_pelaksana_formset_rejects_duplicate_pegawai(self):
+        spt = Spt.objects.create(
+            dasar="Dasar formset duplikat",
+            berita="Uji pelaksana ganda",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Uji",
+            lama_perjalanan=1,
+            tgl_berangkat=date(2026, 5, 9),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+
+        formset = PelaksanaFormSet(
+            data={
+                "pelaksana-TOTAL_FORMS": "2",
+                "pelaksana-INITIAL_FORMS": "0",
+                "pelaksana-MIN_NUM_FORMS": "0",
+                "pelaksana-MAX_NUM_FORMS": "1000",
+                "pelaksana-0-nama": str(self.pegawai_eselon_iii.pk),
+                "pelaksana-1-nama": str(self.pegawai_eselon_iii.pk),
+            },
+            instance=spt,
+        )
+
+        self.assertFalse(formset.is_valid())
+        self.assertIn(
+            "tidak boleh dipilih lebih dari satu kali",
+            formset.non_form_errors()[0],
+        )
+        self.assertIn("nama", formset.forms[1].errors)
+
     def test_form_includes_sekretaris_daerah_for_administrator_role(self):
         user = User.objects.create_user(
             username="administrator-signatory",
@@ -564,6 +595,15 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertNotIn("/cetak/spt/", rendered_cell)
         self.assertIn("/cetak/spd/", rendered_cell)
 
+    def test_table_uses_popup_window_for_print_preview(self):
+        request = self.factory.get("/perintah/pemberi-tugas/")
+        request.user = self.superuser
+        table = PemberiTugasTable([self.pemberi_tugas_spd])
+        rendered_cell = table.rows[0].get_cell("dokumen")
+
+        self.assertIn("openPrintPreviewWindow", rendered_cell)
+        self.assertNotIn('target="_blank"', rendered_cell)
+
     def test_print_spt_filters_pelaksana_for_bupati(self):
         self.client.force_login(self.superuser)
 
@@ -778,6 +818,21 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             r'<span class="document-number-value">&nbsp;</span>',
         )
 
+    def test_print_spt_uses_browser_native_print_scaling(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[self.pemberi_tugas_spd.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("margin: 0;", response_html)
+        self.assertIn("letterhead-shell", response_html)
+        self.assertIn("document-body-scale", response_html)
+        self.assertNotIn("--preview-scale", response_html)
+        self.assertNotIn("data-print-toolbar", response_html)
+
     def test_print_spd_uses_ppk_and_shows_followers(self):
         self.client.force_login(self.superuser)
 
@@ -864,6 +919,21 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             r'<td>&nbsp;</td>',
         )
 
+    def test_print_spd_uses_browser_native_print_scaling(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spd", args=[self.pemberi_tugas_spd.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("margin: 0;", response_html)
+        self.assertIn("letterhead-shell", response_html)
+        self.assertIn("document-body-scale", response_html)
+        self.assertNotIn("--print-scale", response_html)
+        self.assertNotIn("data-print-toolbar", response_html)
+
     def test_print_spd_returns_404_for_bupati_signatory(self):
         self.client.force_login(self.superuser)
 
@@ -872,3 +942,21 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         )
 
         self.assertEqual(response.status_code, 404)
+
+
+class SptListViewTests(PerintahBaseTestCase):
+    def test_per_page_all_falls_back_to_twenty_five_rows(self):
+        superuser = User.objects.create_superuser(
+            username="admin-list",
+            email="admin-list@example.com",
+            password="admin12345",
+        )
+        self.client.force_login(superuser)
+
+        response = self.client.get(reverse("spt_list"), {"per_page": "all"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.context["table"].page.paginator.per_page,
+            25,
+        )

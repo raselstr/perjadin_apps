@@ -8,16 +8,27 @@
 <style>
 @page {
     size: A4;
+    margin: 0;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
 }
 
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
     font-size: 12pt;
     color: #111;
     background: #eef2f7;
 }
 
+:root {
+    --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
+    --letterhead-top-padding: 14mm;
+    --letterhead-side-padding: 18mm;
+}
 
 {% include "components/pdf/kop_surat_styles.html" %}
 {% include "components/pdf/page_footer_styles.html" %}
@@ -28,10 +39,26 @@ body {
     margin: 12px auto 24px;
     background: #fff;
     box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    box-sizing: border-box;
 }
 
 .sheet {
-    padding: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.letterhead-shell {
+    padding: var(--letterhead-top-padding) var(--letterhead-side-padding) 0;
+}
+
+.document-body-frame {
+    margin: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm;
+}
+
+.document-body-scale {
+    width: calc(100% / var(--content-scale));
+    transform-origin: top left;
+    zoom: var(--content-scale);
 }
 
 .pdf-header {
@@ -200,18 +227,21 @@ body {
     font-style: italic;
 }
 
+@supports not (zoom: 1) {
+    .document-body-scale {
+        width: calc(100% / var(--content-scale));
+        transform: scale(var(--content-scale));
+    }
+}
+
 @media print {
     body {
         background: #fff;
     }
 
-    .toolbar {
-        display: none;
-    }
-
     .page {
-        width: auto;
-        min-height: auto;
+        width: 210mm;
+        min-height: 297mm;
         margin: 0;
         box-shadow: none;
     }
@@ -219,184 +249,187 @@ body {
 </style>
 </head>
 <body>
-<!-- {% include "components/pdf/print_toolbar.html" with document_type="spd" %} -->
-
 <div class="page">
     <div class="sheet">
-        {% include "components/pdf/kop_surat.html" %}
-
-        {% if kop_surat.header_text %}
-        <div class="pdf-header">{{ kop_surat.header_text }}</div>
-        {% endif %}
-
-        <table class="meta-table">
-            <tr>
-                <td style="width: 58%;"></td>
-                <td class="meta-label">Lembar ke</td>
-                <td class="meta-colon">:</td>
-                <td>................................</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td class="meta-label">Kode No</td>
-                <td class="meta-colon">:</td>
-                <td>................................</td>
-            </tr>
-            <tr>
-                <td></td>
-                <td class="meta-label">Nomor </td>
-                <td class="meta-colon">:</td>
-                <td>{% if nomor_spd or nomor_spt %}{{ nomor_spd|default:nomor_spt }}{% else %}&nbsp;{% endif %}</td>
-            </tr>
-        </table>
-
-        <div class="document-title">
-            <div class="document-title-body">
-                <div class="title-text">SURAT PERJALANAN DINAS (SPD)</div>
-            </div>
+        <div class="letterhead-shell">
+            {% include "components/pdf/kop_surat.html" %}
         </div>
 
-        <table class="main-table">
-            <colgroup>
-                <col class="number-col">
-                <col class="label-col">
-                <col class="detail-col">
-                <col class="birthdate-col">
-                <col class="note-col">
-            </colgroup>
-            <tr>
-                <td class="number-col">1</td>
-                <td colspan="2" class="label-col">Pejabat Pembuat Komitmen</td>
-                <td colspan="2">
-                    {{ penandatangan_dokumen.nama|default:"-" }}
-                    {% comment %} {% if penandatangan_dokumen.nip %}<br>NIP. {{ penandatangan_dokumen.nip }}{% endif %}
-                    {% if penandatangan_dokumen.pangkat %}<br>{{ penandatangan_dokumen.pangkat }}{% endif %}
-                    <br>{{ signature_title|default:"-" }} {% endcomment %}
-                </td>
-            </tr>
-            <tr>
-                <td class="number-col">2</td>
-                <td colspan="2" class="label-col">Nama/Nip Pegawai yang melaksanakan perjalanan dinas</td>
-                <td colspan="2">
-                    {% if primary_pelaksana %}
-                        {{ primary_pelaksana.nama.nama|default:"-" }}
-                        {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip|format_nip }}{% endif %}
-                    {% else %}
-                        <span class="empty-state">Belum ada pelaksana.</span>
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td class="number-col">3</td>
-                <td colspan="2" class="label-col">
-                    a. Pangkat dan Golongan<br>
-                    b. Jabatan/ Instansi<br>
-                    c. Tingkat Biaya Perjalanan Dinas
-                </td>
-                <td colspan="2">
-                    {% if primary_pelaksana %}
-                        a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
-                        b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
-                        c. {{ primary_pelaksana.nama.tingkat|default:"-" }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td class="number-col">4</td>
-                <td colspan="2" class="label-col">Maksud Perjalanan Dinas</td>
-                <td colspan="2">{{ spt.berita|default:"-" }}</td>
-            </tr>
-            <tr>
-                <td class="number-col">5</td>
-                <td colspan="2" class="label-col">Alat Angkutan yang dipergunakan</td>
-                <td colspan="2">{{ spt.get_kendaraan_display|default:"-" }}</td>
-            </tr>
-            <tr>
-                <td class="number-col">6</td>
-                <td colspan="2" class="label-col">
-                    a. Tempat berangkat<br>
-                    b. Tempat Tujuan
-                </td>
-                <td colspan="2">
-                    a. {{ signature_location }}<br>
-                    b. {% if spt.kota_tujuan %}{{ spt.kota_tujuan }}{% endif %}
-                    
-                </td>
-            </tr>
-            <tr>
-                <td class="number-col">7</td>
-                <td colspan="2" class="label-col">
-                    a. Lamanya Perjalanan Dinas<br>
-                    b. Tanggal berangkat<br>
-                    c. Tanggal harus kembali/tiba di tempat baru *)
-                </td>
-                <td colspan="2">
-                    a. {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari<br>
-                    b. {{ spt.tgl_berangkat|date:"d F Y" }}<br>
-                    c. {{ spt.tgl_kembali|date:"d F Y" }}
-                </td>
-            </tr>
-            <tr>
-                <td class="number-col" rowspan="{% if show_followers %}{{ followers|length|add:'2' }}{% else %}2{% endif %}">8</td>
-                <td colspan="2" class="followers-title-cell">PENGIKUT :</td>
-                <td colspan="2"></td>
-            </tr>
-            {% if show_followers %}
-                <tr>
-                    <td colspan="2" class="followers-header-cell">NAMA</td>
-                    <td class="followers-header-cell">Tanggal Lahir</td>
-                    <td class="followers-header-cell">Keterangan</td>
-                </tr>
-                {% for follower in followers %}
+        <div class="document-body-frame">
+            <div class="document-body-scale">
+                {% if kop_surat.header_text %}
+                <div class="pdf-header">{{ kop_surat.header_text }}</div>
+                {% endif %}
+
+                <table class="meta-table">
                     <tr>
-                        <td colspan="2" class="followers-name-cell">
-                            {{ forloop.counter }}.
-                            {{ follower.nama.nama|default:"-" }}
-                            {% if follower.nama.nip %}
-                                - {{ follower.nama.nip|format_nip }}
+                        <td style="width: 58%;"></td>
+                        <td class="meta-label">Lembar ke</td>
+                        <td class="meta-colon">:</td>
+                        <td>................................</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class="meta-label">Kode No</td>
+                        <td class="meta-colon">:</td>
+                        <td>................................</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class="meta-label">Nomor </td>
+                        <td class="meta-colon">:</td>
+                        <td>{% if nomor_spd or nomor_spt %}{{ nomor_spd|default:nomor_spt }}{% else %}&nbsp;{% endif %}</td>
+                    </tr>
+                </table>
+
+                <div class="document-title">
+                    <div class="document-title-body">
+                        <div class="title-text">SURAT PERJALANAN DINAS (SPD)</div>
+                    </div>
+                </div>
+
+                <table class="main-table">
+                    <colgroup>
+                        <col class="number-col">
+                        <col class="label-col">
+                        <col class="detail-col">
+                        <col class="birthdate-col">
+                        <col class="note-col">
+                    </colgroup>
+                    <tr>
+                        <td class="number-col">1</td>
+                        <td colspan="2" class="label-col">Pejabat Pembuat Komitmen</td>
+                        <td colspan="2">
+                            {{ penandatangan_dokumen.nama|default:"-" }}
+                            {% comment %} {% if penandatangan_dokumen.nip %}<br>NIP. {{ penandatangan_dokumen.nip }}{% endif %}
+                            {% if penandatangan_dokumen.pangkat %}<br>{{ penandatangan_dokumen.pangkat }}{% endif %}
+                            <br>{{ signature_title|default:"-" }} {% endcomment %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-col">2</td>
+                        <td colspan="2" class="label-col">Nama/Nip Pegawai yang melaksanakan perjalanan dinas</td>
+                        <td colspan="2">
+                            {% if primary_pelaksana %}
+                                {{ primary_pelaksana.nama.nama|default:"-" }}
+                                {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip|format_nip }}{% endif %}
+                            {% else %}
+                                <span class="empty-state">Belum ada pelaksana.</span>
                             {% endif %}
                         </td>
-                        <td class="followers-birthdate-cell">{{ follower.nama.tgl_lahir|date:"d-m-Y"|default:"-" }}</td>
-                        <td>{{ follower.nama.jabatan|default:"-" }}</td>
                     </tr>
-                {% endfor %}
-            {% else %}
-                <tr>
-                    <td colspan="4">-</td>
-                </tr>
-            {% endif %}
-            <tr>
-                <td class="number-col">9</td>
-                <td colspan="2" class="label-col">
-                    Pembebanan Anggaran<br>
-                    a. SKPD<br>
-                    b. Kode Rekening
-                </td>
-                <td colspan="2">
-                    <br>
-                    a. {{ asal_instansi|default:"-" }}<br>
-                    b. -
-                </td>
-            </tr>
-            <tr>
-                <td class="number-col">10</td>
-                <td colspan="2" class="label-col">Keterangan</td>
-                <td colspan="2">-</td>
-            </tr>
-        </table>
+                    <tr>
+                        <td class="number-col">3</td>
+                        <td colspan="2" class="label-col">
+                            a. Pangkat dan Golongan<br>
+                            b. Jabatan/ Instansi<br>
+                            c. Tingkat Biaya Perjalanan Dinas
+                        </td>
+                        <td colspan="2">
+                            {% if primary_pelaksana %}
+                                a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
+                                b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
+                                c. {{ primary_pelaksana.nama.tingkat|default:"-" }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-col">4</td>
+                        <td colspan="2" class="label-col">Maksud Perjalanan Dinas</td>
+                        <td colspan="2">{{ spt.berita|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="number-col">5</td>
+                        <td colspan="2" class="label-col">Alat Angkutan yang dipergunakan</td>
+                        <td colspan="2">{{ spt.get_kendaraan_display|default:"-" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="number-col">6</td>
+                        <td colspan="2" class="label-col">
+                            a. Tempat berangkat<br>
+                            b. Tempat Tujuan
+                        </td>
+                        <td colspan="2">
+                            a. {{ signature_location }}<br>
+                            b. {% if spt.kota_tujuan %}{{ spt.kota_tujuan }}{% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-col">7</td>
+                        <td colspan="2" class="label-col">
+                            a. Lamanya Perjalanan Dinas<br>
+                            b. Tanggal berangkat<br>
+                            c. Tanggal harus kembali/tiba di tempat baru *)
+                        </td>
+                        <td colspan="2">
+                            a. {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari<br>
+                            b. {{ spt.tgl_berangkat|date:"d F Y" }}<br>
+                            c. {{ spt.tgl_kembali|date:"d F Y" }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-col" rowspan="{% if show_followers %}{{ followers|length|add:'2' }}{% else %}2{% endif %}">8</td>
+                        <td colspan="2" class="followers-title-cell">PENGIKUT :</td>
+                        <td colspan="2"></td>
+                    </tr>
+                    {% if show_followers %}
+                        <tr>
+                            <td colspan="2" class="followers-header-cell">NAMA</td>
+                            <td class="followers-header-cell">Tanggal Lahir</td>
+                            <td class="followers-header-cell">Keterangan</td>
+                        </tr>
+                        {% for follower in followers %}
+                            <tr>
+                                <td colspan="2" class="followers-name-cell">
+                                    {{ forloop.counter }}.
+                                    {{ follower.nama.nama|default:"-" }}
+                                    {% if follower.nama.nip %}
+                                        - {{ follower.nama.nip|format_nip }}
+                                    {% endif %}
+                                </td>
+                                <td class="followers-birthdate-cell">{{ follower.nama.tgl_lahir|date:"d-m-Y"|default:"-" }}</td>
+                                <td>{{ follower.nama.jabatan|default:"-" }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4">-</td>
+                        </tr>
+                    {% endif %}
+                    <tr>
+                        <td class="number-col">9</td>
+                        <td colspan="2" class="label-col">
+                            Pembebanan Anggaran<br>
+                            a. SKPD<br>
+                            b. Kode Rekening
+                        </td>
+                        <td colspan="2">
+                            <br>
+                            a. {{ asal_instansi|default:"-" }}<br>
+                            b. -
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="number-col">10</td>
+                        <td colspan="2" class="label-col">Keterangan</td>
+                        <td colspan="2">-</td>
+                    </tr>
+                </table>
 
-        <div class="footer">
-            {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
-            {{ signature_title|default:"-" }}<br>
+                <div class="footer">
+                    {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
+                    {{ signature_title|default:"-" }}<br>
 
-            <div class="signature-space"></div>
+                    <div class="signature-space"></div>
 
-            <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ penandatangan_dokumen.nama|default:"-" }}</div>
-            {% if show_signature_identity_details and penandatangan_dokumen.nip %}
-                NIP. {{ penandatangan_dokumen.nip|format_nip }}
-            {% endif %}
+                    <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ penandatangan_dokumen.nama|default:"-" }}</div>
+                    {% if show_signature_identity_details and penandatangan_dokumen.nip %}
+                        NIP. {{ penandatangan_dokumen.nip|format_nip }}
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
