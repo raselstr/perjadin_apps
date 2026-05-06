@@ -8,12 +8,15 @@ from .models import PemberiTugas, Spt
 class SptTable(BaseTable):
     aksi = action_column("spt_action_pk", "spt_delete")
 
-    berita = tables.Column(
-        verbose_name="Tujuan Pelaksanaan"
-    )
-
-    tempat_tujuan = tables.Column(
-        verbose_name="Tempat Tujuan"
+    berita = tables.TemplateColumn(
+        verbose_name="Maksud dan Tujuan Perjalanan Dinas",
+        orderable=False,
+        template_code="""
+        {{ record.tempat_tujuan }}<br>
+        <span class="text-muted small fst-italic">
+            {{ record.berita }}
+        </span>
+        """
     )
 
     jenis_kegiatan = tables.Column(
@@ -49,7 +52,7 @@ class SptTable(BaseTable):
         model = Spt
         fields = (
             "no",
-            "tempat_tujuan",
+            "berita",
             "jenis_kegiatan",
             "lama_perjalanan",
             "tgl_berangkat",

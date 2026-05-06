@@ -70,7 +70,7 @@ body {
     display: grid;
     grid-template-columns: auto 12px minmax(250px, auto);
     column-gap: 4px;
-    margin-top: 8px;
+    margin-top: 1px;
     text-align: left;
 }
 
@@ -82,12 +82,12 @@ body {
 .detail-table {
     width: 100%;
     border-collapse: collapse;
-    line-height: 1.5;
+    line-height: 1.2;
 }
 
 .detail-table td {
     vertical-align: top;
-    padding: 3px 0;
+    padding: 10px 0;
     text-align: justify;
 }
 
@@ -219,7 +219,7 @@ body {
 </style>
 </head>
 <body>
-{% include "components/pdf/print_toolbar.html" with document_type="spt" %}
+<!-- {% include "components/pdf/print_toolbar.html" with document_type="spt" %} -->
 
 <div class="page">
     <div class="sheet">
