@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict QxTcpy033N5DzOVdIhSbaOCHNLlcabB11SapxSLSzXRa8CAIE7g1yTQsQUcL1k7
+\restrict nE5frUVJnypQqEGaLzEmzlJKdMtwZsp0hbW4c9JkNVsHNo1cgu9hYwpVEOlDQ7z
 
 -- Dumped from database version 14.22 (Debian 14.22-1.pgdg13+1)
 -- Dumped by pg_dump version 14.22 (Debian 14.22-1.pgdg13+1)
@@ -54,22 +54,22 @@ INSERT INTO public.django_content_type (id, app_label, model) VALUES (15, 'umum'
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (16, 'umum', 'penandatangan');
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (17, 'umum', 'pegawai');
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (18, 'umum', 'tingkat');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (19, 'spd', 'standarduangharian');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (20, 'spd', 'standardtransportasi');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (21, 'spd', 'lokasi');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (22, 'spd', 'jenistransportasi');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (23, 'spd', 'standardrepresentasi');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (24, 'spd', 'dasarperaturan');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (25, 'spd', 'jenisspd');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (26, 'spd', 'standardpesawat');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (19, 'umum', 'eselon');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (20, 'umum', 'pemda');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (21, 'umum', 'kopsurat');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (22, 'spd', 'dasarperaturan');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (23, 'spd', 'jeniskegiatan');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (24, 'spd', 'jenisspd');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (25, 'spd', 'jenistransportasi');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (26, 'spd', 'lokasi');
 INSERT INTO public.django_content_type (id, app_label, model) VALUES (27, 'spd', 'standardpenginapan');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (28, 'spd', 'jeniskegiatan');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (52, 'umum', 'eselon');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (53, 'perintah', 'spt');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (54, 'perintah', 'pelaksana');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (55, 'umum', 'pemda');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (56, 'perintah', 'pemberitugas');
-INSERT INTO public.django_content_type (id, app_label, model) VALUES (57, 'umum', 'kopsurat');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (28, 'spd', 'standardpesawat');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (29, 'spd', 'standardrepresentasi');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (30, 'spd', 'standardtransportasi');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (31, 'spd', 'standarduangharian');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (32, 'perintah', 'spt');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (33, 'perintah', 'pelaksana');
+INSERT INTO public.django_content_type (id, app_label, model) VALUES (34, 'perintah', 'pemberitugas');
 
 
 ALTER TABLE public.django_content_type ENABLE TRIGGER ALL;
@@ -152,46 +152,70 @@ INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES 
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (70, 'Can change tingkat', 18, 'change_tingkat');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (71, 'Can delete tingkat', 18, 'delete_tingkat');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (72, 'Can view tingkat', 18, 'view_tingkat');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (73, 'Can add Standar Uang Harian', 19, 'add_standarduangharian');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (74, 'Can change Standar Uang Harian', 19, 'change_standarduangharian');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (75, 'Can delete Standar Uang Harian', 19, 'delete_standarduangharian');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (76, 'Can view Standar Uang Harian', 19, 'view_standarduangharian');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (77, 'Can add Standar Transportasi', 20, 'add_standardtransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (78, 'Can change Standar Transportasi', 20, 'change_standardtransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (79, 'Can delete Standar Transportasi', 20, 'delete_standardtransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (80, 'Can view Standar Transportasi', 20, 'view_standardtransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (81, 'Can add Lokasi', 21, 'add_lokasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (82, 'Can change Lokasi', 21, 'change_lokasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (83, 'Can delete Lokasi', 21, 'delete_lokasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (84, 'Can view Lokasi', 21, 'view_lokasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (85, 'Can add Jenis Transportasi', 22, 'add_jenistransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (86, 'Can change Jenis Transportasi', 22, 'change_jenistransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (87, 'Can delete Jenis Transportasi', 22, 'delete_jenistransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (88, 'Can view Jenis Transportasi', 22, 'view_jenistransportasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (89, 'Can add Standar Representasi', 23, 'add_standardrepresentasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (90, 'Can change Standar Representasi', 23, 'change_standardrepresentasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (91, 'Can delete Standar Representasi', 23, 'delete_standardrepresentasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (92, 'Can view Standar Representasi', 23, 'view_standardrepresentasi');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (93, 'Can add Dasar Peraturan', 24, 'add_dasarperaturan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (94, 'Can change Dasar Peraturan', 24, 'change_dasarperaturan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (95, 'Can delete Dasar Peraturan', 24, 'delete_dasarperaturan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (96, 'Can view Dasar Peraturan', 24, 'view_dasarperaturan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (97, 'Can add Jenis SPD', 25, 'add_jenisspd');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (98, 'Can change Jenis SPD', 25, 'change_jenisspd');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (99, 'Can delete Jenis SPD', 25, 'delete_jenisspd');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (100, 'Can view Jenis SPD', 25, 'view_jenisspd');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (101, 'Can add Standar Tiket Pesawat', 26, 'add_standardpesawat');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (102, 'Can change Standar Tiket Pesawat', 26, 'change_standardpesawat');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (103, 'Can delete Standar Tiket Pesawat', 26, 'delete_standardpesawat');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (104, 'Can view Standar Tiket Pesawat', 26, 'view_standardpesawat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (73, 'Can add eselon', 19, 'add_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (74, 'Can change eselon', 19, 'change_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (75, 'Can delete eselon', 19, 'delete_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (76, 'Can view eselon', 19, 'view_eselon');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (77, 'Can add Pemda', 20, 'add_pemda');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (78, 'Can change Pemda', 20, 'change_pemda');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (79, 'Can delete Pemda', 20, 'delete_pemda');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (80, 'Can view Pemda', 20, 'view_pemda');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (81, 'Can add Kop Surat', 21, 'add_kopsurat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (82, 'Can change Kop Surat', 21, 'change_kopsurat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (83, 'Can delete Kop Surat', 21, 'delete_kopsurat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (84, 'Can view Kop Surat', 21, 'view_kopsurat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (85, 'Can add Dasar Peraturan', 22, 'add_dasarperaturan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (86, 'Can change Dasar Peraturan', 22, 'change_dasarperaturan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (87, 'Can delete Dasar Peraturan', 22, 'delete_dasarperaturan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (88, 'Can view Dasar Peraturan', 22, 'view_dasarperaturan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (89, 'Can add Jenis Kegiatan', 23, 'add_jeniskegiatan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (90, 'Can change Jenis Kegiatan', 23, 'change_jeniskegiatan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (91, 'Can delete Jenis Kegiatan', 23, 'delete_jeniskegiatan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (92, 'Can view Jenis Kegiatan', 23, 'view_jeniskegiatan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (93, 'Can add Jenis SPD', 24, 'add_jenisspd');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (94, 'Can change Jenis SPD', 24, 'change_jenisspd');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (95, 'Can delete Jenis SPD', 24, 'delete_jenisspd');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (96, 'Can view Jenis SPD', 24, 'view_jenisspd');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (97, 'Can add Jenis Transportasi', 25, 'add_jenistransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (98, 'Can change Jenis Transportasi', 25, 'change_jenistransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (99, 'Can delete Jenis Transportasi', 25, 'delete_jenistransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (100, 'Can view Jenis Transportasi', 25, 'view_jenistransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (101, 'Can add Lokasi', 26, 'add_lokasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (102, 'Can change Lokasi', 26, 'change_lokasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (103, 'Can delete Lokasi', 26, 'delete_lokasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (104, 'Can view Lokasi', 26, 'view_lokasi');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (105, 'Can add Standar Penginapan', 27, 'add_standardpenginapan');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (106, 'Can change Standar Penginapan', 27, 'change_standardpenginapan');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (107, 'Can delete Standar Penginapan', 27, 'delete_standardpenginapan');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (108, 'Can view Standar Penginapan', 27, 'view_standardpenginapan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (109, 'Can add Jenis Kegiatan', 28, 'add_jeniskegiatan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (110, 'Can change Jenis Kegiatan', 28, 'change_jeniskegiatan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (111, 'Can delete Jenis Kegiatan', 28, 'delete_jeniskegiatan');
-INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (112, 'Can view Jenis Kegiatan', 28, 'view_jeniskegiatan');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (109, 'Can add Standar Tiket Pesawat', 28, 'add_standardpesawat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (110, 'Can change Standar Tiket Pesawat', 28, 'change_standardpesawat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (111, 'Can delete Standar Tiket Pesawat', 28, 'delete_standardpesawat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (112, 'Can view Standar Tiket Pesawat', 28, 'view_standardpesawat');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (113, 'Can add Standar Representasi', 29, 'add_standardrepresentasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (114, 'Can change Standar Representasi', 29, 'change_standardrepresentasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (115, 'Can delete Standar Representasi', 29, 'delete_standardrepresentasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (116, 'Can view Standar Representasi', 29, 'view_standardrepresentasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (117, 'Can add Standar Transportasi', 30, 'add_standardtransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (118, 'Can change Standar Transportasi', 30, 'change_standardtransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (119, 'Can delete Standar Transportasi', 30, 'delete_standardtransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (120, 'Can view Standar Transportasi', 30, 'view_standardtransportasi');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (121, 'Can add Standar Uang Harian', 31, 'add_standarduangharian');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (122, 'Can change Standar Uang Harian', 31, 'change_standarduangharian');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (123, 'Can delete Standar Uang Harian', 31, 'delete_standarduangharian');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (124, 'Can view Standar Uang Harian', 31, 'view_standarduangharian');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (125, 'Can add SPT', 32, 'add_spt');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (126, 'Can change SPT', 32, 'change_spt');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (127, 'Can delete SPT', 32, 'delete_spt');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (128, 'Can view SPT', 32, 'view_spt');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (129, 'Can add Pelaksana', 33, 'add_pelaksana');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (130, 'Can change Pelaksana', 33, 'change_pelaksana');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (131, 'Can delete Pelaksana', 33, 'delete_pelaksana');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (132, 'Can view Pelaksana', 33, 'view_pelaksana');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (133, 'Can add Pemberi Tugas', 34, 'add_pemberitugas');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (134, 'Can change Pemberi Tugas', 34, 'change_pemberitugas');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (135, 'Can delete Pemberi Tugas', 34, 'delete_pemberitugas');
+INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (136, 'Can view Pemberi Tugas', 34, 'view_pemberitugas');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (139, 'Can add eselon', 52, 'add_eselon');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (140, 'Can change eselon', 52, 'change_eselon');
 INSERT INTO public.auth_permission (id, name, content_type_id, codename) VALUES (141, 'Can delete eselon', 52, 'delete_eselon');
@@ -236,9 +260,9 @@ ALTER TABLE public.auth_group_permissions ENABLE TRIGGER ALL;
 
 ALTER TABLE public.auth_user DISABLE TRIGGER ALL;
 
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (1, 'pbkdf2_sha256$1000000$YjpAletTzOCcfOcwBIRKVV$MKlTJnH71Qd1E5Q+EkrxYxvTyhtD4KtAiktRiIlZPjg=', '2026-05-04 10:54:42.886082+00', true, 'admin', '', '', '', true, true, '2026-04-14 12:08:07.49271+00');
 INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (9, 'pbkdf2_sha256$1000000$y0brC0d6vhB1BPA5K3kduY$S+FCNYmmT8OdReEmDNMpXROBqD6uxu63mgyA3pOLssY=', '2026-05-04 11:05:32.740168+00', false, 'saleh', '', '', 'asahanbkad@gmail.com', false, true, '2026-05-04 10:58:52.337548+00');
-INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (8, 'pbkdf2_sha256$1000000$YvNcyfgbNksfvaBBumED6j$XNUw9EHib0+HoMBqN59PlZaQfNywex+wwyZFhkic4tE=', '2026-05-04 11:05:59.989439+00', false, 'rahmad', '', '', 'rahmad@gmail.com', false, true, '2026-05-04 06:38:25.087502+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (8, 'pbkdf2_sha256$1000000$YvNcyfgbNksfvaBBumED6j$XNUw9EHib0+HoMBqN59PlZaQfNywex+wwyZFhkic4tE=', '2026-05-06 01:36:00.480062+00', false, 'rahmad', '', '', 'rahmad@gmail.com', false, true, '2026-05-04 06:38:25.087502+00');
+INSERT INTO public.auth_user (id, password, last_login, is_superuser, username, first_name, last_name, email, is_staff, is_active, date_joined) VALUES (1, 'pbkdf2_sha256$1000000$YjpAletTzOCcfOcwBIRKVV$MKlTJnH71Qd1E5Q+EkrxYxvTyhtD4KtAiktRiIlZPjg=', '2026-05-06 04:45:49.33743+00', true, 'admin', '', '', '', true, true, '2026-04-14 12:08:07.49271+00');
 
 
 ALTER TABLE public.auth_user ENABLE TRIGGER ALL;
@@ -319,45 +343,77 @@ ALTER TABLE public.django_admin_log ENABLE TRIGGER ALL;
 
 ALTER TABLE public.django_migrations DISABLE TRIGGER ALL;
 
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (1, 'contenttypes', '0001_initial', '2026-04-14 12:07:20.839525+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (2, 'auth', '0001_initial', '2026-04-14 12:07:25.557187+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (3, 'admin', '0001_initial', '2026-04-14 12:07:26.199463+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (4, 'admin', '0002_logentry_remove_auto_add', '2026-04-14 12:07:26.306469+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (5, 'admin', '0003_logentry_add_action_flag_choices', '2026-04-14 12:07:26.407794+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (6, 'contenttypes', '0002_remove_content_type_name', '2026-04-14 12:07:26.618177+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (7, 'auth', '0002_alter_permission_name_max_length', '2026-04-14 12:07:26.70955+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (8, 'auth', '0003_alter_user_email_max_length', '2026-04-14 12:07:26.793432+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (9, 'auth', '0004_alter_user_username_opts', '2026-04-14 12:07:26.883533+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (10, 'auth', '0005_alter_user_last_login_null', '2026-04-14 12:07:26.976771+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (11, 'auth', '0006_require_contenttypes_0002', '2026-04-14 12:07:27.024532+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (12, 'auth', '0007_alter_validators_add_error_messages', '2026-04-14 12:07:27.106801+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (13, 'auth', '0008_alter_user_username_max_length', '2026-04-14 12:07:27.556939+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (14, 'auth', '0009_alter_user_last_name_max_length', '2026-04-14 12:07:27.673281+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (15, 'auth', '0010_alter_group_name_max_length', '2026-04-14 12:07:27.721097+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (16, 'auth', '0011_update_proxy_permissions', '2026-04-14 12:07:27.761014+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (17, 'auth', '0012_alter_user_first_name_max_length', '2026-04-14 12:07:27.813389+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (18, 'profiles', '0001_initial', '2026-04-14 12:07:29.652107+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (19, 'menus', '0001_initial', '2026-04-14 12:07:31.034179+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (20, 'sessions', '0001_initial', '2026-04-14 12:07:31.576761+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (21, 'umum', '0001_initial', '2026-04-14 12:07:33.876806+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (22, 'umum', '0002_alter_penandatangan_nip', '2026-04-14 12:07:34.087109+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (23, 'umum', '0003_alter_pegawai_options', '2026-04-14 12:07:34.204626+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (24, 'umum', '0004_alter_penandatangan_options', '2026-04-14 12:07:34.386665+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (25, 'umum', '0005_alter_jenisjabatan_nama_alter_pangkat_pangkat_and_more', '2026-04-22 05:15:47.918234+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (26, 'umum', '0006_penandatangan_unique_nama_jenis_jabatan', '2026-04-22 06:41:17.403406+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (27, 'umum', '0007_tingkat', '2026-04-22 08:06:45.068344+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (28, 'umum', '0008_alter_tingkat_ket', '2026-04-22 08:26:17.337312+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (29, 'umum', '0009_pegawai_tingkat', '2026-04-22 09:07:26.678788+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (30, 'umum', '0010_tingkat_kapal_tingkat_keteraapian_tingkat_lainnya_and_more', '2026-04-22 12:17:43.474093+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (31, 'spd', '0001_initial', '2026-04-22 12:26:55.824757+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (64, 'spd', '0002_alter_lokasi_options', '2026-04-23 11:01:37.831813+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (65, 'spd', '0003_remove_standardpenginapan_aktif_and_more', '2026-04-24 02:28:10.756672+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (66, 'umum', '0011_rename_keteraapian_tingkat_keretaapian', '2026-04-24 04:04:27.384614+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (67, 'spd', '0004_lokasi_kota', '2026-04-24 04:45:31.651138+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (68, 'spd', '0005_alter_lokasi_options', '2026-04-24 07:53:44.590272+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (69, 'spd', '0006_standardpenginapan_satuan', '2026-04-24 08:14:03.97357+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (70, 'umum', '0012_alter_pangkat_pangkat_alter_pangkat_ruang_and_more', '2026-04-27 03:32:07.45366+00');
-INSERT INTO public.django_migrations (id, app, name, applied) VALUES (71, 'umum', '0013_jenisjabatan_fungsi_jenisjabatan_keterangan', '2026-04-27 04:30:47.367395+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (1, 'contenttypes', '0001_initial', '2026-05-04 13:14:31.282502+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (2, 'auth', '0001_initial', '2026-05-04 13:14:32.632348+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (3, 'admin', '0001_initial', '2026-05-04 13:14:33.101246+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (4, 'admin', '0002_logentry_remove_auto_add', '2026-05-04 13:14:33.125013+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (5, 'admin', '0003_logentry_add_action_flag_choices', '2026-05-04 13:14:33.153924+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (6, 'contenttypes', '0002_remove_content_type_name', '2026-05-04 13:14:33.203201+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (7, 'auth', '0002_alter_permission_name_max_length', '2026-05-04 13:14:33.235956+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (8, 'auth', '0003_alter_user_email_max_length', '2026-05-04 13:14:33.25492+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (9, 'auth', '0004_alter_user_username_opts', '2026-05-04 13:14:33.288683+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (10, 'auth', '0005_alter_user_last_login_null', '2026-05-04 13:14:33.313363+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (11, 'auth', '0006_require_contenttypes_0002', '2026-05-04 13:14:33.318231+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (12, 'auth', '0007_alter_validators_add_error_messages', '2026-05-04 13:14:33.343732+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (13, 'auth', '0008_alter_user_username_max_length', '2026-05-04 13:14:33.406821+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (14, 'auth', '0009_alter_user_last_name_max_length', '2026-05-04 13:14:33.44743+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (15, 'auth', '0010_alter_group_name_max_length', '2026-05-04 13:14:33.504699+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (16, 'auth', '0011_update_proxy_permissions', '2026-05-04 13:14:33.547184+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (17, 'auth', '0012_alter_user_first_name_max_length', '2026-05-04 13:14:33.580145+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (18, 'profiles', '0001_initial', '2026-05-04 13:14:34.278957+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (19, 'menus', '0001_initial', '2026-05-04 13:14:34.710845+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (20, 'umum', '0001_initial', '2026-05-04 13:14:36.086593+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (21, 'umum', '0002_alter_penandatangan_nip', '2026-05-04 13:14:36.139562+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (22, 'umum', '0003_alter_pegawai_options', '2026-05-04 13:14:36.184172+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (23, 'umum', '0004_alter_penandatangan_options', '2026-05-04 13:14:36.224315+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (24, 'umum', '0005_alter_jenisjabatan_nama_alter_pangkat_pangkat_and_more', '2026-05-04 13:14:36.79619+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (25, 'umum', '0006_penandatangan_unique_nama_jenis_jabatan', '2026-05-04 13:14:36.929854+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (26, 'umum', '0007_tingkat', '2026-05-04 13:14:37.320173+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (27, 'umum', '0008_alter_tingkat_ket', '2026-05-04 13:14:37.378404+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (28, 'umum', '0009_pegawai_tingkat', '2026-05-04 13:14:37.570968+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (29, 'umum', '0010_tingkat_kapal_tingkat_keteraapian_tingkat_lainnya_and_more', '2026-05-04 13:14:37.752024+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (30, 'umum', '0011_rename_keteraapian_tingkat_keretaapian', '2026-05-04 13:14:37.783259+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (31, 'umum', '0012_alter_pangkat_pangkat_alter_pangkat_ruang_and_more', '2026-05-04 13:14:37.907399+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (32, 'umum', '0013_jenisjabatan_fungsi_jenisjabatan_keterangan', '2026-05-04 13:14:38.033196+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (33, 'umum', '0014_eselon', '2026-05-04 13:14:38.230361+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (34, 'umum', '0015_pegawai_eselon', '2026-05-04 13:14:38.39538+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (35, 'umum', '0016_pegawai_unique_pegawai_nip_eselon_jenis_jabatan', '2026-05-04 13:14:38.484903+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (36, 'umum', '0017_alter_pegawai_eselon_alter_pegawai_jenis_jabatan_and_more', '2026-05-04 13:14:38.859551+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (37, 'umum', '0018_alter_pegawai_eselon_alter_pegawai_jenis_jabatan_and_more', '2026-05-04 13:14:39.269227+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (38, 'umum', '0019_alter_pegawai_eselon_alter_pegawai_jenis_jabatan', '2026-05-04 13:14:39.492472+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (39, 'umum', '0020_alter_pegawai_nip', '2026-05-04 13:14:39.549142+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (40, 'umum', '0021_pemda', '2026-05-04 13:14:39.888421+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (41, 'umum', '0022_alter_pemda_options', '2026-05-04 13:14:39.926008+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (42, 'umum', '0023_remove_pemda_jenis_kop_pemda_website_and_more', '2026-05-04 13:14:40.55996+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (43, 'umum', '0024_pemda_ibukota', '2026-05-04 13:14:40.631605+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (44, 'umum', '0025_alter_penandatangan_tugas', '2026-05-04 13:14:40.668869+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (45, 'umum', '0026_remove_penandatangan_uniq_penandatangan_nama_jenis_jabatan_and_more', '2026-05-04 13:14:40.848848+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (46, 'umum', '0027_remove_penandatangan_uniq_penandatangan_nama_tugas_jenis_jabatan_opd_and_more', '2026-05-04 13:14:40.958189+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (47, 'umum', '0028_remove_penandatangan_uniq_penandatangan_nip_nama_tugas_jenis_jabatan_opd_and_more', '2026-05-04 13:14:41.091701+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (48, 'umum', '0029_remove_penandatangan_uniq_penandatangan_nama_tugas_jenis_jabatan_and_more', '2026-05-04 13:14:41.222216+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (49, 'spd', '0001_initial', '2026-05-04 13:14:44.27237+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (50, 'spd', '0002_alter_lokasi_options', '2026-05-04 13:14:44.297721+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (51, 'spd', '0003_remove_standardpenginapan_aktif_and_more', '2026-05-04 13:14:44.418203+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (52, 'spd', '0004_lokasi_kota', '2026-05-04 13:14:44.454874+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (53, 'spd', '0005_alter_lokasi_options', '2026-05-04 13:14:44.49757+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (54, 'spd', '0006_standardpenginapan_satuan', '2026-05-04 13:14:44.559987+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (55, 'perintah', '0001_initial', '2026-05-04 13:14:45.455821+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (56, 'perintah', '0002_spt_tempat_tujuan', '2026-05-04 13:14:45.532758+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (57, 'perintah', '0003_alter_spt_tempat_tujuan', '2026-05-04 13:14:45.603153+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (58, 'perintah', '0004_pemberitugas', '2026-05-04 13:14:46.089374+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (59, 'perintah', '0005_alter_spt_options_remove_spt_nomor_spt_and_more', '2026-05-04 13:14:46.237885+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (60, 'perintah', '0006_pemberitugas_unique_pemberi_tugas_spt_penandatangan', '2026-05-04 13:14:46.337991+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (61, 'perintah', '0007_pemberitugas_nomor_spd', '2026-05-04 13:14:46.39375+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (62, 'perintah', '0008_remove_pemberitugas_unique_pemberi_tugas_spt_penandatangan_and_more', '2026-05-04 13:14:46.69273+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (63, 'perintah', '0009_alter_pemberitugas_nip_alter_pemberitugas_pangkat', '2026-05-04 13:14:46.79826+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (64, 'perintah', '0010_pemberitugas_nomor_urut', '2026-05-04 13:14:46.831976+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (65, 'perintah', '0011_remove_pemberitugas_unique_pemberi_tugas_spt_penandatangan_nomor_spt_nomor_spd_and_more', '2026-05-04 13:14:46.963953+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (66, 'sessions', '0001_initial', '2026-05-04 13:14:47.231067+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (67, 'umum', '0030_alter_pemda_nama_dinas', '2026-05-04 13:14:47.335735+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (68, 'umum', '0031_kopsurat', '2026-05-04 13:14:47.664732+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (69, 'umum', '0032_kopsurat_default_spd_number_format_and_more', '2026-05-04 13:14:47.912181+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (70, 'umum', '0033_remove_kopsurat_footer_alignment_and_more', '2026-05-04 13:14:48.130778+00');
+INSERT INTO public.django_migrations (id, app, name, applied) VALUES (71, 'umum', '0034_alter_kopsurat_default_spt_number_format_and_more', '2026-05-04 13:14:48.196956+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (72, 'umum', '0014_eselon', '2026-04-27 04:37:30.435294+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (73, 'umum', '0015_pegawai_eselon', '2026-04-27 04:38:28.293529+00');
 INSERT INTO public.django_migrations (id, app, name, applied) VALUES (74, 'umum', '0016_pegawai_unique_pegawai_nip_eselon_jenis_jabatan', '2026-04-27 07:03:26.082337+00');
@@ -443,6 +499,7 @@ INSERT INTO public.django_session (session_key, session_data, expire_date) VALUE
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('9bxw8zjtza3qmg5n94va3e0ejm9iy3jv', '.eJxVj0FuwyAQRa9Ssa4sIBjs7Np9pdwADQzEtA5UDESqqt69pMqi2b7__9PMN7PQ22Y7hWoTsiMT7Pk_c-A_Qr4F-A75XCZfcqvJTbfKdE9peisY9td790GwAW1jveo1eFBrVHzFg-MLCql1VAhmRicWx2e1gESNXOM8S81NiIuO3PuDUCEOaYOtZzuOOEOFPJySSz04BaJUsi2f-PdC7vv-SDNcYPRf8JJyolahlfp06gRtzHegZsG3dE3tix2FMYYLo436-QWUaF7f:1wGBTO:Onbc_n8C34yEbzK1XZFfqYJh442fYDsUjP6uvK3EgLw', '2026-04-24 08:06:14.854106+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('a1r718qnt0iq9cn4cr6bk5x1sxnhwacg', '.eJxVj0tuAyEQRK8SsY5GDQZmxrtkH8k3QA0NHpIxRHwsRVHuHhx5EW9fVT11fzODvW2mV19MJHZknD3_Zxbdh0-3gN4xnfPkcmol2ulWme5pnd4y-f313n0QbFi3sV716h3KNUhY6WBhIS60DpJwVmT5YkHJBQVpAk1KCQ2zD4sO4NyBSx-GtOHWkxlHnLFgGk4BQg9efa0xJ5M_6e-F1Pf9kSa84Oi_0CWmWFvBlsvTqVdsY75jbQZdi9fYvtiRz_MMAErwn1-UJl7O:1wG70j:RZ_aLNdO2gWv5PMH7lAXfI8saWwBaLGfifrATdHP37A', '2026-04-24 03:20:21.819865+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('wmo5bpzfvme48emdmb5egasg17nr7900', 'e30:1wJhyt:vqrIod9CI0m1fbk2mfM8-Bq1ebjPQoEOEmQf5WxUWyw', '2026-05-04 01:25:19.077669+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('7kh8olohe20u7doo7by9wbzi4szlkwt7', 'e30:1wK6OJ:yQ-zyve7B_eJ5OxfonrP43ak7ISkARuY3djljIq_Wcg', '2026-05-05 03:29:11.947257+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('df7yd575wi7y5977harwzw2hmahxxrdv', '.eJxVj8tOBCEQRX_FsDYdoHn17HRv4h-QgoJptAcMDxNj_HcZMwtne-69J1XfxMLoux0tVJuQnAgjj_-ZA_8e8jXAN8jnsviSe01uuVaWW9qWl4LheL517wQ7tH2uN7UFD2KLgm64OmqQcaWiQNASHTOOSmGAo0KqUEquqA7RqEi9X5kIcUo77CPbecQZKuTp5JSryVtoLZVsywf-vZDHcdzTDBeY_Se8pJxar9BLfXgdDfqcH9C6Bd_TZ-pf5MS01lyqVZifX5R8XuI:1wHBYy:qhNFt0D4QmqWCPuKyd4PeUaNA-5JxNVQU7lwi0VWaQ8', '2026-04-27 02:24:08.153897+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('eyv3zuhdxpta53md3m0qjs0ngoiveo9h', '.eJxVj0tuAyEQRK8SsY5GgJlmxrtkH8k3QA0NHpIxRHwsRVHuHhx5EW9fVT11fzODvW2mV19MJHZkgj3_Zxbdh0-3gN4xnfPkcmol2ulWme5pnd4y-f313n0QbFi3sV5h9Q7VGhRf6WD5QkICBEWoZ7JisXxWC0oC4kDzLIFrHxYI3LmDUD4MacOtJzOOOGPBNJySSxi8-lpjTiZ_0t8Lqe_7I014wdF_oUtMsbaCLZenU6_YxnzH2gy6Fq-xfbGj0FpzKQDEzy-UR17W:1wGCVh:X4ZiC4XIAp_vbtuQvrjxHkfS0So3OwY_J_a0uto-4C4', '2026-04-24 09:12:41.611433+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('h88ozbh1owmx794zctep280et6fwonkl', 'e30:1wIR8M:ISdUed5aEy2XCbnW8XEIJZO8wphbIw5uceJk9lMuc3A', '2026-04-30 13:13:50.507631+00');
@@ -464,6 +521,7 @@ INSERT INTO public.django_session (session_key, session_data, expire_date) VALUE
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('7ssgkwesh6tkgjgvdlt14xbipirjag07', '.eJxVj0tuAyEQRK8SsY5GgPmNd8k-km-AGho8JGOI-FiKotw9OPIi3r6qeur-JhZG3-xoodqE5EgYef7PHPiPkG8BvkM-l8WX3Gtyy62y3NO2vBUM--u9-yDYoG1zvao1eBBrFHTFg6MGGVcqCgQt0THjqBQGOCqkCqXkiuoQjYrU-wMTIU5ph21kO484Q4U8nZxyNXkLraWSbfnEvxfy2PdHmuECs_-Cl5RT6xV6qU-n0aDP-Q6tW_A9XVP_IkemteaaSWl-fgGUel7i:1wHFWJ:HdSZ57nHZivDE2ibjRSVFOJyzr5lLeuVVVIznjRpKZo', '2026-04-27 06:37:39.097162+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('ii0hj6x53kxngjx43mrf7fugkgui1bbq', '.eJxVj0tuAyEQRK8SsY5GgBk-3iX7SL4BamjwkIwh4mMpinL34MiLePuq6qn7m1gYfbOjhWoTkiNh5Pk_c-A_Qr4F-A75XBZfcq_JLbfKck_b8lYw7K_37oNgg7bNtZEmeBAmCmrw4KhGxqWMAkGt6Jh2dBUaOEqkEteVS6pC1DJS7w9MhDilHbaR7TziDBXydHLK5eQttJZKtuUT_17IY98faYYLzP4LXlJOrVfopT6dRoM-5zu0bsH3dE39ixyZUoorpo36-QWUkF7o:1wHFbl:aZOYrzWD6jFUHllFeKTXGtiIIW9GbiwQoa5pEVILzPA', '2026-04-27 06:43:17.977801+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('c2whbx49bck0h4nm1o1019proaqe4akm', 'e30:1wJia0:ooFLAx766wReWTqNzsf8ZPXOK8V-CWEWh1bu4fQwkTw', '2026-05-04 02:03:40.152569+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('gv9v8ienyucryca55tz6ji2fd0mycvzn', 'e30:1wKS6n:HtsXkKvVNn9vIRPsbBoTNJnZeh4IOGczHxeIrormIXw', '2026-05-06 02:40:33.914701+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('c79hlkuo0w16f5tswooeyfd9tm07c7f9', '.eJxVj0tuAyEQRK8SsY5GgPnMeJfsI_kGqKHBQzKGiI-lKPLdjS0v7O2rqqfuf2Kgt9X06ouJSPaEkfdnZsH9-HQL8BvSMU8up1ainW6V6ZHW6Suj3z4f3RfBCnUd60Ut3oFYgqAL7iydkXGlgkDQEi2bLZViBo4KqUIpuaLah1kF6tyOCR-GtMHakxlHHKFAGk5OuRq8-lpjTib_4v2F1LftlSY4weh_4CmmWFuBlsvboVdoY75BbQZci-fY_sieaa25lkLLyxWUil7k:1wHGXT:jcnwCAjIK1aoqEsvRIUYZGvMckvumtRNf5S1qpQGqaY', '2026-04-27 07:42:55.864555+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('xxr6ip2d5pa9yfy7bm86gm0keu2rtk9v', 'e30:1wJikM:RCRcV3AsXZoDl-TZhZw1OL1XhXuT9ijKuHAx7OVW-p4', '2026-05-04 02:14:22.177115+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('fsfdcvmilpuob701jf3bm8ioo3jxokga', '.eJxVj8tOBCEQRX_FsDYdoHn17HRv4h-QgoJptAcMDxNj_HcZMwtne-69J1XfxMLoux0tVJuQnAgjj_-ZA_8e8jXAN8jnsviSe01uuVaWW9qWl4LheL517wQ7tH2uN7UFD2KLgm64OmqQcaWiQNASHTOOSmGAo0KqUEquqA7RqEi9X5kIcUo77CPbecQZKuTp5JSryVtoLZVsywf-vZDHcdzTDBeY_Se8pJxar9BLfXgdDfqcH9C6Bd_TZ-pf5MS01lxLw9efX5SHXuE:1wHGd5:QTh3W_NsM9kz2Z8gqjkhL7-umxCpdQq6XP2AirMjBqc', '2026-04-27 07:48:43.849013+00');
@@ -536,6 +594,25 @@ INSERT INTO public.django_session (session_key, session_data, expire_date) VALUE
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('nkmi6xo0z12v519k8n53zx9eeocfoiuq', '.eJxVj81uAjEQg1-lyhmtyB-T9Fj1isQbRJNMyqbQpNpkK1WId2eoOJSr7c-yLyLgOuaw9ryEQuJVOLH5r0VMp1zvBn1iPbYptTqWEqd7ZHq4fdo3yue3R_apYMY-Mw0qeq-TtBijtqAcaEkGtQL0lMkY763-gBylIR29VYnIGycdSUKrgEsHzmsNPOKIC1buVFu1Y73n3kuroX3T3wX5LFX8Qg6_l4r95cD7CpUT8xtxxj4CplF-yvhlDgCc805vrzf7e1uE:1wJqMQ:Cibr6BT0gsGEbJBkPIsi2yZBB1mZOQH6blSPlUaXgxk', '2026-05-04 10:22:10.290727+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('f4zodrafvd6w0lqakh11xj00n1yudfku', '.eJxVj0tuAyEQRK8SsY5GgBk-3iX7SL4BamjwkIwh4mMpinL34MiLePuq6qn7m1gYfbOjhWoTkiNh5Pk_c-A_Qr4F-A75XBZfcq_JLbfKck_b8lYw7K_37oNgg7bNtZEmeBAmCmrw4KhGxqWMAkGt6Jh2dBUaOEqkEteVS6pC1DJS7w9MhDilHbaR7TziDBXydHLK5eQttJZKtuUT_17IY98faYYLzP4LXlJOrVfopT6dRoM-5zu0bsH3dE39ixyZUkobxgT9-QWUjV7d:1wJqhY:ClovLECJsaS7Yz2sWBPJ03Ktj1SsS46M-CMLp2HOs14', '2026-05-04 10:44:00.265208+00');
 INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('3oh9resueakcg470zsgnn0xpz6w1mdhn', '.eJxVj0tOAzEQRK-CvEYje-JvdrBHyg2sttvOGCY28icSQtwdB2VBtq-qnrq_iYXRNztaqDYhORJGnv8zB_4j5FuA75DPZfEl95rccqss97QtbwXD_nrvPgg2aNtcG2mCB24ipwYPjmpkq5SRIyiBjmlHBdewokQqUYhVUhWilpF6f2A8xCntsI1s5xFnqJCnc6WrnLyF1lLJtnzi3wt57PsjzXCB2X_BS8qp9Qq91KfTaNDnfIfWLfierql_kSNTSmnDpFA_v5SyXuo:1wJqpt:Rnb1eSzgxE0u1FXfkv0I9_wNDQDsK-Cb3CEWBEY4Efs', '2026-05-04 10:52:37.557701+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('6ozrh8tm6i4tsrxaslnxym7l9b6wdrje', '.eJxVj81uAjEQg1-lyhmtyB-T9Fj1isQbRJNMyqbQpNpkK1WId2eoOJSr7c-yLyLgOuaw9ryEQuJVOLH5r0VMp1zvBn1iPbYptTqWEqd7ZHq4fdo3yue3R_apYMY-Mw0qeq-TtBijtqAcaEkGtQL0lMkY763-gBylIR29VYnIGycdSUKrgEsHzmsNPOKIC1buVFu1Y73n3kuroX3T3wX5LFX8Qg6_l4r95cD7CpUT8xtxxj4CplF-yvhlDgC83Tprrjf7UVt_:1wK6Eg:Kxwc_z5D_mIGiM8yAVeMg-nOKSHb5_ukY076Nw0wjpg', '2026-05-05 03:19:14.67847+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('adswatv4m0uwqdzfvldle15qwjbn6x31', '.eJxVj01uwyAQha9SsY4scAFDl1G2lXoDNGYgpkmgMjhSFOXumURe1Mv53o_e3JmDpU1uqWF2CdkXM2z3n43gTyG_BPyFfCydL7nNaexelm5Va_ddMJz3q3dTMEGdKM21MMiDVJILqUaNETF8cmkVgASrPAZvpLLcDDbCGDRqQ1eM1kehekGlDaYlOxpxhBkydfa818RrqDWV7Mofvl8QW5ThAmQ-pAz144f2JUwnyu_YGWpz4Fu6pnaj3DAMlgvRm8cTLqpb1g:1wJtIe:hPoQGVn-zqix3pE5ZiehqgZP-5t9K0FeXF5dDQKLA5U', '2026-05-04 13:30:28.546454+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('3i8ri8fb7rsdf95muadkefqws47r9mot', '.eJxVj8tuwyAQRX8lYh1Z4ACGLKNuK_UP0JiBmDygMrhSFeXfO668SJZz7kN3HszB0ia31DC7hOzIDNu_shH8NeRVwAvkc-l8yW1OY7dauk2t3WfBcDtt3reCCepEaa6FQR6kklxINWqMiOHApVUAEqzyGLyRynIz2Ahj0KgNXTFaH4XqBZU2mJbsaMQZZsjU2fNeE6-h1lSyK9_4_4J4RxnuQOaPlKHuvmhfwnSl_J7doDYHvqWf1H4pNwyDlQfO1fMPLrxb1g:1wK4C6:YrFi2X5w0G-5_jNjklmZh2Nr_F4oHyI-Z4GsalJWhYM', '2026-05-05 01:08:26.068735+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('33pi1jxjemgaeb7emkqp3f8xp0fps5dz', 'e30:1wK4HM:jw7j8peVDleRkjOsOXynbvJgVwB_tD0cdsYqeEOC1gk', '2026-05-05 01:13:52.31762+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('o3obdlxpvvyhgcvn3tqf0m86aw3sd8hd', '.eJxVj81uwjAQhF8F-Yyi-i8bc6y4IvEG1tpriIHaKHYqVVXfvUvFoVxn5hvNfAuPa5_92tLiM4mdmMT2vxYwXlN5GHTBcq5DrKUvOQyPyPB023ColG7vz-xLwYxtZhpUcE5HaTEEbUFNoCUZ1ArQUSJjnLP6BClIQzo4qyKRM5OcSBJaBVzacV6L5xFnXLBwp3pTI-sttZZr8fVOfxfkq1TwAzm8zwXb5sj7MuUr81txw9Y9xp4_c_9iDgCcMeM4_vwC-15bgw:1wK4cs:h51ThKPF0_C4qAi95Oj6JLc9Nkam2lxXkvJKHoxx2ho', '2026-05-05 01:36:06.540496+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('oiob1sx9sy6dkn6tkyetni48a5vdj873', 'e30:1wK4mS:poi0K4Ax5VRlrVOFzJ6xjcQJUTa23NFhcX9WnDX3MDI', '2026-05-05 01:46:00.182613+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('ocwraszhw4h73cn6ajsoxdxrd9i5xum4', '.eJxVj81uAjEQg1-lyhmtyB-T9Fj1Wok3iCaZlE2BpNpkkaqKd2eoOJSr7c-yf0XAdcxh7XkJhcSrcGLzX4uYjrneDfrCemhTanUsJU73yPRw-_TRKJ_eHtmnghn7zDSo6L1O0mKM2oJyoCUZ1ArQUyZjvLf6E3KUhnT0ViUib5x0JAmtAi4dOK818IgDLli5U23VjvWeey-thvZNfxfks1TxjBx-LxX7y573FSpH5jfihH0ETKNcyvhhDgC8sU7B9Qb7YVuD:1wK4vb:V-HJ7KeVDrnFnE9Kl0jvVqbaKwicnWrhyR_j27fV9rc', '2026-05-05 01:55:27.993055+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('78yjd99imfmzd8f2u4rhw92w1pj1hzue', 'e30:1wK50c:DwWLLpRVT7rF_2NdOUTZlPBccxyWimvI85kFTGUn8nI', '2026-05-05 02:00:38.133704+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('2nzm53fqy698e3kzk8e9hffb3zd0wzgl', '.eJxVj8FuAyEQQ3-l4hytAgMBeoxyrdQ_QANDszQJVAtbqary75lUOTRX28-yf0XAdcxh7XkJhcSrcGLzX4uYTrneDfrEemxTanUsJU73yPRw-_TWKJ_3j-xTwYx9Ztqq6D0kaTBGMFY5C5I0grLoKZPW3hv4sDlKTRC9UYnIaycdSUKjLJcOnNcaeMQRF6zcqbZqx3rPvZdWQ_uivwvyWap4QQ4fSsX-8s77CpUT8xtxxj4CplG-y_hhzlq3Bb0DuN4A-xJbdA:1wKS1x:K_cL8kywzPobU27dAOxBkmKq25MUZUDHcRJTm0mBMEc', '2026-05-06 02:35:33.148836+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('pxpp44fks4slb85fyp36aatlkdcrskms', '.eJxVj0tuAyEQRK8SsY5GgBkGvEv2kXwD1NDgIRlDxMdSFPnuxpYX9vZV1VP3PzHQ22p69cVEJHvCyPszs-B-fLoF-A3pmCeXUyvRTrfK9Ejr9JXRb5-P7otghbqOtZbaOxA6CKpxZ6lCxqUMAmGZ0TJl6SwUcJRIJc4zl3TxQclAndsx4cOQNlh7MuOIIxRIw8kpl4NXX2vMyeRfvL-Q-ra90gQnGP0PPMUUayvQcnk79AptzDeozYBr8RzbH9mzZVFUMK3U5QqUe17l:1wKTwb:xRTu9t-fCVMVNi2eKmG_L-mWlPgWF6jHUs85VNF6w3Y', '2026-05-06 04:38:09.059666+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('p1966g5oepzxmjbuwspu8ond9tk6w6xa', '.eJxVj81OAzEQg18F5VytyF9nhyPiWqlvEE0yoRtaErTJIiHEuzNFPdCr7c-yv1WgbSxh63kNhdWTmtXuvxYpnXO9GvxG9dSm1OpYS5yukenm9unQOF-eb9m7goX6IjSYiGiT9hSj9WBmsJodWQOEnNk5RG9fIUft2Eb0JjGjm_XMmskbkNJBy1aDjDjRSlU6zaPZi95z76XV0D7474K-lyq9k4RfSqX-cJR9hctZ-J26UB-B0iifZXwJBwDoYA_48wv7dluK:1wK5PU:sFEA8DbfhI73UwrubEvdJ0pYwMD_7YyKeOCKiy5nYz0', '2026-05-05 02:26:20.001588+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('klgl7srf8p5p5dwj3nmhjljzh7m9dr6x', '.eJxVj0tuAyEQRK8SsY5GgIFhvEv2kXwD1NDgIRlDxMdSFPnuxpYX9vZV1VP3PzHQ22p69cVEJHvCyPszs-B-fLoF-A3pmCeXUyvRTrfK9Ejr9JXRb5-P7otghbqO9aIW70AsQdAFd5ZqZFypIBBmiZZpS6XQwFEhVSglV3T2QatAndsx4cOQNlh7MuOIIxRIw8kpV4NXX2vMyeRfvL-Q-ra90gQnGP0PPMUUayvQcnk79AptzDeozYBr8RzbH9mzedZUcEHl5QqUTl7W:1wKU3K:oLAf7jda09jEGeuGmvvTDXuFqBoNzBn29-GXPejnOjI', '2026-05-06 04:45:06.094932+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('85n8pcuhn7r8kjzi9dqcpx83obbrwf2j', '.eJxVj81uAjEMhF-lyhmtyB_e9Fj1isQbRE4c2ABNqk22UoV4dwziANeZ-cbji_C49MkvLc0-k_gUo1i9agHjKZW7QUcshzrEWvqcw3CPDE-3DdtK6fz1zL4VTNgmpkEF53SUFkPQFtQIWpJBrQAdJTLGOav3kII0pIOzKhI5M8qRJKFVwKUdp6V4HnHAGQt3qrXasN5Sa7kWX3_p8YJ8lwr-IIe_c8H2seN9mfKJ-ZU4Y-seY89_uf8zBwB8cmPhegP7cVuH:1wK5fF:YSyrTMWUxTAuPGc08XW0atVmPJ9l7TTvzR7IQoDpvog', '2026-05-05 02:42:37.889357+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('rv4fpf56werbv8awmx29151w7j7vgl5c', 'e30:1wK5xr:qXiOvvaU-xUTsrxxXqq8YrjiAoKjFK2yp-pALSRxj8Y', '2026-05-05 03:01:51.610288+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('p448eb6r51mdqa95yy0c667suyvaq65j', 'e30:1wK5xr:qXiOvvaU-xUTsrxxXqq8YrjiAoKjFK2yp-pALSRxj8Y', '2026-05-05 03:01:51.624648+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('rmaixvakmqtu83r2l4pvn0yxnni6s5m8', 'e30:1wK5xr:qXiOvvaU-xUTsrxxXqq8YrjiAoKjFK2yp-pALSRxj8Y', '2026-05-05 03:01:51.62599+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('3z2vfees3w8tvp9fdsj5ew79lxsx1uk1', 'e30:1wK5xr:qXiOvvaU-xUTsrxxXqq8YrjiAoKjFK2yp-pALSRxj8Y', '2026-05-05 03:01:51.818871+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('ivnzoseb4cw028536ioyshf13v2tpq9i', '.eJxVj81uAjEQg18F5YxW5K-z4Yi4IvEG0SSTsimQoE0WCVV99w4Vh3K1_Vn2t_C49MkvLc0-k9iKUaz_awHjOZWnQV9YTnWItfQ5h-EZGV5uGw6V0mX3yr4VTNgmpkEF53SUFkPQFtQIWpJBrQAdJTLGOas_IQVpSAdnVSRyZpQjSUKrgEs7TkvxPOKEMxbuVBv1wXpLreVafL3R3wX5LhW8Iof3uWBbHXlfpnxmfi0u2LrH2PM99wdzAODsRoL5-QX7O1t6:1wK63i:x5RYeqkgVFzXrJL1K4KMptzyXje6zKwl_8m5Zz5cju4', '2026-05-05 03:07:54.866332+00');
+INSERT INTO public.django_session (session_key, session_data, expire_date) VALUES ('c9idwwdcj4tazifh3shbkfi3hux6ns2j', '.eJxVj0tuAyEQRK8SsY5GgIFhvEv2kXwD1NDgIRlDxMdSFPnuxpYX9vZV1VP3PzHQ22p69cVEJHvCyPszs-B-fLoF-A3pmCeXUyvRTrfK9Ejr9JXRb5-P7otghbqO9aIW70AsQdAFd5ZqZFypIBBmiZZpS6XQwFEhVSglV3T2QatAndsx4cOQNlh7MuOIIxRIw8kpV4NXX2vMyeRfvL-Q-ra90gQnGP0PPMUUayvQcnk79AptzDeozYBr8RzbH9mzedZUCCHl5QqUZ17d:1wKUaN:ix3nFLocv8-gzAMJr-osfDbO8FVAv4xEytZiof9wVe8', '2026-05-06 05:19:15.342721+00');
 
 
 ALTER TABLE public.django_session ENABLE TRIGGER ALL;
@@ -546,9 +623,9 @@ ALTER TABLE public.django_session ENABLE TRIGGER ALL;
 
 ALTER TABLE public.menus_menu DISABLE TRIGGER ALL;
 
+INSERT INTO public.menus_menu (id, nama, icon, urutan) VALUES (1, 'Umum', 'ti-settings', 2);
 INSERT INTO public.menus_menu (id, nama, icon, urutan) VALUES (2, 'Admin', 'ti-settings-automation', 0);
 INSERT INTO public.menus_menu (id, nama, icon, urutan) VALUES (3, 'Peraturan', 'ti-shield-lock', 1);
-INSERT INTO public.menus_menu (id, nama, icon, urutan) VALUES (1, 'Umum', 'ti-settings', 2);
 INSERT INTO public.menus_menu (id, nama, icon, urutan) VALUES (4, 'Perintah', 'ti-settings', 3);
 
 
@@ -560,7 +637,7 @@ ALTER TABLE public.menus_menu ENABLE TRIGGER ALL;
 
 ALTER TABLE public.menus_submenu DISABLE TRIGGER ALL;
 
-INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (1, 'Pegawai', 'pegawai_list', 0, 1);
+INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (1, 'Kop Surat', 'kop_surat_list', 8, 1);
 INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (2, 'Pejabat', 'penandatangan_list', 1, 1);
 INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (3, 'Role', 'permission_page', 1, 2);
 INSERT INTO public.menus_submenu (id, nama, url, urutan, menu_id) VALUES (8, 'User Profile', 'userprofile_list', 0, 2);
@@ -809,6 +886,7 @@ INSERT INTO public.perintah_spt (id, dasar, berita, lama_perjalanan, tgl_berangk
 INSERT INTO public.perintah_spt (id, dasar, berita, lama_perjalanan, tgl_berangkat, tgl_kembali, kendaraan, jenis_kegiatan_id, kota_tujuan_id, tempat_tujuan) VALUES (5, '', 'Koordinasi dan Konsultasi terkait Pembayaran Dana Sertifikasi PNSD Pemerintah Kabupaten Asahan', 4, '2026-05-04', '2026-05-07', 'transport_umum', 1, 13, 'Kementerian Pendidikan dan Kebudayaan Republik Indonesia');
 INSERT INTO public.perintah_spt (id, dasar, berita, lama_perjalanan, tgl_berangkat, tgl_kembali, kendaraan, jenis_kegiatan_id, kota_tujuan_id, tempat_tujuan) VALUES (6, 'sadsdsadsddsdas', 'asdasdasdasdasdsadsdasdac', 4, '2026-05-04', '2026-05-07', 'transport_umum', 1, 13, 'ddsdsdsds');
 INSERT INTO public.perintah_spt (id, dasar, berita, lama_perjalanan, tgl_berangkat, tgl_kembali, kendaraan, jenis_kegiatan_id, kota_tujuan_id, tempat_tujuan) VALUES (7, 'asdasdas', 'sadasdasda', 4, '2026-05-06', '2026-05-09', 'transport_umum', 1, 1, 'dsdsad');
+INSERT INTO public.perintah_spt (id, dasar, berita, lama_perjalanan, tgl_berangkat, tgl_kembali, kendaraan, jenis_kegiatan_id, kota_tujuan_id, tempat_tujuan) VALUES (8, 'Surat Kepala KPPN Tanjungbalai No. S-291/KPN.0206/2026 Tanggal 30 April 2026 Hal : Press Release Kinerja APBN, Evaluasi Pelaksana Anggaran, Forum Konsultasi Publik dan KPPN Tanjungbalai Award Semester II Tahun 2025', 'Menghadiri Acara Sosialisasi Anti Gratifikasi, Press Release Kinerja APBN s.d April 2026, Evaluasi Pelaksana Anggaran s.d April 2026, Forum Konsultasi Publik/ Stakeholders Day dan KPPN Tanjungbalai Award atas Kinerja Semester II Tahun 2025', 1, '2026-05-06', '2026-05-06', 'kendaraan_dinas', 2, 69, 'Aula KPPN Tanjungbalai Jl. Jenderal Sudirman No. 101');
 
 
 ALTER TABLE public.perintah_spt ENABLE TRIGGER ALL;
@@ -1054,6 +1132,8 @@ INSERT INTO public.perintah_pelaksana (id, nama_id, spt_id) VALUES (20, 49, 6);
 INSERT INTO public.perintah_pelaksana (id, nama_id, spt_id) VALUES (21, 48, 6);
 INSERT INTO public.perintah_pelaksana (id, nama_id, spt_id) VALUES (22, 49, 7);
 INSERT INTO public.perintah_pelaksana (id, nama_id, spt_id) VALUES (24, 50, 7);
+INSERT INTO public.perintah_pelaksana (id, nama_id, spt_id) VALUES (25, 3, 8);
+INSERT INTO public.perintah_pelaksana (id, nama_id, spt_id) VALUES (26, 25, 8);
 
 
 ALTER TABLE public.perintah_pelaksana ENABLE TRIGGER ALL;
@@ -1066,11 +1146,11 @@ ALTER TABLE public.umum_penandatangan DISABLE TRIGGER ALL;
 
 INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (1, 'Taufik Zainal Abidin', NULL, 'Bupati', 1, 57, NULL);
 INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (2, 'Rianto', NULL, 'Wakil Bupati', 1, 58, NULL);
-INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (4, 'Idris', '197305071992032045', 'PPK', 1, 27, 14);
-INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (3, 'Sri Lusi Masdiany, S.I.P.', '197305071992032001', 'Kepala', 1, 27, 14);
 INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (6, 'Drs. H. Zainal Aripin Sinaga, M.H.', '196703071993031010', 'Sekretaris Daerah', 1, 24, 15);
 INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (7, 'Budi Sianturi', '196703071993031020', 'Kepala', 1, 1, 13);
 INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (8, 'Azrai Sinaga', '199002042005011001', 'PPK', 1, 1, 10);
+INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (3, 'Sri Lusi Masdiany, S.I.P.', '197305071992032001', 'Kepala', 2, 27, 14);
+INSERT INTO public.umum_penandatangan (id, nama, nip, tugas, jenis_jabatan_id, opd_id, pangkat_id) VALUES (4, 'M. Idris, S.Pd.I.,M.Si.', '198004212009011002', 'PPK', 1, 27, 13);
 
 
 ALTER TABLE public.umum_penandatangan ENABLE TRIGGER ALL;
@@ -1092,6 +1172,7 @@ INSERT INTO public.perintah_pemberitugas (id, nama, nip, pangkat, tugas, jenis_j
 INSERT INTO public.perintah_pemberitugas (id, nama, nip, pangkat, tugas, jenis_jabatan, opd, penandatangan_id, spt_id, nomor_spt, tanggal_spt, nomor_spd, nomor_urut) VALUES (11, 'Budi Sianturi', '196703071993031020', 'Pembina', 'Kepala', 'Defenitif', 'Dinas Pendidikan', 7, 6, '', '2026-05-03', '', '');
 INSERT INTO public.perintah_pemberitugas (id, nama, nip, pangkat, tugas, jenis_jabatan, opd, penandatangan_id, spt_id, nomor_spt, tanggal_spt, nomor_spd, nomor_urut) VALUES (12, 'Budi Sianturi', '196703071993031020', 'Pembina', 'Kepala', 'Defenitif', 'Dinas Pendidikan', 7, 7, '', '2026-05-04', '', '');
 INSERT INTO public.perintah_pemberitugas (id, nama, nip, pangkat, tugas, jenis_jabatan, opd, penandatangan_id, spt_id, nomor_spt, tanggal_spt, nomor_spd, nomor_urut) VALUES (13, 'Taufik Zainal Abidin', '', '', 'Bupati', 'Defenitif', 'Bupati Asahan', 1, 7, '', '2026-05-04', '', '');
+INSERT INTO public.perintah_pemberitugas (id, nama, nip, pangkat, tugas, jenis_jabatan, opd, penandatangan_id, spt_id, nomor_spt, tanggal_spt, nomor_spd, nomor_urut) VALUES (14, 'Sri Lusi Masdiany, S.I.P.', '197305071992032001', 'Pembina Tk.  I', 'Kepala', 'Plt.', 'Badan Keuangan Dan Aset Daerah', 3, 8, '', '2026-05-06', '', '');
 
 
 ALTER TABLE public.perintah_pemberitugas ENABLE TRIGGER ALL;
@@ -1798,11 +1879,11 @@ ALTER TABLE public.umum_pemda ENABLE TRIGGER ALL;
 
 ALTER TABLE public.umum_kopsurat DISABLE TRIGGER ALL;
 
-INSERT INTO public.umum_kopsurat (id, font_family, region_font_size_pt, office_font_size_pt, address_font_size_pt, contact_font_size_pt, logo_width_px, logo_height_px, print_scale_percent, pemda_id, default_spd_number_format, default_spt_number_format, margin_bottom_mm, margin_left_mm, margin_right_mm, margin_top_mm) VALUES (3, 'Arial, sans-serif', 14, 20, 12, 10, 90, 90, 90, 1, '800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}', '800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}', 1, 1, 1, 1);
 INSERT INTO public.umum_kopsurat (id, font_family, region_font_size_pt, office_font_size_pt, address_font_size_pt, contact_font_size_pt, logo_width_px, logo_height_px, print_scale_percent, pemda_id, default_spd_number_format, default_spt_number_format, margin_bottom_mm, margin_left_mm, margin_right_mm, margin_top_mm) VALUES (4, 'Arial, sans-serif', 14, 20, 12, 10, 80, 80, 96, 4, '800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}', '800.1.11.1/{nomor_urut}/SEKDA/{bulan}/{tahun}', 1, 1, 1, 1);
 INSERT INTO public.umum_kopsurat (id, font_family, region_font_size_pt, office_font_size_pt, address_font_size_pt, contact_font_size_pt, logo_width_px, logo_height_px, print_scale_percent, pemda_id, default_spd_number_format, default_spt_number_format, margin_bottom_mm, margin_left_mm, margin_right_mm, margin_top_mm) VALUES (1, 'Arial, sans-serif', 14, 20, 12, 10, 160, 0, 90, 2, '800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}', '800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}', 1, 1, 1, 1);
 INSERT INTO public.umum_kopsurat (id, font_family, region_font_size_pt, office_font_size_pt, address_font_size_pt, contact_font_size_pt, logo_width_px, logo_height_px, print_scale_percent, pemda_id, default_spd_number_format, default_spt_number_format, margin_bottom_mm, margin_left_mm, margin_right_mm, margin_top_mm) VALUES (2, 'Arial, sans-serif', 14, 20, 10, 10, 160, 0, 96, 3, '800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}', '800.1.11.1/{nomor_urut}/{bulan}/{tahun}', 1, 1, 1, 1);
 INSERT INTO public.umum_kopsurat (id, font_family, region_font_size_pt, office_font_size_pt, address_font_size_pt, contact_font_size_pt, logo_width_px, logo_height_px, print_scale_percent, pemda_id, default_spd_number_format, default_spt_number_format, margin_bottom_mm, margin_left_mm, margin_right_mm, margin_top_mm) VALUES (5, 'Arial, sans-serif', 14, 20, 10, 10, 90, 90, 96, 5, '800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}', '800.1.11.1/{nomor_urut}/DISDIK/{bulan}/{tahun}', 1, 1, 1, 1);
+INSERT INTO public.umum_kopsurat (id, font_family, region_font_size_pt, office_font_size_pt, address_font_size_pt, contact_font_size_pt, logo_width_px, logo_height_px, print_scale_percent, pemda_id, default_spd_number_format, default_spt_number_format, margin_bottom_mm, margin_left_mm, margin_right_mm, margin_top_mm) VALUES (3, 'Arial, sans-serif', 14, 18, 12, 10, 80, 80, 90, 1, '800.1.11.1/{nomor_urut}/SPD/{bulan}/{tahun}', '800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}', 1, 1, 1, 1);
 
 
 ALTER TABLE public.umum_kopsurat ENABLE TRIGGER ALL;
@@ -1895,21 +1976,21 @@ SELECT pg_catalog.setval('public.menus_submenu_id_seq', 27, true);
 -- Name: perintah_pelaksana_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.perintah_pelaksana_id_seq', 24, true);
+SELECT pg_catalog.setval('public.perintah_pelaksana_id_seq', 26, true);
 
 
 --
 -- Name: perintah_pemberitugas_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.perintah_pemberitugas_id_seq', 13, true);
+SELECT pg_catalog.setval('public.perintah_pemberitugas_id_seq', 14, true);
 
 
 --
 -- Name: perintah_spt_id_seq; Type: SEQUENCE SET; Schema: public; Owner: raselstr
 --
 
-SELECT pg_catalog.setval('public.perintah_spt_id_seq', 7, true);
+SELECT pg_catalog.setval('public.perintah_spt_id_seq', 8, true);
 
 
 --
@@ -2070,5 +2151,5 @@ SELECT pg_catalog.setval('public.umum_tingkat_id_seq', 4, true);
 -- PostgreSQL database dump complete
 --
 
-\unrestrict QxTcpy033N5DzOVdIhSbaOCHNLlcabB11SapxSLSzXRa8CAIE7g1yTQsQUcL1k7
+\unrestrict nE5frUVJnypQqEGaLzEmzlJKdMtwZsp0hbW4c9JkNVsHNo1cgu9hYwpVEOlDQ7z
 
