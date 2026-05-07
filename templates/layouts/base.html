@@ -27,7 +27,7 @@
   data-logout-url="{% url 'logout' %}"
   data-timeout-logout-url="{% url 'timeout_logout' %}"
   data-session-heartbeat-url="{% url 'session_heartbeat' %}"
-  data-idle-timeout-ms="300000">
+  data-idle-timeout-ms="1800000">
   {% block loader %}
     {% include 'includes/loader.html' %}
   {% endblock loader %}
@@ -51,7 +51,7 @@
         return;
       }
 
-      const idleTimeoutMs = Number(body.dataset.idleTimeoutMs || 300000);
+      const idleTimeoutMs = Number(body.dataset.idleTimeoutMs || 1800000);
       const loginUrl = body.dataset.loginUrl;
       const timeoutLogoutUrl = body.dataset.timeoutLogoutUrl;
       const heartbeatUrl = body.dataset.sessionHeartbeatUrl;

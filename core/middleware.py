@@ -11,7 +11,7 @@ from django.utils import timezone
 class SessionSecurityMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        self.timeout_seconds = getattr(settings, "IDLE_TIMEOUT_SECONDS", 300)
+        self.timeout_seconds = getattr(settings, "IDLE_TIMEOUT_SECONDS", 1800)
 
     def __call__(self, request):
         if self._is_asset_path(request.path):

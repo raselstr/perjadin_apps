@@ -62,7 +62,7 @@ def login_view(request):
 
     return render(request, 'auth/login.html', {
         'next_url': next_url,
-        'idle_timeout_minutes': 5,
+        'idle_timeout_minutes': 30,
     })
 
 
