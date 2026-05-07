@@ -8,7 +8,6 @@
 <style>
 @page {
     size: A4;
-    margin: 0;
 }
 
 html,
@@ -24,7 +23,15 @@ body {
     background: #eef2f7;
 }
 
-
+:root {
+    --content-scale: "1";
+    --letterhead-top-padding: 10mm;
+    --letterhead-side-padding: 10mm;
+    --document-margin-top: {{ kop_surat.margin_top_mm|default:18 }}mm;
+    --document-margin-right: {{ kop_surat.margin_right_mm|default:18 }}mm;
+    --document-margin-bottom: {{ kop_surat.margin_bottom_mm|default:20 }}mm;
+    --document-margin-left: {{ kop_surat.margin_left_mm|default:18 }}mm;
+}
 
 {% include "components/pdf/kop_surat_styles.html" %}
 {% include "components/pdf/page_footer_styles.html" %}
@@ -45,16 +52,29 @@ body {
 
 .letterhead-shell {
     padding: var(--letterhead-top-padding) var(--letterhead-side-padding) 0;
+    box-sizing: border-box;
 }
 
 .document-body-frame {
-    margin: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm;
+    margin:
+        var(--document-margin-top)
+        var(--document-margin-right)
+        var(--document-margin-bottom)
+        var(--document-margin-left);
+    box-sizing: border-box;
 }
 
 .document-body-scale {
-    width: calc(100% / var(--content-scale));
-    transform-origin: top left;
-    zoom: var(--content-scale);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media screen {
+    .document-body-scale {
+        width: calc(100% / var(--content-scale));
+        transform-origin: top left;
+        zoom: var(--content-scale);
+    }
 }
 
 .pdf-header {
@@ -107,7 +127,7 @@ body {
 
 .document-number-line {
     display: grid;
-    grid-template-columns: auto 12px minmax(250px, auto);
+    grid-template-columns: auto 12px minmax(0, 1fr);
     column-gap: 4px;
     margin-top: 8px;
     text-align: left;
@@ -115,13 +135,24 @@ body {
 
 .document-number-value {
     display: inline-block;
-    min-width: 250px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .main-table {
     width: 100%;
     border-collapse: collapse;
     table-layout: fixed;
+}
+
+.main-table td,
+.sub-table td,
+.meta-table td,
+.document-number-value,
+.footer {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    box-sizing: border-box;
 }
 
 .main-table td {
@@ -201,6 +232,7 @@ body {
 
 .footer {
     width: 350px;
+    max-width: 100%;
     margin-left: auto;
     margin-top: 26px;
     line-height: 1.2;
@@ -224,9 +256,11 @@ body {
 }
 
 @supports not (zoom: 1) {
-    .document-body-scale {
-        width: calc(100% / var(--content-scale));
-        transform: scale(var(--content-scale));
+    @media screen {
+        .document-body-scale {
+            width: calc(100% / var(--content-scale));
+            transform: scale(var(--content-scale));
+        }
     }
 }
 
@@ -236,10 +270,24 @@ body {
     }
 
     .page {
-        width: 210mm;
-        min-height: 297mm;
+        width: auto;
+        min-height: auto;
         margin: 0;
         box-shadow: none;
+    }
+
+    .letterhead-shell {
+        padding: 0;
+    }
+
+    .document-body-frame {
+        margin: 0;
+    }
+
+    .document-body-scale {
+        width: 100%;
+        zoom: 1;
+        transform: none;
     }
 }
 </style>
