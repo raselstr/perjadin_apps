@@ -236,6 +236,9 @@ class PelaksanaForm(BaseAppModelForm):
 
 
 class BasePelaksanaInlineFormSet(BaseInlineFormSet):
+    minimum_message = (
+        "Minimal 1 pelaksana harus dipilih sebelum SPT disimpan."
+    )
     duplicate_message = (
         "Pelaksana yang sama tidak boleh dipilih lebih dari satu kali "
         "dalam satu SPT."
@@ -245,17 +248,21 @@ class BasePelaksanaInlineFormSet(BaseInlineFormSet):
         super().clean()
 
         selected_rows = {}
+        blank_rows = []
         has_duplicate = False
 
         for index, form in enumerate(self.forms, start=1):
-            if not hasattr(form, "cleaned_data") or not form.cleaned_data:
+            if not hasattr(form, "cleaned_data"):
                 continue
 
-            if form.cleaned_data.get("DELETE"):
+            cleaned_data = form.cleaned_data
+
+            if cleaned_data.get("DELETE"):
                 continue
 
-            pelaksana = form.cleaned_data.get("nama")
+            pelaksana = cleaned_data.get("nama")
             if not pelaksana:
+                blank_rows.append((index, form))
                 continue
 
             if pelaksana.pk in selected_rows:
@@ -271,6 +278,14 @@ class BasePelaksanaInlineFormSet(BaseInlineFormSet):
                 continue
 
             selected_rows[pelaksana.pk] = index
+
+        if not selected_rows:
+            if blank_rows:
+                blank_rows[0][1].add_error(
+                    "nama",
+                    "Pilih minimal 1 pelaksana.",
+                )
+            raise forms.ValidationError(self.minimum_message)
 
         if has_duplicate:
             raise forms.ValidationError(self.duplicate_message)

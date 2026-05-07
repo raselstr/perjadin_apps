@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
 from django.views import View
 
 from core.crud.base import BaseCRUDView, BaseMasterDetailCRUDView
@@ -177,6 +178,20 @@ class PemberiTugasView(BaseCRUDView):
 
 class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
     template_name = ""
+    frame_content_security_policy = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' https://code.jquery.com "
+        "https://cdn.jsdelivr.net https://unpkg.com; "
+        "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net "
+        "https://unpkg.com; "
+        "img-src 'self' data: blob:; "
+        "font-src 'self' data: https://cdn.jsdelivr.net; "
+        "connect-src 'self'; "
+        "frame-ancestors 'self'; "
+        "base-uri 'self'; "
+        "form-action 'self'; "
+        "object-src 'none'"
+    )
 
     def get_base_queryset(self):
         queryset = PemberiTugas.objects.select_related(
@@ -291,7 +306,12 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
     def get(self, request, pk):
         pemberi_tugas = self.get_object(pk)
         context = self.get_context_data(pemberi_tugas)
-        return render(request, self.template_name, context)
+        response = render(request, self.template_name, context)
+        response["X-Frame-Options"] = "SAMEORIGIN"
+        response["Content-Security-Policy"] = (
+            self.frame_content_security_policy
+        )
+        return response
 
 
 class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
@@ -352,3 +372,68 @@ class PemberiTugasPrintSpdView(PemberiTugasPrintBaseView):
             "show_followers": len(followers) > 0,
         })
         return context
+
+
+class PemberiTugasPreviewBaseView(PemberiTugasPrintBaseView):
+    template_name = "components/pdf/preview_modal.html"
+    document_code = ""
+    preview_title = "Preview Dokumen"
+    print_url_name = ""
+    unavailable_message = "Dokumen tidak tersedia untuk dicetak."
+
+    def can_preview(self, pemberi_tugas):
+        return True
+
+    def get_iframe_src(self, pemberi_tugas):
+        return (
+            reverse(self.print_url_name, args=[pemberi_tugas.pk])
+            + "?autoprint=0"
+        )
+
+    def get_context_data(self, pemberi_tugas):
+        iframe_src = self.get_iframe_src(pemberi_tugas)
+        document_code = (self.document_code or "").upper() or "DOKUMEN"
+
+        return {
+            "title": self.preview_title,
+            "document_code": document_code,
+            "preview_description": (
+                f"Tinjau {document_code} terlebih dahulu sebelum dicetak."
+            ),
+            "iframe_src": iframe_src,
+            "open_url": iframe_src,
+            "frame_id": (
+                f"print-preview-frame-"
+                f"{self.document_code or 'document'}-{pemberi_tugas.pk}"
+            ),
+            "print_button_label": f"Cetak {document_code}",
+        }
+
+    def get(self, request, pk):
+        pemberi_tugas = self.get_object(pk)
+
+        if not self.can_preview(pemberi_tugas):
+            raise Http404(self.unavailable_message)
+
+        context = self.get_context_data(pemberi_tugas)
+        return render(request, self.template_name, context)
+
+
+class PemberiTugasPreviewSptView(PemberiTugasPreviewBaseView):
+    document_code = "spt"
+    preview_title = "Preview SPT"
+    print_url_name = "pemberi_tugas_print_spt"
+    unavailable_message = "SPT tidak tersedia untuk dicetak."
+
+    def can_preview(self, pemberi_tugas):
+        return pemberi_tugas.can_print_spt
+
+
+class PemberiTugasPreviewSpdView(PemberiTugasPreviewBaseView):
+    document_code = "spd"
+    preview_title = "Preview SPD"
+    print_url_name = "pemberi_tugas_print_spd"
+    unavailable_message = "SPD tidak tersedia untuk dicetak."
+
+    def can_preview(self, pemberi_tugas):
+        return pemberi_tugas.can_print_spd

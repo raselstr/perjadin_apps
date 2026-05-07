@@ -79,16 +79,20 @@ class PemberiTugasTable(BaseTable):
             {% if record.can_print_spt %}
                 <a
                     class="btn btn-sm btn-outline-primary"
-                    href="{% url 'pemberi_tugas_print_spt' record.id %}"
-                    onclick="return window.openPrintPreviewWindow(this.href, 'print-preview-spt-{{ record.id }}');">
+                    href="{% url 'pemberi_tugas_print_spt' record.id %}?autoprint=0"
+                    hx-get="{% url 'pemberi_tugas_preview_spt' record.id %}"
+                    hx-target="#print-preview-modal-body"
+                    hx-swap="innerHTML">
                     SPT
                 </a>
             {% endif %}
             {% if record.can_print_spd %}
                 <a
                     class="btn btn-sm btn-outline-info"
-                    href="{% url 'pemberi_tugas_print_spd' record.id %}"
-                    onclick="return window.openPrintPreviewWindow(this.href, 'print-preview-spd-{{ record.id }}');">
+                    href="{% url 'pemberi_tugas_print_spd' record.id %}?autoprint=0"
+                    hx-get="{% url 'pemberi_tugas_preview_spd' record.id %}"
+                    hx-target="#print-preview-modal-body"
+                    hx-swap="innerHTML">
                     SPD
                 </a>
             {% endif %}

@@ -1,5 +1,7 @@
 from django.urls import path
 from .views import (
+    PemberiTugasPreviewSpdView,
+    PemberiTugasPreviewSptView,
     PemberiTugasPrintSpdView,
     PemberiTugasPrintSptView,
     PemberiTugasView,
@@ -17,6 +19,16 @@ urlpatterns = [
     path("pemberi-tugas/form/", PemberiTugasView.as_view(), name="pemberi_tugas_action"),
     path("pemberi-tugas/form/<int:pk>/<str:action>/", PemberiTugasView.as_view(), name="pemberi_tugas_action_pk"),
     path("pemberi-tugas/delete/<int:pk>/<str:action>/", PemberiTugasView.as_view(), name="pemberi_tugas_delete"),
+    path(
+        "pemberi-tugas/preview/spt/<int:pk>/",
+        PemberiTugasPreviewSptView.as_view(),
+        name="pemberi_tugas_preview_spt",
+    ),
+    path(
+        "pemberi-tugas/preview/spd/<int:pk>/",
+        PemberiTugasPreviewSpdView.as_view(),
+        name="pemberi_tugas_preview_spd",
+    ),
     path(
         "pemberi-tugas/cetak/spt/<int:pk>/",
         PemberiTugasPrintSptView.as_view(),

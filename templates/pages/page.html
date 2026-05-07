@@ -74,6 +74,12 @@
 
   {% include 'components/crud/modal.html' %}
 
+  <div class="modal fade print-preview-modal" id="printPreviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+      <div class="modal-content" id="print-preview-modal-body"></div>
+    </div>
+  </div>
+
 {% endblock content %}
 
 
@@ -96,12 +102,53 @@
 .select2-container .select2-selection__arrow {
     height: 36px !important;
 }
+
+.print-preview-modal .modal-dialog {
+    max-width: min(1280px, calc(100vw - 2rem));
+}
+
+.print-preview-modal .modal-content {
+    min-height: min(88vh, 920px);
+    border: 0;
+    overflow: hidden;
+}
+
+.print-preview-shell {
+    border: 1px solid #dbe4f0;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+}
+
+.print-preview-frame {
+    display: block;
+    width: 100%;
+    height: min(74vh, 780px);
+    border: 0;
+    background: #eef2f7;
+}
 </style>
 {% endblock %}
 
 {% block extra_js %}
 <script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
+  function showModalById(modalId) {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) {
+      return;
+    }
+
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+  }
+
+  function clearModalContentById(contentId) {
+    const container = document.getElementById(contentId);
+    if (container) {
+      container.innerHTML = '';
+    }
+  }
+
   window.openPrintPreviewWindow = function (url, windowName = 'print-preview') {
     if (!url) {
       return true;
@@ -141,6 +188,8 @@
     popupWindow.focus();
     return false;
   };
+
+  window.openPrintWindow = window.openPrintPreviewWindow;
 
   function getToastContainer() {
     let container = document.getElementById('toastContainer');
@@ -274,6 +323,23 @@
     }, 300);
   }
 
+  function printPreviewFrame(frameId) {
+    const frame = document.getElementById(frameId);
+    const frameWindow = frame?.contentWindow;
+
+    if (!frameWindow) {
+      showAppToast({
+        title: 'Preview belum siap',
+        message: 'Dokumen masih dimuat. Coba cetak beberapa saat lagi.',
+        level: 'warning',
+      });
+      return;
+    }
+
+    frameWindow.focus();
+    frameWindow.print();
+  }
+
   // FORM SUCCESS HANDLER
   document.body.addEventListener('formSuccess', function () {
       requestAnimationFrame(() => {
@@ -335,23 +401,52 @@
   });
 
 document.body.addEventListener('htmx:afterSwap', function (evt) {
-    if (evt.detail.target.id === "modal-body") {
-        const modalEl = document.getElementById('modal');
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
+    const targetId = evt.detail.target?.id;
+
+    if (targetId === "modal-body") {
+        showModalById('modal');
+        return;
+    }
+
+    if (targetId === "print-preview-modal-body") {
+        showModalById('printPreviewModal');
     }
 });
 
   document.body.addEventListener('htmx:responseError', function (evt) {
     if (evt.detail.xhr.status === 403) {
+        const targetId = evt.detail.target?.id;
+
+        if (targetId === 'print-preview-modal-body') {
+            document.getElementById('print-preview-modal-body').innerHTML = evt.detail.xhr.responseText;
+            showModalById('printPreviewModal');
+            return;
+        }
 
         // inject response ke modal
         document.getElementById('modal-body').innerHTML = evt.detail.xhr.responseText;
+        showModalById('modal');
+    }
+  });
 
-        // paksa buka modal
-        const modalEl = document.getElementById('modal');
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.show();
+  document.body.addEventListener('click', function (evt) {
+    const printButton = evt.target.closest('[data-print-preview-action="print"]');
+
+    if (!printButton) {
+      return;
+    }
+
+    printPreviewFrame(printButton.dataset.frameId);
+  });
+
+  document.addEventListener('hidden.bs.modal', function (evt) {
+    if (evt.target.id === 'printPreviewModal') {
+      clearModalContentById('print-preview-modal-body');
+      return;
+    }
+
+    if (evt.target.id === 'modal') {
+      clearModalContentById('modal-body');
     }
   });
 

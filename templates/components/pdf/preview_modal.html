@@ -1,0 +1,51 @@
+<div class="modal-header border-0 pb-0">
+    <div>
+        <h5 class="modal-title">{{ title }}</h5>
+        <div class="text-muted small">
+            {{ preview_description }}
+        </div>
+    </div>
+    <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="modal"
+        aria-label="Tutup">
+    </button>
+</div>
+
+<div class="modal-body pt-3">
+    <div class="print-preview-shell">
+        <iframe
+            id="{{ frame_id }}"
+            class="print-preview-frame"
+            src="{{ iframe_src }}"
+            title="{{ title }}"
+            loading="lazy">
+        </iframe>
+    </div>
+</div>
+
+<div class="modal-footer border-0 pt-0">
+    <button
+        type="button"
+        class="btn btn-primary"
+        data-print-preview-action="print"
+        data-frame-id="{{ frame_id }}">
+        {{ print_button_label }}
+    </button>
+
+    <a
+        href="{{ open_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="btn btn-outline-secondary">
+        Buka Tab Baru
+    </a>
+
+    <button
+        type="button"
+        class="btn btn-outline-dark"
+        data-bs-dismiss="modal">
+        Tutup
+    </button>
+</div>

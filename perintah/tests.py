@@ -364,6 +364,36 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         )
         self.assertIn("nama", formset.forms[1].errors)
 
+    def test_pelaksana_formset_requires_minimum_one_pegawai(self):
+        spt = Spt.objects.create(
+            dasar="Dasar tanpa pelaksana",
+            berita="Uji validasi minimal pelaksana",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Uji",
+            lama_perjalanan=1,
+            tgl_berangkat=date(2026, 5, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+
+        formset = PelaksanaFormSet(
+            data={
+                "pelaksana-TOTAL_FORMS": "1",
+                "pelaksana-INITIAL_FORMS": "0",
+                "pelaksana-MIN_NUM_FORMS": "0",
+                "pelaksana-MAX_NUM_FORMS": "1000",
+                "pelaksana-0-nama": "",
+            },
+            instance=spt,
+        )
+
+        self.assertFalse(formset.is_valid())
+        self.assertIn(
+            "Minimal 1 pelaksana harus dipilih",
+            formset.non_form_errors()[0],
+        )
+        self.assertIn("nama", formset.forms[0].errors)
+
     def test_form_includes_sekretaris_daerah_for_administrator_role(self):
         user = User.objects.create_user(
             username="administrator-signatory",
@@ -595,14 +625,67 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertNotIn("/cetak/spt/", rendered_cell)
         self.assertIn("/cetak/spd/", rendered_cell)
 
-    def test_table_uses_popup_window_for_print_preview(self):
+    def test_table_uses_htmx_preview_modal_for_print_preview(self):
         request = self.factory.get("/perintah/pemberi-tugas/")
         request.user = self.superuser
         table = PemberiTugasTable([self.pemberi_tugas_spd])
         rendered_cell = table.rows[0].get_cell("dokumen")
 
-        self.assertIn("openPrintPreviewWindow", rendered_cell)
+        self.assertIn(
+            reverse(
+                "pemberi_tugas_preview_spd",
+                args=[self.pemberi_tugas_spd.pk],
+            ),
+            rendered_cell,
+        )
+        self.assertIn('hx-target="#print-preview-modal-body"', rendered_cell)
+        self.assertNotIn("openPrintPreviewWindow", rendered_cell)
         self.assertNotIn('target="_blank"', rendered_cell)
+
+    def test_preview_spd_renders_iframe_modal(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse(
+                "pemberi_tugas_preview_spd",
+                args=[self.pemberi_tugas_spd.pk],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Preview SPD")
+        self.assertContains(response, "<iframe", html=False)
+        self.assertContains(
+            response,
+            (
+                reverse(
+                    "pemberi_tugas_print_spd",
+                    args=[self.pemberi_tugas_spd.pk],
+                )
+                + "?autoprint=0"
+            ),
+            html=False,
+        )
+
+    def test_print_spt_allows_same_origin_iframe_preview(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse(
+                "pemberi_tugas_print_spt",
+                args=[self.pemberi_tugas_bupati.pk],
+            )
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response["X-Frame-Options"],
+            "SAMEORIGIN",
+        )
+        self.assertIn(
+            "frame-ancestors 'self'",
+            response["Content-Security-Policy"],
+        )
 
     def test_print_spt_filters_pelaksana_for_bupati(self):
         self.client.force_login(self.superuser)
@@ -613,7 +696,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         response_html = response.content.decode()
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "BUPATI ASAHAN")
+        self.assertContains(response, "Bupati Asahan")
         self.assertContains(response, self.pegawai_eselon_ii.nama)
         self.assertNotContains(response, self.pegawai_eselon_iii.nama)
         self.assertRegex(
@@ -830,6 +913,10 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertIn("margin: 0;", response_html)
         self.assertIn("letterhead-shell", response_html)
         self.assertIn("document-body-scale", response_html)
+        self.assertIn("--content-scale: 0.96;", response_html)
+        self.assertNotIn("--content-scale: 0,96;", response_html)
+        self.assertIn("--letterhead-side-padding: 18mm;", response_html)
+        self.assertIn("width: auto;", response_html)
         self.assertNotIn("--preview-scale", response_html)
         self.assertNotIn("data-print-toolbar", response_html)
 
@@ -931,6 +1018,10 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertIn("margin: 0;", response_html)
         self.assertIn("letterhead-shell", response_html)
         self.assertIn("document-body-scale", response_html)
+        self.assertIn("--content-scale: 0.96;", response_html)
+        self.assertNotIn("--content-scale: 0,96;", response_html)
+        self.assertIn("--letterhead-side-padding: 18mm;", response_html)
+        self.assertIn("width: auto;", response_html)
         self.assertNotIn("--print-scale", response_html)
         self.assertNotIn("data-print-toolbar", response_html)
 

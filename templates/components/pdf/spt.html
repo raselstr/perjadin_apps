@@ -19,16 +19,13 @@ body {
 
 body {
     font-family: Arial, sans-serif;
-    font-size: 12pt;
+    font-size: calc(12pt * var(--content-scale));
     color: #111;
     background: #eef2f7;
 }
 
-:root {
-    --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
-    --letterhead-top-padding: 14mm;
-    --letterhead-side-padding: 18mm;
-}
+
+
 
 {% include "components/pdf/kop_surat_styles.html" %}
 {% include "components/pdf/page_footer_styles.html" %}
@@ -53,13 +50,26 @@ body {
 
 .document-body-frame {
     margin: {{kop_surat.margin_top_mm}}mm {{kop_surat.margin_right_mm}}mm {{kop_surat.margin_bottom_mm}}mm {{kop_surat.margin_left_mm}}mm;
+
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-.document-body-scale {
+/* .document-body-scale {
     width: calc(100% / var(--content-scale));
     transform-origin: top left;
     zoom: var(--content-scale);
-}
+} */
+/* .document-body-scale {
+    --content-scale: 1;
+
+    transform-origin: top left;
+    transform: scale(var(--content-scale));
+
+    width: calc(100% / var(--content-scale));
+
+    box-sizing: border-box;
+} */
 
 .pdf-header {
     font-size: {{ kop_surat.header_font_size_pt|default:"10" }}pt;
@@ -75,7 +85,7 @@ body {
 
 .document-title {
     text-align: center;
-    margin: 30px 0 30px;
+    margin: calc(30px * var(--content-scale)) 0;
 }
 
 .document-title-body {
@@ -103,7 +113,16 @@ body {
     display: inline-block;
     min-width: 250px;
 }
+table {
+    width: 100%;
+    table-layout: fixed;
+}
 
+td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    box-sizing: border-box;
+}
 .detail-table {
     width: 100%;
     border-collapse: collapse;
@@ -112,7 +131,7 @@ body {
 
 .detail-table td {
     vertical-align: top;
-    padding: 10px 0;
+    padding: calc(10px * var(--content-scale)) 0;
     text-align: justify;
 }
 
@@ -128,7 +147,10 @@ body {
 .section-heading {
     text-align: center;
     font-weight: bold;
-    margin: 22px 0 18px;
+    margin:
+        calc(22px * var(--content-scale))
+        0
+        calc(18px * var(--content-scale));
     letter-spacing: 0.4px;
 }
 
@@ -147,6 +169,21 @@ body {
 .recipient-no {
     width: 24px;
     padding-right: 8px;
+}
+.detail-table,
+.recipient-table,
+.person-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.detail-table td,
+.recipient-table td,
+.person-table td {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    box-sizing: border-box;
 }
 
 .person-label {
@@ -175,7 +212,7 @@ body {
 .signature {
     width: 280px;
     margin-left: auto;
-    margin-top: 34px;
+    margin-top: calc(34px * var(--content-scale));
     line-height: 1.2;
 }
 
@@ -225,12 +262,12 @@ body {
     grid-column: 1;
 }
 
-@supports not (zoom: 1) {
+/* @supports not (zoom: 1) {
     .document-body-scale {
         width: calc(100% / var(--content-scale));
         transform: scale(var(--content-scale));
     }
-}
+} */
 
 @media print {
     body {
@@ -243,6 +280,9 @@ body {
         margin: 0;
         box-shadow: none;
     }
+}
+:root {
+    --content-scale: {{ scale|default:"1" }};
 }
 </style>
 </head>

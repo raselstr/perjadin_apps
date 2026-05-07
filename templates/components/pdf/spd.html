@@ -24,11 +24,7 @@ body {
     background: #eef2f7;
 }
 
-:root {
-    --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
-    --letterhead-top-padding: 14mm;
-    --letterhead-side-padding: 18mm;
-}
+
 
 {% include "components/pdf/kop_surat_styles.html" %}
 {% include "components/pdf/page_footer_styles.html" %}

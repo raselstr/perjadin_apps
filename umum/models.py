@@ -354,7 +354,8 @@ class KopSurat(models.Model):
 
     @property
     def print_scale_decimal(self):
-        return round((self.print_scale_percent or 100) / 100, 2)
+        scale = (self.print_scale_percent or 100) / 100
+        return f"{scale:.2f}".rstrip("0").rstrip(".")
 
     @property
     def margin_css(self):
