@@ -18,7 +18,7 @@ body {
 
 body {
     font-family: Arial, sans-serif;
-    font-size: 12pt;
+    font-size: 11pt;
     color: #111;
     background: #eef2f7;
 }
@@ -157,7 +157,7 @@ body {
 
 .main-table td {
     border: 1px solid #000;
-    padding: 7px 8px;
+    padding: 0.5px 3px;
     vertical-align: top;
     line-height: 1.45;
 }
@@ -168,7 +168,7 @@ body {
 }
 
 .label-col {
-    width: 220px;
+    width: 160px;
 }
 
 .detail-col {
@@ -218,7 +218,7 @@ body {
 
 .followers-name-cell {
     font-size: 10pt;
-    padding-left: 10px !important;
+    padding-left: 5px !important;
 }
 
 .followers-birthdate-cell {
@@ -231,7 +231,7 @@ body {
 }
 
 .footer {
-    width: 350px;
+    width: 280px;
     max-width: 100%;
     margin-left: auto;
     margin-top: 26px;
@@ -239,7 +239,7 @@ body {
 }
 
 .signature-space {
-    height: 76px;
+    height: 60px;
 }
 
 .signature-name {
@@ -429,9 +429,9 @@ body {
                                 <td colspan="2" class="followers-name-cell">
                                     {{ forloop.counter }}.
                                     {{ follower.nama.nama|default:"-" }}
-                                    {% if follower.nama.nip %}
+                                    <!-- {% if follower.nama.nip %}
                                         - {{ follower.nama.nip|format_nip }}
-                                    {% endif %}
+                                    {% endif %} -->
                                 </td>
                                 <td class="followers-birthdate-cell">{{ follower.nama.tgl_lahir|date:"d-m-Y"|default:"-" }}</td>
                                 <td>{{ follower.nama.jabatan|default:"-" }}</td>
@@ -463,8 +463,9 @@ body {
                 </table>
 
                 <div class="footer">
-                    {{ signature_location }}, {{ tanggal_dokumen|date:"d F Y" }}<br>
-                    {{ signature_title|default:"-" }}<br>
+                    Dikeluarkan di {{ signature_location }}<br>
+                    Tanggal {{ tanggal_dokumen|date:"d F Y" }}<br>
+                    {{ signature_title|default:"-" }},<br>
 
                     <div class="signature-space"></div>
 
