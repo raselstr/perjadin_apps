@@ -145,7 +145,7 @@ table {
 }
 
 .detail-table {
-    line-height: 1.2;
+    line-height: 1.4;
 }
 
 .detail-table td {
@@ -173,7 +173,7 @@ table {
 .recipient-table td,
 .person-table td {
     vertical-align: top;
-    padding: 0 0 2px;
+    padding: 0 0 0px;
 }
 
 .recipient-no {
@@ -188,6 +188,9 @@ table {
 .person-colon {
     width: 14px;
     text-align: center;
+}
+.person-spacing {
+    height: 8px;
 }
 
 .instruction-list {
@@ -366,6 +369,7 @@ table {
                                                         <td>{{ pelaksana.nama.jabatan|default:"-" }}</td>
                                                     </tr>
                                                 </table>
+                                                <div class="person-spacing"></div>
                                             </td>
                                         </tr>
                                         {% if not forloop.last %}
@@ -392,7 +396,11 @@ table {
                                 </li>
                                 <li>
                                     Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada
-                                    {{ pemberi_tugas.penandatangan.tugas|default:"pejabat pemberi tugas" }}.
+                                    {% for title_line in spt_signature_title_lines %}
+                                        {{ title_line|default:"-" }}{% if not forloop.last %}{% endif %}
+                                    {% empty %}
+                                        {{ signature_title|default:"Pejabat Pemberi Tugas" }}
+                                    {% endfor %}.
                                 </li>
                             </ol>
                         </td>
