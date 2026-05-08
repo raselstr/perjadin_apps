@@ -35,7 +35,7 @@ if not SECRET_KEY:
 
 DEBUG = env.bool('DEBUG', default=False)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost', '192.168.66.167'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 USE_HTTPS = env.bool('USE_HTTPS', default=False)
 
 
