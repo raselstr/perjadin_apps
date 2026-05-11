@@ -3,7 +3,7 @@
   <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
 </div>
 
-<form id="excelImportForm" method="post" enctype="multipart/form-data">
+<form id="excelImportForm" method="post" action="{{ import_url }}" enctype="multipart/form-data">
   {% csrf_token %}
 
   <!-- Step 1: Upload -->
@@ -52,6 +52,8 @@ window.previewExcel = async function(e) {
   
   const fileInput = document.getElementById('excelFile');
   const file = fileInput.files[0];
+  const form = document.getElementById('excelImportForm');
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
   
   if (!file) {
     alert('Pilih file terlebih dahulu');
@@ -61,15 +63,20 @@ window.previewExcel = async function(e) {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('action', 'preview');
-  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  formData.append('csrfmiddlewaretoken', csrfToken);
   
   // Show progress
   document.getElementById('uploadProgress').style.display = 'block';
   document.getElementById('previewBtn').disabled = true;
   
   try {
-    const response = await fetch('{{ import_url }}', {
+    const response = await fetch(form.action || '{{ import_url|escapejs }}', {
       method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
       body: formData
     });
     
@@ -105,18 +112,25 @@ window.importExcel = async function(e) {
   
   const fileInput = document.getElementById('excelFile');
   const file = fileInput.files[0];
+  const form = document.getElementById('excelImportForm');
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
   
   const formData = new FormData();
   formData.append('file', file);
   formData.append('action', 'import');
-  formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+  formData.append('csrfmiddlewaretoken', csrfToken);
   
   document.getElementById('uploadProgress').style.display = 'block';
   document.getElementById('importBtn').disabled = true;
   
   try {
-    const response = await fetch('{{ import_url }}', {
+    const response = await fetch(form.action || '{{ import_url|escapejs }}', {
       method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'X-CSRFToken': csrfToken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
       body: formData
     });
     

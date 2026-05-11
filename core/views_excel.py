@@ -118,7 +118,7 @@ class ExcelImportView(TemplateView):
         context['model'] = self.model
         context['model_name'] = self.model._meta.verbose_name_plural
         context['columns'] = self.columns or self._get_default_columns()
-        context['import_url'] = self.request.build_absolute_uri()
+        context['import_url'] = self.request.get_full_path()
         return context
     
     def post(self, request, *args, **kwargs):

@@ -3,7 +3,7 @@ import io
 from decimal import Decimal
 
 from django.core.exceptions import FieldDoesNotExist
-from django.test import SimpleTestCase, TestCase
+from django.test import RequestFactory, SimpleTestCase, TestCase
 from openpyxl import Workbook
 
 from core.utils.excel_handler import ExcelExporter, ExcelImporter
@@ -58,6 +58,18 @@ class ExcelImportViewConfigurationTests(SimpleTestCase):
                             f"{view_class.__name__}.{column_name} tidak cocok dengan field "
                             f"{view_class.model.__name__}: {exc}"
                         )
+
+    def test_import_modal_uses_relative_url(self):
+        request = RequestFactory().get("/umum/pangkat/import/?next=/umum/pangkat/")
+        view = umum_views.PangkatImportView()
+        view.setup(request)
+
+        context = view.get_context_data()
+
+        self.assertEqual(
+            context["import_url"],
+            "/umum/pangkat/import/?next=/umum/pangkat/",
+        )
 
 
 class ExcelImporterTests(TestCase):
