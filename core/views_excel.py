@@ -136,12 +136,19 @@ class ExcelImportView(TemplateView):
                 file_stream=file.read(),
                 columns=self.columns,
                 match_fields=self.match_fields,
+                filename=file.name,
             )
             
             # Step 1: Preview
             if action == 'preview':
                 data = importer.read_excel()
                 importer.validate(data)
+
+                if importer.read_errors or importer.empty_file_error:
+                    return JsonResponse({
+                        'status': 'error',
+                        'errors': importer.errors,
+                    }, status=400)
                 
                 return JsonResponse({
                     'status': 'preview',

@@ -285,4 +285,4 @@ class StandardRepresentasiImportView(ExcelImportView):
     success_url = '/spd/standard-representasi/'
     
     # Column mapping untuk import
-    columns = ('dasar_peraturan', 'jenis_jabatan', 'jenis_spds', 'biaya')
+    columns = ('dasar_peraturan', 'jenis_jabatan', 'jenis_spd', 'biaya')

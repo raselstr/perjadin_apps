@@ -2,6 +2,7 @@
 Excel utilities untuk import/export data
 Digunakan di semua app untuk konsistensi
 """
+import csv
 import io
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
@@ -37,6 +38,10 @@ class ExcelExporter:
 
             # Primary key dibuat otomatis oleh sistem, jadi tidak ikut export
             if getattr(field, "primary_key", False):
+                continue
+
+            # Field audit sistem tidak perlu ikut template export/import default
+            if getattr(field, "auto_now", False) or getattr(field, "auto_now_add", False):
                 continue
             
             # Untuk FK, gunakan field_id agar bisa di-import dengan ID
@@ -110,7 +115,15 @@ class ExcelExporter:
 class ExcelImporter:
     """Import & validasi data dari Excel file"""
     
-    def __init__(self, model, file_stream, columns=None, skip_empty_rows=True, match_fields=None):
+    def __init__(
+        self,
+        model,
+        file_stream,
+        columns=None,
+        skip_empty_rows=True,
+        match_fields=None,
+        filename=None,
+    ):
         """
         Args:
             model: Django model untuk import
@@ -118,13 +131,17 @@ class ExcelImporter:
             columns: List field names untuk mapping dengan Excel columns
             skip_empty_rows: Skip baris kosong (default: True)
             match_fields: Field atau kombinasi field untuk menentukan update data existing
+            filename: Nama file upload untuk deteksi format
         """
         self.model = model
         self.file_stream = file_stream
         self.columns = columns or self._get_default_columns()
         self.skip_empty_rows = skip_empty_rows
         self.match_fields = match_fields
+        self.filename = filename
         self.errors = []
+        self.read_errors = []
+        self.empty_file_error = False
         self.preview_data = []
     
     def _get_default_columns(self):
@@ -136,6 +153,9 @@ class ExcelImporter:
                 continue
 
             if getattr(field, "primary_key", False):
+                continue
+
+            if getattr(field, "auto_now", False) or getattr(field, "auto_now_add", False):
                 continue
             
             # Untuk FK, gunakan field_id
@@ -200,26 +220,12 @@ class ExcelImporter:
                 related_model = field.related_model
 
                 try:
-                    if str(value).isdigit():
-                        obj = related_model.objects.get(id=int(value))
-                    else:
-                        name_fields = ['nama', 'name', 'title', 'pangkat', 'jabatan', 'eselon', 'tingkat']
-                        obj = None
-
-                        for name_field in name_fields:
-                            if hasattr(related_model, name_field):
-                                try:
-                                    obj = related_model.objects.get(**{name_field: str(value)})
-                                    break
-                                except related_model.DoesNotExist:
-                                    continue
-
-                        if obj is None:
-                            obj = related_model.objects.get(pk=value)
-
+                    obj = self._resolve_related_instance(related_model, value)
                     processed_data[field_name] = obj
                 except (related_model.DoesNotExist, ValueError):
-                    errors.append(f"Foreign key '{field_name}' dengan value '{value}' tidak ditemukan")
+                    errors.append(
+                        f"Foreign key '{field_name}' dengan value '{value}' tidak ditemukan"
+                    )
                     processed_data[field_name] = None
 
             elif field.__class__.__name__ == 'DateField' and value:
@@ -243,6 +249,33 @@ class ExcelImporter:
                 unique_fields.append(field.name)
         return unique_fields
 
+    def _get_unique_constraint_groups(self):
+        groups = []
+
+        for unique_group in getattr(self.model._meta, "unique_together", ()) or ():
+            if unique_group:
+                groups.append(tuple(unique_group))
+
+        for constraint in getattr(self.model._meta, "constraints", ()):
+            if not isinstance(constraint, models.UniqueConstraint):
+                continue
+
+            if getattr(constraint, "condition", None):
+                continue
+
+            if getattr(constraint, "expressions", ()):
+                continue
+
+            if getattr(constraint, "fields", ()):
+                groups.append(tuple(constraint.fields))
+
+        deduped_groups = []
+        for group in groups:
+            if group and group not in deduped_groups:
+                deduped_groups.append(group)
+
+        return deduped_groups
+
     def _get_match_groups(self):
         """Urutan field yang dipakai untuk mendeteksi update data existing"""
         groups = []
@@ -252,6 +285,8 @@ class ExcelImporter:
                 groups.extend(tuple(group) for group in self.match_fields)
             else:
                 groups.append(tuple(self.match_fields))
+
+        groups.extend(self._get_unique_constraint_groups())
 
         for field_name in self._get_unique_fields():
             if field_name != 'id':
@@ -310,39 +345,181 @@ class ExcelImporter:
             setattr(instance, field_name, value)
 
         return instance
+
+    def _get_file_extension(self):
+        if not self.filename or "." not in self.filename:
+            return None
+        return f".{self.filename.rsplit('.', 1)[-1].lower()}"
+
+    def _read_binary_content(self):
+        if isinstance(self.file_stream, bytes):
+            return self.file_stream
+
+        if hasattr(self.file_stream, "seek"):
+            self.file_stream.seek(0)
+
+        content = self.file_stream.read()
+
+        if isinstance(content, str):
+            return content.encode("utf-8")
+
+        return content
+
+    def _decode_text_content(self):
+        raw_bytes = self._read_binary_content()
+
+        for encoding in ("utf-8-sig", "utf-8", "latin-1"):
+            try:
+                return raw_bytes.decode(encoding)
+            except UnicodeDecodeError:
+                continue
+
+        return raw_bytes.decode("utf-8", errors="ignore")
+
+    def _read_spreadsheet_rows(self):
+        if isinstance(self.file_stream, bytes):
+            book = load_workbook(io.BytesIO(self.file_stream), data_only=True)
+        else:
+            if hasattr(self.file_stream, "seek"):
+                self.file_stream.seek(0)
+            book = load_workbook(self.file_stream, data_only=True)
+
+        ws = book.active
+        return list(ws.iter_rows(values_only=True))
+
+    def _read_csv_rows(self):
+        text_content = self._decode_text_content()
+
+        sample = text_content[:1024]
+        try:
+            dialect = csv.Sniffer().sniff(sample, delimiters=",;\t")
+        except csv.Error:
+            dialect = csv.excel
+
+        reader = csv.reader(io.StringIO(text_content), dialect=dialect)
+        return [tuple(row) for row in reader]
+
+    def _rows_to_data(self, rows):
+        data = []
+
+        for row_idx, row in enumerate(rows[1:], 2):
+            if self.skip_empty_rows and all(cell in (None, "") for cell in row):
+                continue
+
+            row_data = {}
+            for col_idx, field_name in enumerate(self.columns):
+                if col_idx < len(row):
+                    row_data[field_name] = row[col_idx]
+                else:
+                    row_data[field_name] = None
+
+            data.append({
+                "row": row_idx,
+                "data": row_data,
+            })
+
+        return data
+
+    def _resolve_related_lookup_fields(self, related_model):
+        priority_names = [
+            "nama",
+            "name",
+            "title",
+            "nama_peraturan",
+            "nomor_peraturan",
+            "lokasi",
+            "kota",
+            "pangkat",
+            "jabatan",
+            "eselon",
+            "tingkat",
+        ]
+
+        resolved_fields = []
+        seen_names = set()
+
+        def add_field(field):
+            if (
+                field.name in seen_names
+                or not isinstance(field, (models.CharField, models.TextField))
+            ):
+                return
+
+            resolved_fields.append(field)
+            seen_names.add(field.name)
+
+        for field_name in priority_names:
+            try:
+                add_field(related_model._meta.get_field(field_name))
+            except Exception:
+                continue
+
+        for field in related_model._meta.fields:
+            if getattr(field, "unique", False):
+                add_field(field)
+
+        for field in related_model._meta.fields:
+            add_field(field)
+
+        return resolved_fields
+
+    def _resolve_related_instance(self, related_model, value):
+        if isinstance(value, models.Model):
+            return value
+
+        normalized_value = value.strip() if isinstance(value, str) else value
+
+        if str(normalized_value).isdigit():
+            return related_model.objects.get(id=int(normalized_value))
+
+        try:
+            return related_model.objects.get(pk=normalized_value)
+        except (related_model.DoesNotExist, ValueError, TypeError):
+            pass
+
+        if isinstance(normalized_value, str):
+            for field in self._resolve_related_lookup_fields(related_model):
+                lookup_name = (
+                    f"{field.name}__iexact"
+                    if isinstance(field, (models.CharField, models.TextField))
+                    else field.name
+                )
+
+                try:
+                    return related_model.objects.get(**{lookup_name: normalized_value})
+                except related_model.DoesNotExist:
+                    continue
+                except related_model.MultipleObjectsReturned:
+                    continue
+
+        raise related_model.DoesNotExist
     
     def read_excel(self):
         """Parse Excel file dan return data"""
+        self.read_errors = []
+
         try:
-            if isinstance(self.file_stream, bytes):
-                book = load_workbook(io.BytesIO(self.file_stream))
+            extension = self._get_file_extension()
+
+            if extension == ".xls":
+                raise ValueError(
+                    "Format .xls belum didukung. Gunakan file .xlsx atau .csv."
+                )
+
+            if extension == ".csv":
+                rows = self._read_csv_rows()
+            elif extension in {".xlsx", ".xlsm", ".xltx", ".xltm"}:
+                rows = self._read_spreadsheet_rows()
             else:
-                book = load_workbook(self.file_stream)
-            
-            ws = book.active
-            data = []
-            
-            for row_idx, row in enumerate(ws.iter_rows(min_row=2, values_only=True), 2):
-                # Skip empty rows
-                if self.skip_empty_rows and all(cell is None for cell in row):
-                    continue
-                
-                row_data = {}
-                for col_idx, field_name in enumerate(self.columns):
-                    if col_idx < len(row):
-                        row_data[field_name] = row[col_idx]
-                    else:
-                        row_data[field_name] = None
-                
-                data.append({
-                    'row': row_idx,
-                    'data': row_data
-                })
-            
-            return data
-        
+                try:
+                    rows = self._read_spreadsheet_rows()
+                except Exception:
+                    rows = self._read_csv_rows()
+
+            return self._rows_to_data(rows)
+
         except Exception as e:
-            self.errors.append(f"Error reading Excel: {str(e)}")
+            self.read_errors.append(str(e))
             return []
     
     def validate(self, data=None):
@@ -352,6 +529,16 @@ class ExcelImporter:
         
         self.preview_data = []
         self.errors = []
+        self.empty_file_error = False
+
+        if self.read_errors:
+            self.errors.extend(self.read_errors)
+            return False
+
+        if not data:
+            self.empty_file_error = True
+            self.errors.append("File tidak berisi data untuk diimport")
+            return False
         
         for item in data:
             row_num = item['row']
@@ -429,6 +616,17 @@ class ExcelImporter:
             data = self.read_excel()
 
         self.validate(data)
+
+        if self.read_errors or self.empty_file_error:
+            return {
+                'success': False,
+                'imported': 0,
+                'updated': 0,
+                'skipped': 0,
+                'failed': 0,
+                'errors': self.errors,
+                'preview': self.preview_data
+            }
         
         imported = 0
         updated = 0

@@ -311,4 +311,4 @@ class TingkatImportView(ExcelImportView):
     """Upload & import Tingkat data dari Excel"""
     model = Tingkat
     success_url = '/umum/tingkat/'
-    columns = ['tingkat','ket','pesawat','kapal','keteraapian','lainnya']
+    columns = ['tingkat', 'ket', 'pesawat', 'kapal', 'keretaapian', 'lainnya']
