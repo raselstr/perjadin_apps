@@ -1,10 +1,8 @@
-version: '3.9'
-
 services:
 
   db:
     image: postgres:14
-    container_name: postgres_db
+    container_name: perjadin_apps_postgres_db
     restart: always
     ports:
       - "5434:5432"
@@ -38,7 +36,7 @@ services:
       - db_password
       - secret_key
     environment:
-      DB_HOST: postgres_db
+      DB_HOST: perjadin_apps_postgres_db
       DB_PORT: 5432
       DEBUG: "False"
     depends_on:
@@ -49,7 +47,7 @@ services:
 
   nginx:
     image: nginx:latest
-    container_name: nginx_server
+    container_name: perjadin_apps_nginx_server
     restart: always
     ports:
       - "8085:80"
@@ -64,7 +62,7 @@ services:
 
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
-    container_name: cloudbeaver
+    container_name: perjadin_apps_cloudbeaver
     restart: always
     ports:
       - "8978:8978"
