@@ -168,13 +168,23 @@
 
       .document-body-scale {
         width:100%;
+        zoom:1;
         transform:none;
         transform-origin: top left;
       }
 
       body[data-force-print-scale="true"] .document-body-scale {
         width: calc(100% / var(--content-scale));
-        transform: scale(var(--content-scale));
+        zoom: var(--content-scale);
+      }
+    }
+
+    @supports not (zoom: 1) {
+      @media print {
+        body[data-force-print-scale="true"] .document-body-scale {
+          width: calc(100% / var(--content-scale));
+          transform: scale(var(--content-scale));
+        }
       }
     }
 

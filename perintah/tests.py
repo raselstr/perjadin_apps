@@ -962,6 +962,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertNotIn("--content-scale: 0,96;", response_html)
         self.assertIn("--letterhead-side-padding: 18mm;", response_html)
         self.assertIn("width: auto;", response_html)
+        self.assertIn("zoom: var(--content-scale);", response_html)
         self.assertNotIn("--preview-scale", response_html)
         self.assertNotIn("data-print-toolbar", response_html)
 
@@ -1067,6 +1068,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertNotIn("--content-scale: 0,96;", response_html)
         self.assertIn("--letterhead-side-padding: 18mm;", response_html)
         self.assertIn("width: auto;", response_html)
+        self.assertIn("zoom: var(--content-scale);", response_html)
         self.assertNotIn("--print-scale", response_html)
         self.assertNotIn("data-print-toolbar", response_html)
 
