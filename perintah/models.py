@@ -254,3 +254,11 @@ class PemberiTugas(models.Model):
 
     def __str__(self):
         return str(self.penandatangan)
+    
+
+    @property
+    def can_print_spd_belakang(self):
+        return self.tugas not in ("Bupati", "Wakil Bupati")
+
+    def __str__(self):
+        return str(self.penandatangan)

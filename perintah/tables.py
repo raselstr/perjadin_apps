@@ -95,6 +95,15 @@ class PemberiTugasTable(BaseTable):
                     hx-swap="innerHTML">
                     SPD
                 </a>
+
+                <a
+                    class="btn btn-sm btn-outline-danger"
+                    href="{% url 'pemberi_tugas_print_spd_belakang' record.id %}?autoprint=0"
+                    hx-get="{% url 'pemberi_tugas_preview_spd_belakang' record.id %}"
+                    hx-target="#print-preview-modal-body"
+                    hx-swap="innerHTML">
+                    Back
+                </a>
             {% endif %}
         </div>
         """,

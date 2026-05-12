@@ -373,6 +373,29 @@ class PemberiTugasPrintSpdView(PemberiTugasPrintBaseView):
         })
         return context
 
+class PemberiTugasPrintSPDBelakangView(PemberiTugasPrintBaseView):
+    template_name = "components/pdf/belakang.html"
+    def get_context_data(self, pemberi_tugas):
+        if is_regional_head_task(pemberi_tugas.penandatangan.tugas):
+            raise Http404(
+                "SPD Belakang tidak tersedia untuk penandatangan Bupati/Wakil Bupati."
+            )
+
+        active_opd_id = get_active_opd_id(self.request)
+        ppk = find_ppk_penandatangan(
+            opd=pemberi_tugas.penandatangan.opd,
+            fallback_opd_id=active_opd_id,
+        ) or pemberi_tugas.penandatangan
+        pemda = get_matching_pemda(getattr(ppk, "opd", None))
+
+        context = self.build_document_context(
+            pemberi_tugas,
+            pemda,
+            ppk,
+            asal_instansi_fallback=pemberi_tugas.opd,
+        )
+        return context
+
 
 class PemberiTugasPreviewBaseView(PemberiTugasPrintBaseView):
     template_name = "components/pdf/preview_modal.html"
@@ -437,3 +460,13 @@ class PemberiTugasPreviewSpdView(PemberiTugasPreviewBaseView):
 
     def can_preview(self, pemberi_tugas):
         return pemberi_tugas.can_print_spd
+
+
+class PemberiTugasPreviewSPDBelakangView(PemberiTugasPreviewBaseView):
+    document_code = "belakang"
+    preview_title = "Preview SPD Belakang"
+    print_url_name = "pemberi_tugas_print_spd_belakang"
+    unavailable_message = "SPD Belakang tidak tersedia untuk dicetak."
+
+    def can_preview(self, pemberi_tugas):
+        return pemberi_tugas.can_print_spd_belakang
