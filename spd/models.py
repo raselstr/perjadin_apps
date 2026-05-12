@@ -57,7 +57,7 @@ class JenisSPD(models.Model):
     nama = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ["nama"]
+        ordering = ["id"]
         verbose_name = "Jenis SPD"
         verbose_name_plural = "Jenis SPD"
 
@@ -69,7 +69,7 @@ class JenisKegiatan(models.Model):
     nama = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ["nama"]
+        ordering = ["id"]
         verbose_name = "Jenis Kegiatan"
         verbose_name_plural = "Jenis Kegiatan"
 
@@ -202,7 +202,7 @@ class JenisTransportasi(models.Model):
     nama = models.CharField(max_length=100, unique=True)
 
     class Meta:
-        ordering = ["nama"]
+        ordering = ["id"]
         verbose_name = "Jenis Transportasi"
         verbose_name_plural = "Jenis Transportasi"
 
