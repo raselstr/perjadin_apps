@@ -2,6 +2,7 @@ from datetime import date
 
 from django.contrib.auth.models import User
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.exceptions import ValidationError
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -490,6 +491,31 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             form.errors["spt"][0],
         )
 
+    def test_form_rejects_tanggal_spt_after_spt_departure(self):
+        form = PemberiTugasForm(data={
+            "spt": self.spt_spd.pk,
+            "penandatangan": self.kepala_bk.pk,
+            "nomor_spt": "090/ST/BK/2026",
+            "tanggal_spt": "2026-05-02",
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn("tanggal_spt", form.errors)
+        self.assertIn(
+            "tidak boleh lebih besar dari tanggal berangkat",
+            form.errors["tanggal_spt"][0],
+        )
+
+    def test_form_allows_tanggal_spt_same_as_spt_departure(self):
+        form = PemberiTugasForm(data={
+            "spt": self.spt_spd.pk,
+            "penandatangan": self.kepala_bk.pk,
+            "nomor_spt": "090/ST/BK/2026",
+            "tanggal_spt": "2026-05-01",
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
+
     def test_form_allows_same_spt_with_different_penandatangan(self):
         PemberiTugas.objects.create(
             spt=self.spt_bupati,
@@ -502,7 +528,7 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             "spt": self.spt_bupati.pk,
             "penandatangan": self.kepala_bk.pk,
             "nomor_spt": "091/ST/BK/2026",
-            "tanggal_spt": "2026-05-01",
+            "tanggal_spt": "2026-04-30",
         })
 
         self.assertTrue(form.is_valid(), form.errors)
@@ -519,7 +545,7 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             "spt": self.spt_bupati.pk,
             "penandatangan": self.bupati.pk,
             "nomor_spt": "091/ST/BUP/2026",
-            "tanggal_spt": "2026-05-01",
+            "tanggal_spt": "2026-04-30",
         })
 
         self.assertFalse(form.is_valid())
@@ -549,6 +575,20 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         })
 
         self.assertTrue(form.is_valid(), form.errors)
+
+
+class PemberiTugasModelTests(PerintahBaseTestCase):
+    def test_save_rejects_tanggal_spt_after_spt_departure(self):
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Tanggal SPT tidak boleh lebih besar dari tanggal berangkat pada SPT.",
+        ):
+            PemberiTugas.objects.create(
+                spt=self.spt_spd,
+                penandatangan=self.kepala_bk,
+                nomor_spt="094/ST/BK/2026",
+                tanggal_spt=date(2026, 5, 2),
+            )
 
 
 class DocumentUtilsTests(PerintahBaseTestCase):

@@ -217,6 +217,16 @@ class PemberiTugas(models.Model):
                 "Kombinasi SPT dan pemberi tugas tidak boleh ganda."
             ]
 
+        if (
+            self.tanggal_spt
+            and self.spt.tgl_berangkat
+            and self.tanggal_spt > self.spt.tgl_berangkat
+        ):
+            errors["tanggal_spt"] = (
+                "Tanggal SPT tidak boleh lebih besar dari "
+                "tanggal berangkat pada SPT."
+            )
+
         if errors:
             raise ValidationError(errors)
 
