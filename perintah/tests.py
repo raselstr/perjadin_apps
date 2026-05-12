@@ -700,6 +700,12 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertContains(response, "data-print-scale-input", html=False)
         self.assertContains(response, "data-print-scale-current-label", html=False)
         self.assertContains(response, "data-print-scale-state-label", html=False)
+        self.assertContains(response, 'data-print-margin-input="top"', html=False)
+        self.assertContains(response, 'data-print-margin-input="right"', html=False)
+        self.assertContains(response, 'data-print-margin-input="bottom"', html=False)
+        self.assertContains(response, 'data-print-margin-input="left"', html=False)
+        self.assertContains(response, "data-print-margin-default-label", html=False)
+        self.assertContains(response, "data-print-margin-current-label", html=False)
         self.assertContains(
             response,
             (
@@ -963,6 +969,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertIn("--letterhead-side-padding: 18mm;", response_html)
         self.assertIn("width: auto;", response_html)
         self.assertIn("zoom: var(--content-scale);", response_html)
+        self.assertIn('body[data-force-print-margins="true"] .document-body-frame', response_html)
         self.assertNotIn("--preview-scale", response_html)
         self.assertNotIn("data-print-toolbar", response_html)
 
@@ -1069,6 +1076,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertIn("--letterhead-side-padding: 18mm;", response_html)
         self.assertIn("width: auto;", response_html)
         self.assertIn("zoom: var(--content-scale);", response_html)
+        self.assertIn('body[data-force-print-margins="true"] .document-body-frame', response_html)
         self.assertNotIn("--print-scale", response_html)
         self.assertNotIn("data-print-toolbar", response_html)
 

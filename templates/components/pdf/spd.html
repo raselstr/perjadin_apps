@@ -302,6 +302,18 @@ body {
         width: calc(100% / var(--content-scale));
         zoom: var(--content-scale);
     }
+
+    body[data-force-print-margins="true"] .letterhead-shell {
+        padding: var(--letterhead-top-padding) var(--letterhead-side-padding) 0;
+    }
+
+    body[data-force-print-margins="true"] .document-body-frame {
+        margin:
+            var(--document-margin-top)
+            var(--document-margin-right)
+            var(--document-margin-bottom)
+            var(--document-margin-left);
+    }
 }
 
 @supports not (zoom: 1) {

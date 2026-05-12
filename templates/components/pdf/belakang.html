@@ -15,6 +15,10 @@
     :root {
       --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
       --document-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
+      --document-margin-top: 10mm;
+      --document-margin-right: 10mm;
+      --document-margin-bottom: 10mm;
+      --document-margin-left: 10mm;
     }
 
     html,
@@ -41,7 +45,11 @@
       min-height:297mm;
       margin:12px auto 24px;
       background:#fff;
-      padding:10mm;
+      padding:
+        var(--document-margin-top)
+        var(--document-margin-right)
+        var(--document-margin-bottom)
+        var(--document-margin-left);
       box-sizing:border-box;
       box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
     }
@@ -176,6 +184,14 @@
       body[data-force-print-scale="true"] .document-body-scale {
         width: calc(100% / var(--content-scale));
         zoom: var(--content-scale);
+      }
+
+      body[data-force-print-margins="true"] .page {
+        padding:
+          var(--document-margin-top)
+          var(--document-margin-right)
+          var(--document-margin-bottom)
+          var(--document-margin-left);
       }
     }
 
