@@ -120,6 +120,16 @@
     background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
 }
 
+.print-scale-toolbar {
+    border-radius: 1rem;
+    border: 1px solid #f6d69a;
+    background: linear-gradient(180deg, #fff8eb 0%, #fffdf8 100%);
+}
+
+.print-scale-toolbar .form-range {
+    accent-color: #d97706;
+}
+
 .print-preview-frame {
     display: block;
     width: 100%;
@@ -340,6 +350,181 @@
     frameWindow.print();
   }
 
+  function isAndroidDevice() {
+    const userAgent = window.navigator?.userAgent || '';
+    const userAgentPlatform = window.navigator?.userAgentData?.platform || '';
+
+    return /Android/i.test(userAgent) || /Android/i.test(userAgentPlatform);
+  }
+
+  function clampPrintScalePercent(value, fallback = 100) {
+    const numericValue = Number(value);
+
+    if (!Number.isFinite(numericValue)) {
+      return fallback;
+    }
+
+    return Math.min(120, Math.max(75, Math.round(numericValue)));
+  }
+
+  function toPrintScaleDecimal(scalePercent) {
+    return (scalePercent / 100).toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  }
+
+  function getPrintScaleToolbar(frameId) {
+    return document.querySelector(
+      `[data-print-scale-toolbar][data-frame-id="${frameId}"]`
+    );
+  }
+
+  function getPrintPreviewDocument(frameId) {
+    const frame = document.getElementById(frameId);
+    return frame?.contentDocument || null;
+  }
+
+  function isPrintPreviewLoaded(frameId) {
+    const previewDocument = getPrintPreviewDocument(frameId);
+    const previewLocation = previewDocument?.location?.href || '';
+
+    return Boolean(
+      previewDocument?.body &&
+      previewLocation &&
+      previewLocation !== 'about:blank'
+    );
+  }
+
+  function getPreviewScalePercent(frameId, fallback = 100) {
+    const previewDocument = getPrintPreviewDocument(frameId);
+
+    if (!previewDocument) {
+      return fallback;
+    }
+
+    const datasetScale = previewDocument.body?.dataset.currentScalePercent;
+    if (datasetScale) {
+      return clampPrintScalePercent(datasetScale, fallback);
+    }
+
+    const scaleValue = previewDocument.defaultView
+      ?.getComputedStyle(previewDocument.documentElement)
+      ?.getPropertyValue('--content-scale')
+      ?.trim()
+      ?.replace(/['"]/g, '');
+    const numericScale = Number(scaleValue);
+
+    if (Number.isFinite(numericScale) && numericScale > 0) {
+      return clampPrintScalePercent(numericScale * 100, fallback);
+    }
+
+    return fallback;
+  }
+
+  function applyPrintScaleToPreview(frameId, scalePercent, options = {}) {
+    const previewDocument = getPrintPreviewDocument(frameId);
+
+    if (!previewDocument?.documentElement || !previewDocument?.body) {
+      return false;
+    }
+
+    const normalizedScale = clampPrintScalePercent(scalePercent);
+    const shouldForcePrintScale = Boolean(options.forcePrintScale);
+
+    previewDocument.documentElement.style.setProperty(
+      '--content-scale',
+      toPrintScaleDecimal(normalizedScale)
+    );
+    previewDocument.body.dataset.currentScalePercent = String(normalizedScale);
+
+    if (shouldForcePrintScale) {
+      previewDocument.body.dataset.forcePrintScale = 'true';
+    } else {
+      delete previewDocument.body.dataset.forcePrintScale;
+    }
+
+    return true;
+  }
+
+  function syncPrintScaleToolbar(toolbar, scalePercent) {
+    if (!toolbar) {
+      return;
+    }
+
+    const normalizedScale = clampPrintScalePercent(scalePercent);
+    const rangeInput = toolbar.querySelector('[data-print-scale-range]');
+    const numberInput = toolbar.querySelector('[data-print-scale-input]');
+    const defaultLabel = toolbar.querySelector('[data-print-scale-default-label]');
+    const currentLabel = toolbar.querySelector('[data-print-scale-current-label]');
+    const stateLabel = toolbar.querySelector('[data-print-scale-state-label]');
+    const defaultScale = clampPrintScalePercent(
+      toolbar.dataset.defaultScalePercent,
+      normalizedScale
+    );
+
+    if (rangeInput) {
+      rangeInput.value = String(normalizedScale);
+    }
+
+    if (numberInput) {
+      numberInput.value = String(normalizedScale);
+    }
+
+    if (defaultLabel) {
+      defaultLabel.textContent = `${defaultScale}%`;
+    }
+
+    if (currentLabel) {
+      currentLabel.textContent = `${normalizedScale}%`;
+    }
+
+    if (stateLabel) {
+      stateLabel.textContent = normalizedScale === defaultScale
+        ? '(default)'
+        : '(disesuaikan)';
+    }
+  }
+
+  function initializePrintScaleToolbar(container) {
+    const toolbar = container?.querySelector('[data-print-scale-toolbar]');
+
+    if (!toolbar) {
+      return;
+    }
+
+    const shouldShowToolbar = isAndroidDevice();
+    toolbar.classList.toggle('d-none', !shouldShowToolbar);
+
+    if (!shouldShowToolbar) {
+      return;
+    }
+
+    const frameId = toolbar.dataset.frameId;
+    const frame = document.getElementById(frameId);
+
+    if (!frame) {
+      return;
+    }
+
+    const syncFromPreview = () => {
+      const currentScale = getPreviewScalePercent(frameId);
+
+      if (isPrintPreviewLoaded(frameId)) {
+        toolbar.dataset.defaultScalePercent = String(currentScale);
+      }
+
+      syncPrintScaleToolbar(toolbar, currentScale);
+      applyPrintScaleToPreview(frameId, currentScale, {
+        forcePrintScale: true,
+      });
+    };
+
+    if (!frame.dataset.printScaleToolbarBound) {
+      frame.addEventListener('load', syncFromPreview);
+      frame.dataset.printScaleToolbarBound = 'true';
+    }
+
+    syncFromPreview();
+  }
+
   // FORM SUCCESS HANDLER
   document.body.addEventListener('formSuccess', function () {
       requestAnimationFrame(() => {
@@ -409,6 +594,7 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
     }
 
     if (targetId === "print-preview-modal-body") {
+        initializePrintScaleToolbar(document.getElementById('print-preview-modal-body'));
         showModalById('printPreviewModal');
     }
 });
@@ -430,13 +616,75 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
   });
 
   document.body.addEventListener('click', function (evt) {
+    const resetScaleButton = evt.target.closest('[data-print-scale-reset]');
+
+    if (resetScaleButton) {
+      const toolbar = resetScaleButton.closest('[data-print-scale-toolbar]');
+
+      if (!toolbar) {
+        return;
+      }
+
+      const frameId = toolbar.dataset.frameId;
+      const defaultScale = clampPrintScalePercent(
+        toolbar.dataset.defaultScalePercent,
+        100
+      );
+
+      syncPrintScaleToolbar(toolbar, defaultScale);
+      applyPrintScaleToPreview(frameId, defaultScale, {
+        forcePrintScale: !toolbar.classList.contains('d-none'),
+      });
+      return;
+    }
+
     const printButton = evt.target.closest('[data-print-preview-action="print"]');
 
     if (!printButton) {
       return;
     }
 
+    const frameId = printButton.dataset.frameId;
+    const toolbar = getPrintScaleToolbar(frameId);
+    const useModalPrintScale = Boolean(toolbar && !toolbar.classList.contains('d-none'));
+    const scalePercent = useModalPrintScale
+      ? clampPrintScalePercent(
+          toolbar.querySelector('[data-print-scale-input]')?.value,
+          getPreviewScalePercent(frameId)
+        )
+      : getPreviewScalePercent(frameId);
+
+    applyPrintScaleToPreview(frameId, scalePercent, {
+      forcePrintScale: useModalPrintScale,
+    });
     printPreviewFrame(printButton.dataset.frameId);
+  });
+
+  document.body.addEventListener('input', function (evt) {
+    const scaleInput = evt.target.closest(
+      '[data-print-scale-range], [data-print-scale-input]'
+    );
+
+    if (!scaleInput) {
+      return;
+    }
+
+    const toolbar = scaleInput.closest('[data-print-scale-toolbar]');
+
+    if (!toolbar) {
+      return;
+    }
+
+    const frameId = toolbar.dataset.frameId;
+    const nextScale = clampPrintScalePercent(
+      scaleInput.value,
+      getPreviewScalePercent(frameId)
+    );
+
+    syncPrintScaleToolbar(toolbar, nextScale);
+    applyPrintScaleToPreview(frameId, nextScale, {
+      forcePrintScale: !toolbar.classList.contains('d-none'),
+    });
   });
 
   document.addEventListener('hidden.bs.modal', function (evt) {

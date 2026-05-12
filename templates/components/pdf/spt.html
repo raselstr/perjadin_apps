@@ -4,6 +4,7 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Surat Tugas</title>
 <style>
 @page {
@@ -16,15 +17,21 @@ body {
     padding: 0;
 }
 
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
 body {
-    font-family: Arial, sans-serif;
+    font-family: var(--document-font-family);
     font-size: 12pt;
     color: #111;
     background: #eef2f7;
 }
 
 :root {
-    --content-scale:"1";
+    --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
+    --document-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
     --letterhead-top-padding: 10mm;
     --letterhead-side-padding: 18mm;
     --document-margin-top: {{ kop_surat.margin_top_mm|default:18 }}mm;
@@ -292,8 +299,13 @@ table {
 
     .document-body-scale {
         width: 100%;
-        zoom: 1;
         transform: none;
+        transform-origin: top left;
+    }
+
+    body[data-force-print-scale="true"] .document-body-scale {
+        width: calc(100% / var(--content-scale));
+        transform: scale(var(--content-scale));
     }
 }
 </style>

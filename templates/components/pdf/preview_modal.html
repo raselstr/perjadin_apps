@@ -14,6 +14,72 @@
 </div>
 
 <div class="modal-body pt-3">
+    <div
+        class="print-scale-toolbar alert alert-warning d-none"
+        data-print-scale-toolbar
+        data-frame-id="{{ frame_id }}"
+        role="status">
+        <div class="fw-semibold mb-1">Skala print Android</div>
+        <div class="small text-muted mb-3">
+            Jika dialog cetak Android tidak menampilkan pengaturan skala, atur dari modal ini sebelum menekan tombol cetak.
+        </div>
+
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-lg-auto">
+                <label class="form-label mb-0" for="{{ frame_id }}-scale-range">
+                    Skala dokumen
+                </label>
+            </div>
+
+            <div class="col-12 col-lg">
+                <input
+                    id="{{ frame_id }}-scale-range"
+                    class="form-range mb-0"
+                    type="range"
+                    min="75"
+                    max="120"
+                    step="1"
+                    value="100"
+                    data-print-scale-range>
+            </div>
+
+            <div class="col-8 col-sm-4 col-lg-2">
+                <div class="input-group input-group-sm">
+                    <input
+                        class="form-control"
+                        type="number"
+                        min="75"
+                        max="120"
+                        step="1"
+                        value="100"
+                        inputmode="numeric"
+                        data-print-scale-input>
+                    <span class="input-group-text">%</span>
+                </div>
+            </div>
+
+            <div class="col-4 col-sm-3 col-lg-auto">
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary w-100"
+                    data-print-scale-reset>
+                    Reset
+                </button>
+            </div>
+        </div>
+
+        <div class="small text-muted mt-2">
+            Default dokumen:
+            <span class="fw-semibold" data-print-scale-default-label>100%</span>
+        </div>
+
+        <div class="small mt-1">
+            Skala aktif:
+            <span class="fw-semibold text-dark" data-print-scale-current-label>100%</span>
+            <span class="text-muted" data-print-scale-state-label>(default)</span>
+        </div>
+    </div>
+
     <div class="print-preview-shell">
         <iframe
             id="{{ frame_id }}"

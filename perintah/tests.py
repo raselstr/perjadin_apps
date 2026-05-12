@@ -695,6 +695,11 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Preview SPD")
         self.assertContains(response, "<iframe", html=False)
+        self.assertContains(response, "data-print-scale-toolbar", html=False)
+        self.assertContains(response, "data-print-scale-range", html=False)
+        self.assertContains(response, "data-print-scale-input", html=False)
+        self.assertContains(response, "data-print-scale-current-label", html=False)
+        self.assertContains(response, "data-print-scale-state-label", html=False)
         self.assertContains(
             response,
             (

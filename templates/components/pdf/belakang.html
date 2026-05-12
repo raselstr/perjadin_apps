@@ -8,24 +8,54 @@
   <title>Form SPD</title>
 
   <style>
+    @page {
+      size: A4;
+    }
+
+    :root {
+      --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
+      --document-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
+    }
+
+    html,
     body{
-      font-family: "Arial", sans-serif;
+      margin:0;
+      padding:0;
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body{
+      font-family: var(--document-font-family);
+      font-size:10.5pt;
       background:#f2f2f2;
-      padding:20px;
+      color:#111;
+      padding:12px;
     }
 
     .page{
-      width:800px;
-      margin:auto;
+      width:210mm;
+      min-height:297mm;
+      margin:12px auto 24px;
       background:#fff;
-      padding:20px;
+      padding:10mm;
+      box-sizing:border-box;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.14);
+    }
+
+    .document-body-scale {
+      width:100%;
+      box-sizing:border-box;
     }
 
     table{
       width:100%;
       border-collapse:collapse;
       table-layout:fixed;
-      font-size:14px;
+      font-size:inherit;
     }
 
     td{
@@ -106,12 +136,54 @@
         font-style: italic;
     }
 
+    @media screen {
+      .document-body-scale {
+        width: calc(100% / var(--content-scale));
+        transform-origin: top left;
+        zoom: var(--content-scale);
+      }
+    }
+
+    @supports not (zoom: 1) {
+      @media screen {
+        .document-body-scale {
+          transform: scale(var(--content-scale));
+        }
+      }
+    }
+
+    @media print {
+      body {
+        background:#fff;
+        padding:0;
+      }
+
+      .page {
+        width:auto;
+        min-height:auto;
+        margin:0;
+        box-shadow:none;
+        padding:10mm;
+      }
+
+      .document-body-scale {
+        width:100%;
+        transform:none;
+        transform-origin: top left;
+      }
+
+      body[data-force-print-scale="true"] .document-body-scale {
+        width: calc(100% / var(--content-scale));
+        transform: scale(var(--content-scale));
+      }
+    }
+
   </style>
 </head>
 <body>
 
 <div class="page">
-
+  <div class="document-body-scale">
   <table>
 
     <!-- I -->
@@ -417,6 +489,7 @@
         {% endif %}
     </div>
 
+  </div>
 </div>
 
 </body>
