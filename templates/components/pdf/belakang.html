@@ -146,7 +146,7 @@
 
     @media screen {
       .document-body-scale {
-        width: calc(100% / var(--content-scale));
+        /* width: calc(100% / var(--content-scale)); */
         transform-origin: top left;
         zoom: var(--content-scale);
       }
@@ -182,7 +182,7 @@
       }
 
       body[data-force-print-scale="true"] .document-body-scale {
-        width: calc(100% / var(--content-scale));
+        /* width: calc(100% / var(--content-scale)); */
         zoom: var(--content-scale);
       }
 
@@ -198,7 +198,7 @@
     @supports not (zoom: 1) {
       @media print {
         body[data-force-print-scale="true"] .document-body-scale {
-          width: calc(100% / var(--content-scale));
+          /* width: calc(100% / var(--content-scale)); */
           transform: scale(var(--content-scale));
         }
       }

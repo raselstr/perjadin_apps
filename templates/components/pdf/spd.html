@@ -32,8 +32,8 @@ body {
 :root {
     --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
     --document-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
-    --letterhead-top-padding: 10mm;
-    --letterhead-side-padding: 18mm;
+    --letterhead-top-padding: 1mm;
+    --letterhead-side-padding: 1mm;
     --document-margin-top: {{ kop_surat.margin_top_mm|default:18 }}mm;
     --document-margin-right: {{ kop_surat.margin_right_mm|default:18 }}mm;
     --document-margin-bottom: {{ kop_surat.margin_bottom_mm|default:20 }}mm;
@@ -78,7 +78,7 @@ body {
 
 @media screen {
     .document-body-scale {
-        width: calc(100% / var(--content-scale));
+        /* width: calc(100% / var(--content-scale)); */
         transform-origin: top left;
         zoom: var(--content-scale);
     }
@@ -265,7 +265,7 @@ body {
 @supports not (zoom: 1) {
     @media screen {
         .document-body-scale {
-            width: calc(100% / var(--content-scale));
+            /* width: calc(100% / var(--content-scale)); */
             transform: scale(var(--content-scale));
         }
     }
@@ -299,7 +299,7 @@ body {
     }
 
     body[data-force-print-scale="true"] .document-body-scale {
-        width: calc(100% / var(--content-scale));
+        /* width: calc(100% / var(--content-scale)); */
         zoom: var(--content-scale);
     }
 
@@ -319,7 +319,7 @@ body {
 @supports not (zoom: 1) {
     @media print {
         body[data-force-print-scale="true"] .document-body-scale {
-            width: calc(100% / var(--content-scale));
+            /* width: calc(100% / var(--content-scale)); */
             transform: scale(var(--content-scale));
         }
     }
