@@ -393,9 +393,9 @@ table {
                                                         <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
                                                     </tr>
                                                     <tr>
-                                                        <td class="person-label">NIP</td>
+                                                        <td class="person-label">Nip</td>
                                                         <td class="person-colon">:</td>
-                                                        <td>{{ pelaksana.nama.nip|default:"-"|format_nip }}</td>
+                                                        <td>{{ pelaksana.nama.nip|default:"-"}}</td>
                                                     </tr>
                                                     <tr>
                                                         <td class="person-label">Jabatan</td>
@@ -462,7 +462,7 @@ table {
                                 <div>{{ pemberi_tugas.penandatangan.pangkat }}</div>
                                 {% endif %}
                                 {% if pemberi_tugas.nip %}
-                                <div>NIP. {{ pemberi_tugas.nip|format_nip }}</div>
+                                <div>Nip. {{ pemberi_tugas.nip}}</div>
                                 {% endif %}
                             {% endif %}
                         </div>

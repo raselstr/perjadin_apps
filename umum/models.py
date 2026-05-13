@@ -23,8 +23,8 @@ class Pangkat(models.Model):
 
     def __str__(self):
         if self.ruang:
-            return f"{self.pangkat} ({self.golongan}/{self.ruang})"
-        return f"{self.pangkat} ({self.golongan})"
+            return f"{self.pangkat} / {self.golongan}.{self.ruang}"
+        return f"{self.pangkat} / {self.golongan}"
 
 class Eselon(models.Model):
     eselon = models.CharField(max_length=100, unique=True)

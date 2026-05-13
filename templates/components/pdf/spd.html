@@ -379,7 +379,7 @@ body {
                         <td colspan="2" class="label-col">Pejabat Pembuat Komitmen</td>
                         <td colspan="2">
                             {{ penandatangan_dokumen.nama|default:"-" }}
-                            {% comment %} {% if penandatangan_dokumen.nip %}<br>NIP. {{ penandatangan_dokumen.nip }}{% endif %}
+                            {% comment %} {% if penandatangan_dokumen.nip %}<br>Nip. {{ penandatangan_dokumen.nip }}{% endif %}
                             {% if penandatangan_dokumen.pangkat %}<br>{{ penandatangan_dokumen.pangkat }}{% endif %}
                             <br>{{ signature_title|default:"-" }} {% endcomment %}
                         </td>
@@ -390,7 +390,7 @@ body {
                         <td colspan="2">
                             {% if primary_pelaksana %}
                                 {{ primary_pelaksana.nama.nama|default:"-" }}
-                                {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip|format_nip }}{% endif %}
+                                {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip}}{% endif %}
                             {% else %}
                                 <span class="empty-state">Belum ada pelaksana.</span>
                             {% endif %}
@@ -464,7 +464,7 @@ body {
                                     {{ forloop.counter }}.
                                     {{ follower.nama.nama|default:"-" }}
                                     <!-- {% if follower.nama.nip %}
-                                        - {{ follower.nama.nip|format_nip }}
+                                        - {{ follower.nama.nip}}
                                     {% endif %} -->
                                 </td>
                                 <td class="followers-birthdate-cell">{{ follower.nama.tgl_lahir|date:"d-m-Y"|default:"-" }}</td>
@@ -505,7 +505,7 @@ body {
 
                     <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ penandatangan_dokumen.nama|default:"-" }}</div>
                     {% if show_signature_identity_details and penandatangan_dokumen.nip %}
-                        NIP. {{ penandatangan_dokumen.nip|format_nip }}
+                        Nip. {{ penandatangan_dokumen.nip}}
                     {% endif %}
                 </div>
             </div>
