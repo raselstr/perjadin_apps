@@ -459,7 +459,7 @@ table {
                             <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ pemberi_tugas.nama|default:"-" }}</div>
                             {% if show_signature_identity_details %}
                                 {% if pemberi_tugas.pangkat %}
-                                <div>{{ pemberi_tugas.pangkat }}</div>
+                                <div>{{ pemberi_tugas.penandatangan.pangkat }}</div>
                                 {% endif %}
                                 {% if pemberi_tugas.nip %}
                                 <div>NIP. {{ pemberi_tugas.nip|format_nip }}</div>
