@@ -3,7 +3,7 @@
 # ======================================================
 # PRODUCTION PostgreSQL Backup / Restore Script
 # Project  : Django + PostgreSQL + Docker
-# Container: postgres_db
+# Container: perjadin_apps_postgres_db
 # Usage    : Production-safe database maintenance
 # ======================================================
 
@@ -15,7 +15,7 @@ cd "$BASE_DIR"
 # ------------------------------------------------------
 # CONFIGURATION
 # ------------------------------------------------------
-DB_CONTAINER="postgres_db"
+DB_CONTAINER="perjadin_apps_postgres_db"
 SECRETS_DIR="./secrets"
 BACKUP_DIR="./backups"
 DATE=$(date +"%Y-%m-%d_%H-%M-%S")
