@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
+from django.db.models import Q
 
 
 class Spt(models.Model):
@@ -146,11 +147,13 @@ class PemberiTugas(models.Model):
     nomor_spt = models.CharField(
         max_length=150,
         blank=True,
+        null=True,
         default=""
     )
     nomor_spd = models.CharField(
         max_length=150,
         blank=True,
+        null=True,
         default=""
     )
     tanggal_spt = models.DateField(
@@ -172,6 +175,19 @@ class PemberiTugas(models.Model):
             models.UniqueConstraint(
                 fields=["spt", "penandatangan"],
                 name="unique_pemberi_tugas_spt_penandatangan",
+            ),
+             # nomor_spt unik jika tidak null/kosong
+            models.UniqueConstraint(
+                fields=["nomor_spt"],
+                condition=Q(nomor_spt__isnull=False) & ~Q(nomor_spt=""),
+                name="unique_nomor_spt_not_blank",
+            ),
+
+            # nomor_spd unik jika tidak null/kosong
+            models.UniqueConstraint(
+                fields=["nomor_spd"],
+                condition=Q(nomor_spd__isnull=False) & ~Q(nomor_spd=""),
+                name="unique_nomor_spd_not_blank",
             ),
         ]
 
@@ -196,6 +212,9 @@ class PemberiTugas(models.Model):
     def clean(self):
         self.sync_from_penandatangan()
 
+        self.nomor_spt = self._normalize_optional_number(self.nomor_spt)
+        self.nomor_spd = self._normalize_optional_number(self.nomor_spd)
+
         if not self.spt_id:
             return
 
@@ -217,6 +236,17 @@ class PemberiTugas(models.Model):
                 "Kombinasi SPT dan pemberi tugas tidak boleh ganda."
             ]
 
+        self._validate_unique_document_number(
+            "nomor_spt",
+            "Nomor SPT sudah digunakan. Isi nomor SPT yang berbeda.",
+            errors,
+        )
+        self._validate_unique_document_number(
+            "nomor_spd",
+            "Nomor SPD sudah digunakan. Isi nomor SPD yang berbeda.",
+            errors,
+        )
+
         if (
             self.tanggal_spt
             and self.spt.tgl_berangkat
@@ -229,6 +259,23 @@ class PemberiTugas(models.Model):
 
         if errors:
             raise ValidationError(errors)
+
+    @staticmethod
+    def _normalize_optional_number(value):
+        value = (value or "").strip()
+        return value
+
+    def _validate_unique_document_number(self, field_name, message, errors):
+        value = getattr(self, field_name)
+        if not value:
+            return
+
+        if (
+            PemberiTugas.objects.exclude(pk=self.pk)
+            .filter(**{field_name: value})
+            .exists()
+        ):
+            errors[field_name] = message
 
     def save(self, *args, **kwargs):
         self.sync_from_penandatangan()

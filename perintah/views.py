@@ -18,6 +18,7 @@ from .document_utils import (
     build_spt_signature_title_parts,
     filter_spt_pelaksana,
     find_ppk_penandatangan,
+    format_spt_date_range,
     generate_default_document_number,
     get_kop_surat_config,
     get_letterhead_office_name,
@@ -298,6 +299,10 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             ),
             "nomor_spt": nomor_spt,
             "nomor_spd": nomor_spd,
+            "tanggal_perjalanan_spt": format_spt_date_range(
+                spt.tgl_berangkat,
+                spt.tgl_kembali,
+            ),
         }
 
     def get_context_data(self, pemberi_tugas):

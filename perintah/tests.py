@@ -13,6 +13,7 @@ from umum.models import Eselon, JenisJabatan, Pangkat, Pegawai, Pemda, Penandata
 
 from .document_utils import (
     build_spt_signature_title_parts,
+    format_spt_date_range,
     generate_default_document_number,
 )
 from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
@@ -395,6 +396,59 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         )
         self.assertIn("nama", formset.forms[0].errors)
 
+    def test_pelaksana_formset_rejects_departure_inside_existing_spt_range(self):
+        existing_spt = Spt.objects.create(
+            dasar="Dasar bentrok",
+            berita="SPT pertama",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Provinsi",
+            lama_perjalanan=6,
+            tgl_berangkat=date(2026, 5, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        existing_spt.pelaksana.create(nama=self.pegawai_eselon_iii)
+
+        formset = PelaksanaFormSet(data={
+            "tgl_berangkat": "2026-05-14",
+            "pelaksana-TOTAL_FORMS": "1",
+            "pelaksana-INITIAL_FORMS": "0",
+            "pelaksana-MIN_NUM_FORMS": "0",
+            "pelaksana-MAX_NUM_FORMS": "1000",
+            "pelaksana-0-nama": str(self.pegawai_eselon_iii.pk),
+        })
+
+        self.assertFalse(formset.is_valid())
+        self.assertIn(
+            "Tanggal berangkat SPT baru harus lebih besar atau sama",
+            formset.non_form_errors()[0],
+        )
+        self.assertIn("nama", formset.forms[0].errors)
+
+    def test_pelaksana_formset_allows_departure_on_existing_return_date(self):
+        existing_spt = Spt.objects.create(
+            dasar="Dasar tidak bentrok",
+            berita="SPT pertama",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Provinsi",
+            lama_perjalanan=6,
+            tgl_berangkat=date(2026, 5, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        existing_spt.pelaksana.create(nama=self.pegawai_eselon_iii)
+
+        formset = PelaksanaFormSet(data={
+            "tgl_berangkat": "2026-05-15",
+            "pelaksana-TOTAL_FORMS": "1",
+            "pelaksana-INITIAL_FORMS": "0",
+            "pelaksana-MIN_NUM_FORMS": "0",
+            "pelaksana-MAX_NUM_FORMS": "1000",
+            "pelaksana-0-nama": str(self.pegawai_eselon_iii.pk),
+        })
+
+        self.assertTrue(formset.is_valid(), formset.errors)
+
     def test_form_includes_sekretaris_daerah_for_administrator_role(self):
         user = User.objects.create_user(
             username="administrator-signatory",
@@ -590,6 +644,44 @@ class PemberiTugasModelTests(PerintahBaseTestCase):
                 tanggal_spt=date(2026, 5, 2),
             )
 
+    def test_save_rejects_duplicate_filled_nomor_spt(self):
+        PemberiTugas.objects.create(
+            spt=self.spt_bupati,
+            penandatangan=self.bupati,
+            nomor_spt="095/ST/BUP/2026",
+            tanggal_spt=date(2026, 4, 30),
+        )
+
+        with self.assertRaisesMessage(
+            ValidationError,
+            "Nomor SPT sudah digunakan. Isi nomor SPT yang berbeda.",
+        ):
+            PemberiTugas.objects.create(
+                spt=self.spt_spd,
+                penandatangan=self.kepala_bk,
+                nomor_spt="095/ST/BUP/2026",
+                tanggal_spt=date(2026, 5, 1),
+            )
+
+    def test_save_allows_multiple_blank_document_numbers(self):
+        PemberiTugas.objects.create(
+            spt=self.spt_bupati,
+            penandatangan=self.bupati,
+            nomor_spt="",
+            nomor_spd="",
+            tanggal_spt=date(2026, 4, 30),
+        )
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=self.spt_spd,
+            penandatangan=self.kepala_bk,
+            nomor_spt="",
+            nomor_spd="",
+            tanggal_spt=date(2026, 5, 1),
+        )
+
+        self.assertEqual(pemberi_tugas.nomor_spt, "")
+        self.assertEqual(pemberi_tugas.nomor_spd, "")
+
 
 class DocumentUtilsTests(PerintahBaseTestCase):
     def test_default_document_number_uses_roman_month(self):
@@ -600,6 +692,22 @@ class DocumentUtilsTests(PerintahBaseTestCase):
         )
 
         self.assertEqual(result, "800.1.11.1/091/BKAD/V/2026")
+
+    def test_format_spt_date_range_same_month(self):
+        result = format_spt_date_range(
+            date(2026, 5, 10),
+            date(2026, 5, 15),
+        )
+
+        self.assertEqual(result, "10 s.d 15 Mei 2026")
+
+    def test_format_spt_date_range_different_month(self):
+        result = format_spt_date_range(
+            date(2026, 5, 10),
+            date(2026, 6, 1),
+        )
+
+        self.assertEqual(result, "10 Mei 2026 s.d 01 Juni 2026")
 
     def test_spt_signature_title_separates_prefix_from_title_lines(self):
         plt = JenisJabatan.objects.create(nama="Plt.")

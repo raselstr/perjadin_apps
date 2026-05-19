@@ -1,6 +1,8 @@
 import re
 from datetime import date
 
+from django.utils.formats import date_format
+
 from umum.models import KopSurat, Pemda, Penandatangan
 
 
@@ -424,6 +426,28 @@ def get_roman_month(date_obj):
         return ROMAN_MONTHS[date_obj.month - 1]
     except (AttributeError, IndexError):
         return ""
+
+
+def format_spt_date_range(tgl_berangkat, tgl_kembali):
+    if not tgl_berangkat:
+        return ""
+
+    if not tgl_kembali or tgl_berangkat == tgl_kembali:
+        return date_format(tgl_berangkat, "d F Y")
+
+    if (
+        tgl_berangkat.month == tgl_kembali.month
+        and tgl_berangkat.year == tgl_kembali.year
+    ):
+        return (
+            f"{date_format(tgl_berangkat, 'd')} s.d "
+            f"{date_format(tgl_kembali, 'd F Y')}"
+        )
+
+    return (
+        f"{date_format(tgl_berangkat, 'd F Y')} s.d "
+        f"{date_format(tgl_kembali, 'd F Y')}"
+    )
 
 
 def generate_default_document_number(

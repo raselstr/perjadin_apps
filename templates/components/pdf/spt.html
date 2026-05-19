@@ -422,11 +422,10 @@ table {
                         <td>
                             <ol class="instruction-list">
                                 <li>
-                                    Melaksanakan perjalanan dinas selama {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari dalam rangka
+                                    Melaksanakan Perjalanan Dinas selama {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari dalam rangka
                                     {{ spt.berita|default:"-" }} ke {{ spt.tempat_tujuan|default:"-" }}
                                     di {{ spt.kota_tujuan|default:"-" }} terhitung tanggal
-                                    {{ spt.tgl_berangkat|date:"d F Y" }} sampai dengan
-                                    {{ spt.tgl_kembali|date:"d F Y" }}.
+                                    {{ tanggal_perjalanan_spt }}.
                                 </li>
                                 <li>
                                     Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada

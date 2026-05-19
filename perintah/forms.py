@@ -22,6 +22,68 @@ from .document_utils import (
 from .models import Pelaksana, PemberiTugas, Spt
 
 
+def _normalize_optional_document_number(value):
+    value = (value or "").strip()
+    return value
+
+
+def _get_formset_prefix_from_data(data, default="pelaksana"):
+    for key in data.keys():
+        if key.endswith("-TOTAL_FORMS"):
+            return key[:-len("-TOTAL_FORMS")]
+    return default
+
+
+def _get_selected_pelaksana_ids_from_data(data, prefix="pelaksana"):
+    try:
+        total_forms = int(data.get(f"{prefix}-TOTAL_FORMS") or 0)
+    except (TypeError, ValueError):
+        return []
+
+    selected_ids = []
+    for index in range(total_forms):
+        if data.get(f"{prefix}-{index}-DELETE") in {"on", "true", "True", "1"}:
+            continue
+
+        pelaksana_id = data.get(f"{prefix}-{index}-nama")
+        if pelaksana_id:
+            selected_ids.append(pelaksana_id)
+
+    return selected_ids
+
+
+def _get_pelaksana_schedule_conflicts(
+    pelaksana_ids,
+    departure_date,
+    exclude_spt_id=None,
+):
+    if not pelaksana_ids or not departure_date:
+        return Pelaksana.objects.none()
+
+    conflicts = Pelaksana.objects.select_related(
+        "spt",
+        "nama",
+    ).filter(
+        nama_id__in=pelaksana_ids,
+        spt__tgl_berangkat__lte=departure_date,
+        spt__tgl_kembali__gt=departure_date,
+    )
+
+    if exclude_spt_id:
+        conflicts = conflicts.exclude(spt_id=exclude_spt_id)
+
+    return conflicts
+
+
+def _format_pelaksana_schedule_conflict(conflict):
+    return (
+        f"{conflict.nama.nama} sudah menjadi pelaksana pada "
+        f"SPT #{conflict.spt_id} tanggal "
+        f"{conflict.spt.tgl_berangkat:%d-%m-%Y} sampai "
+        f"{conflict.spt.tgl_kembali:%d-%m-%Y}."
+    )
+
+
 class SptForm(BaseAppModelForm):
     # Layout untuk template generic
     field_layout = {
@@ -133,6 +195,36 @@ class SptForm(BaseAppModelForm):
             "dasar",
             "berita",
         ])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        departure_date = cleaned_data.get("tgl_berangkat")
+
+        if not self.is_bound or not departure_date:
+            return cleaned_data
+
+        formset_prefix = _get_formset_prefix_from_data(self.data)
+        selected_pelaksana_ids = _get_selected_pelaksana_ids_from_data(
+            self.data,
+            prefix=formset_prefix,
+        )
+        conflict = _get_pelaksana_schedule_conflicts(
+            selected_pelaksana_ids,
+            departure_date,
+            exclude_spt_id=self.instance.pk if self.instance else None,
+        ).first()
+
+        if conflict:
+            self.add_error(
+                "tgl_berangkat",
+                (
+                    _format_pelaksana_schedule_conflict(conflict)
+                    + " Tanggal berangkat SPT baru harus lebih besar atau "
+                    "sama dengan tanggal kembali SPT sebelumnya."
+                ),
+            )
+
+        return cleaned_data
     
     def label_lokasi(self, obj):
         if obj.jenis_spd and obj.jenis_spd.id == 1:
@@ -243,6 +335,11 @@ class BasePelaksanaInlineFormSet(BaseInlineFormSet):
         "Pelaksana yang sama tidak boleh dipilih lebih dari satu kali "
         "dalam satu SPT."
     )
+    schedule_conflict_message = (
+        "Pelaksana tersebut masih terdaftar pada SPT lain di rentang tanggal "
+        "yang sama. Tanggal berangkat SPT baru harus lebih besar atau sama "
+        "dengan tanggal kembali SPT sebelumnya."
+    )
 
     def clean(self):
         super().clean()
@@ -289,6 +386,55 @@ class BasePelaksanaInlineFormSet(BaseInlineFormSet):
 
         if has_duplicate:
             raise forms.ValidationError(self.duplicate_message)
+
+        self._validate_pelaksana_schedule(selected_rows)
+
+    def _get_parent_departure_date(self):
+        if self.is_bound:
+            departure_date = parse_date(self.data.get("tgl_berangkat", ""))
+            if departure_date:
+                return departure_date
+
+            for key in self.data.keys():
+                if key.endswith("-tgl_berangkat"):
+                    departure_date = parse_date(self.data.get(key, ""))
+                    if departure_date:
+                        return departure_date
+
+        if self.instance and self.instance.tgl_berangkat:
+            return self.instance.tgl_berangkat
+
+        return None
+
+    def _validate_pelaksana_schedule(self, selected_rows):
+        departure_date = self._get_parent_departure_date()
+        if not departure_date:
+            return
+
+        conflicting_pelaksana = _get_pelaksana_schedule_conflicts(
+            selected_rows.keys(),
+            departure_date,
+            exclude_spt_id=self.instance.pk if self.instance else None,
+        )
+
+        conflicts_by_pegawai = {
+            pelaksana.nama_id: pelaksana
+            for pelaksana in conflicting_pelaksana
+        }
+        if not conflicts_by_pegawai:
+            return
+
+        for pegawai_id, row_index in selected_rows.items():
+            conflict = conflicts_by_pegawai.get(pegawai_id)
+            if not conflict:
+                continue
+
+            self.forms[row_index - 1].add_error(
+                "nama",
+                _format_pelaksana_schedule_conflict(conflict),
+            )
+
+        raise forms.ValidationError(self.schedule_conflict_message)
 
 
 class PemberiTugasForm(BaseAppModelForm):
@@ -420,6 +566,31 @@ class PemberiTugasForm(BaseAppModelForm):
         cleaned_data = super().clean()
         spt = cleaned_data.get("spt")
         penandatangan = cleaned_data.get("penandatangan")
+
+        for field_name, message in (
+            (
+                "nomor_spt",
+                "Nomor SPT sudah digunakan. Isi nomor SPT yang berbeda.",
+            ),
+            (
+                "nomor_spd",
+                "Nomor SPD sudah digunakan. Isi nomor SPD yang berbeda.",
+            ),
+        ):
+            value = _normalize_optional_document_number(
+                cleaned_data.get(field_name)
+            )
+            cleaned_data[field_name] = value
+
+            if not value:
+                continue
+
+            if (
+                PemberiTugas.objects.exclude(pk=self.instance.pk)
+                .filter(**{field_name: value})
+                .exists()
+            ):
+                self.add_error(field_name, message)
 
         if spt and penandatangan:
             pelaksana_queryset = spt.pelaksana.select_related(
