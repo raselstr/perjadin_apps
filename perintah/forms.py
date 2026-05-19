@@ -87,13 +87,13 @@ def _format_pelaksana_schedule_conflict(conflict):
 class SptForm(BaseAppModelForm):
     # Layout untuk template generic
     field_layout = {
-        "kota_tujuan": 6,
-        "kota_tujuan_tambahan": 6,
-        "jenis_kegiatan": 6,
-        "lama_perjalanan": 4,
+        "kota_tujuan": 12,
+        "kota_tujuan_tambahan": 12,
+        "jenis_kegiatan": 7,
+        "lama_perjalanan": 5,
         "tgl_berangkat": 4,
         "tgl_kembali": 4,
-        "kendaraan": 6,
+        "kendaraan": 4,
         "tempat_tujuan": 12,
         "dasar": 12,
         "berita": 12,
