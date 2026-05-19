@@ -431,7 +431,7 @@ body {
                         </td>
                         <td colspan="2">
                             a. {{ signature_location }}<br>
-                            b. {% if spt.kota_tujuan %}{{ spt.kota_tujuan }}{% endif %}
+                            b. {{ kota_tujuan_text|default:"-" }}
                         </td>
                     </tr>
                     <tr>

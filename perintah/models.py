@@ -32,6 +32,11 @@ class Spt(models.Model):
         blank=True,
         null=True,
     )
+    kota_tujuan_tambahan = models.ManyToManyField(
+        "spd.Lokasi",
+        related_name="spt_kota_tujuan_tambahan",
+        blank=True,
+    )
     tempat_tujuan = models.TextField(
         blank=True,
         null=True
@@ -103,8 +108,26 @@ class Spt(models.Model):
     def lama_perjalanan_display(self):
         return f"{self.lama_perjalanan} hari"
 
+    @property
+    def kota_tujuan_display(self):
+        from .document_utils import format_spt_kota_tujuan
+
+        return format_spt_kota_tujuan(self)
+
+    @property
+    def tempat_tujuan_display(self):
+        from .document_utils import format_spt_tempat_tujuan
+
+        return format_spt_tempat_tujuan(self)
+
+    @property
+    def tujuan_perjalanan_display(self):
+        from .document_utils import format_spt_tujuan_perjalanan
+
+        return format_spt_tujuan_perjalanan(self)
+
     def __str__(self):
-        return f"{self.kota_tujuan} - {self.tempat_tujuan}"
+        return f"{self.kota_tujuan_display} - {self.tempat_tujuan_display}"
 
 class Pelaksana(models.Model):
     spt = models.ForeignKey(

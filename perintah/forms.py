@@ -88,6 +88,7 @@ class SptForm(BaseAppModelForm):
     # Layout untuk template generic
     field_layout = {
         "kota_tujuan": 6,
+        "kota_tujuan_tambahan": 6,
         "jenis_kegiatan": 6,
         "lama_perjalanan": 4,
         "tgl_berangkat": 4,
@@ -114,6 +115,7 @@ class SptForm(BaseAppModelForm):
             "dasar",
             "berita",
             "kota_tujuan",
+            "kota_tujuan_tambahan",
             "tempat_tujuan",
             "lama_perjalanan",
             "tgl_berangkat",
@@ -145,12 +147,17 @@ class SptForm(BaseAppModelForm):
                 "data-placeholder": "Pilih Kota Tujuan",
             }),
 
+            "kota_tujuan_tambahan": forms.SelectMultiple(attrs={
+                "class": "form-select select2",
+                "data-placeholder": "Pilih Kota Tujuan Tambahan (Biarkan Kosong jika tidak ada)",
+            }),
+
             "tempat_tujuan": forms.Textarea(attrs={
                 "class": "form-control",
                 "rows": 3,
                 "placeholder": (
-                    "Masukkan tempat tujuan, nama kantor, "
-                    "dan/atau hotel beserta alamatnya (jika ada)"
+                    "Masukkan tempat tujuan. Jika lebih dari satu, "
+                    "pisahkan dengan baris baru atau koma."
                 )
             }),
 
@@ -175,8 +182,13 @@ class SptForm(BaseAppModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.field_layout = self.field_layout.copy()
         
         self.fields["kota_tujuan"].label_from_instance = self.label_lokasi
+        self.fields["kota_tujuan_tambahan"].label_from_instance = (
+            self.label_lokasi
+        )
+        self._disable_extra_destinations_if_unmigrated()
 
         # Isi otomatis tanggal kembali
         self.fields["tgl_kembali"].initial = (
@@ -186,6 +198,7 @@ class SptForm(BaseAppModelForm):
         # Urutan field tampil
         self.order_fields([
             "kota_tujuan",
+            "kota_tujuan_tambahan",
             "jenis_kegiatan",
             "lama_perjalanan",
             "tgl_berangkat",
@@ -225,6 +238,13 @@ class SptForm(BaseAppModelForm):
             )
 
         return cleaned_data
+
+    def _disable_extra_destinations_if_unmigrated(self):
+        from .document_utils import _has_spt_extra_destination_table
+
+        if not _has_spt_extra_destination_table():
+            self.fields.pop("kota_tujuan_tambahan", None)
+            self.field_layout.pop("kota_tujuan_tambahan", None)
     
     def label_lokasi(self, obj):
         if obj.jenis_spd and obj.jenis_spd.id == 1:
@@ -555,7 +575,7 @@ class PemberiTugasForm(BaseAppModelForm):
 
     @staticmethod
     def _format_spt_label(obj):
-        lokasi = obj.kota_tujuan if obj.kota_tujuan else "-"
+        lokasi = obj.kota_tujuan_display or "-"
         tanggal = (
             obj.tgl_berangkat.strftime("%d-%m-%Y")
             if obj.tgl_berangkat else "-"

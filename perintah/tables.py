@@ -12,7 +12,7 @@ class SptTable(BaseTable):
         verbose_name="Maksud dan Tujuan Perjalanan Dinas",
         orderable=False,
         template_code="""
-        {{ record.tempat_tujuan }}<br>
+        {{ record.tujuan_perjalanan_display|default:"-" }}<br>
         <span class="text-muted small fst-italic">
             {{ record.berita }}
         </span>
@@ -112,7 +112,7 @@ class PemberiTugasTable(BaseTable):
         verbose_name="Maksud dan Tujuan Perjalanan Dinas",
         orderable=False,
         template_code="""
-        {{ record.spt.tempat_tujuan }}<br>
+        {{ record.spt.tujuan_perjalanan_display|default:"-" }}<br>
         <span class="text-muted small fst-italic">
             {{ record.spt.berita }}
         </span>

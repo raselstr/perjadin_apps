@@ -165,8 +165,8 @@
                         </td>
                         <td>{{ item.nama.jabatan|default:"-" }}</td>
                         <td>
-                          <div class="fw-medium">{{ item.spt.kota_tujuan|default:"-" }}</div>
-                          <div class="text-muted small">{{ item.spt.tempat_tujuan|default:"-" }}</div>
+                          <div class="fw-medium">{{ item.spt.kota_tujuan_display|default:"-" }}</div>
+                          <div class="text-muted small">{{ item.spt.tempat_tujuan_display|default:"-" }}</div>
                         </td>
                         <td>{{ item.spt.jenis_kegiatan|default:"-" }}</td>
                         <td>{{ item.spt.tgl_berangkat|date:"d/m/Y" }} - {{ item.spt.tgl_kembali|date:"d/m/Y" }}</td>

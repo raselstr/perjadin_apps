@@ -137,7 +137,7 @@ class SptView(BaseMasterDetailCRUDView):
             "kota_tujuan",
             "jenis_kegiatan",
         ).prefetch_related(
-            "pelaksana__nama"
+            "pelaksana__nama",
         ).order_by("-id")
 
         queryset = filter_queryset_by_active_opd(
@@ -299,6 +299,9 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             ),
             "nomor_spt": nomor_spt,
             "nomor_spd": nomor_spd,
+            "kota_tujuan_text": spt.kota_tujuan_display,
+            "tempat_tujuan_text": spt.tempat_tujuan_display,
+            "tujuan_perjalanan_text": spt.tujuan_perjalanan_display,
             "tanggal_perjalanan_spt": format_spt_date_range(
                 spt.tgl_berangkat,
                 spt.tgl_kembali,

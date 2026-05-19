@@ -1,6 +1,8 @@
 import re
 from datetime import date
+from functools import lru_cache
 
+from django.db import DatabaseError, ProgrammingError, connection
 from django.utils.formats import date_format
 
 from umum.models import KopSurat, Pemda, Penandatangan
@@ -426,6 +428,69 @@ def get_roman_month(date_obj):
         return ROMAN_MONTHS[date_obj.month - 1]
     except (AttributeError, IndexError):
         return ""
+
+
+def _join_non_empty(parts):
+    seen = set()
+    normalized = []
+    for part in parts:
+        value = str(part or "").strip()
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        normalized.append(value)
+    return ", ".join(normalized)
+
+
+def _split_destination_text(value):
+    if not value:
+        return []
+
+    parts = []
+    for line in str(value).replace(";", "\n").splitlines():
+        for item in line.split(","):
+            item = item.strip()
+            if item:
+                parts.append(item)
+    return parts
+
+
+@lru_cache(maxsize=1)
+def _has_spt_extra_destination_table():
+    from .models import Spt
+
+    table_name = Spt.kota_tujuan_tambahan.through._meta.db_table
+    try:
+        return table_name in connection.introspection.table_names()
+    except (DatabaseError, ProgrammingError):
+        return False
+
+
+def format_spt_kota_tujuan(spt):
+    kota_tujuan = []
+    if getattr(spt, "kota_tujuan", None):
+        kota_tujuan.append(spt.kota_tujuan)
+
+    if getattr(spt, "pk", None) and _has_spt_extra_destination_table():
+        try:
+            kota_tujuan.extend(spt.kota_tujuan_tambahan.all())
+        except (DatabaseError, ProgrammingError, ValueError):
+            pass
+
+    return _join_non_empty(kota_tujuan)
+
+
+def format_spt_tempat_tujuan(spt):
+    return _join_non_empty(
+        _split_destination_text(getattr(spt, "tempat_tujuan", ""))
+    )
+
+
+def format_spt_tujuan_perjalanan(spt):
+    return _join_non_empty([
+        format_spt_tempat_tujuan(spt),
+        format_spt_kota_tujuan(spt),
+    ])
 
 
 def format_spt_date_range(tgl_berangkat, tgl_kembali):

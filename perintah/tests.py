@@ -13,6 +13,9 @@ from umum.models import Eselon, JenisJabatan, Pangkat, Pegawai, Pemda, Penandata
 
 from .document_utils import (
     build_spt_signature_title_parts,
+    format_spt_kota_tujuan,
+    format_spt_tempat_tujuan,
+    format_spt_tujuan_perjalanan,
     format_spt_date_range,
     generate_default_document_number,
 )
@@ -708,6 +711,33 @@ class DocumentUtilsTests(PerintahBaseTestCase):
         )
 
         self.assertEqual(result, "10 Mei 2026 s.d 01 Juni 2026")
+
+    def test_format_spt_destination_combines_multiple_locations_and_places(self):
+        lokasi_kisaran = Lokasi.objects.create(
+            lokasi="Kisaran",
+            kota="Kisaran",
+        )
+        spt = Spt.objects.create(
+            dasar="Dasar tujuan gabungan",
+            berita="Koordinasi lintas tujuan",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Gubernur\nAula BPKAD",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt.kota_tujuan_tambahan.add(lokasi_kisaran)
+
+        self.assertEqual(format_spt_kota_tujuan(spt), "Medan, Kisaran")
+        self.assertEqual(
+            format_spt_tempat_tujuan(spt),
+            "Kantor Gubernur, Aula BPKAD",
+        )
+        self.assertEqual(
+            format_spt_tujuan_perjalanan(spt),
+            "Kantor Gubernur, Aula BPKAD, Medan, Kisaran",
+        )
 
     def test_spt_signature_title_separates_prefix_from_title_lines(self):
         plt = JenisJabatan.objects.create(nama="Plt.")

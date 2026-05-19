@@ -423,8 +423,8 @@ table {
                             <ol class="instruction-list">
                                 <li>
                                     Melaksanakan Perjalanan Dinas selama {{ spt.lama_perjalanan }} ({{ spt.lama_perjalanan|number_to_words }}) hari dalam rangka
-                                    {{ spt.berita|default:"-" }} ke {{ spt.tempat_tujuan|default:"-" }}
-                                    di {{ spt.kota_tujuan|default:"-" }} terhitung tanggal
+                                    {{ spt.berita|default:"-" }} ke {{ tempat_tujuan_text|default:"-" }}
+                                    di {{ kota_tujuan_text|default:"-" }} terhitung tanggal
                                     {{ tanggal_perjalanan_spt }}.
                                 </li>
                                 <li>
