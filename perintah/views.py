@@ -28,8 +28,8 @@ from .document_utils import (
     select_spd_primary_pelaksana,
     should_hide_signatory_identity_details,
 )
-from .forms import PelaksanaFormSet, PemberiTugasForm, SptForm
-from .models import Pelaksana, PemberiTugas, Spt
+from .forms import PelaksanaFormSet, PemberiTugasForm, SptForm, TtdSptSpdForm
+from .models import Pelaksana, PemberiTugas, Spt, TtdSptSpd
 from .tables import PemberiTugasTable, SptTable
 
 
@@ -173,6 +173,35 @@ class PemberiTugasView(BaseCRUDView):
             queryset,
             self.request,
             "spt__pelaksana__nama__opd_id",
+        )
+        return queryset.distinct()
+
+class TtdSptSpdView(BaseCRUDView):
+    model = TtdSptSpd
+    form_class = TtdSptSpdForm
+    table_class = None
+    enable_excel = False
+
+    title = "Berkas Tanda Tangan SPT/SPD"
+
+    url_list = "ttd_spt_spd_list"
+    url_action = "ttd_spt_spd_action"
+    url_action_pk = "ttd_spt_spd_action_pk"
+
+    def get_base_queryset(self):
+        queryset = TtdSptSpd.objects.select_related(
+            "pemberi_tugas",
+            "pemberi_tugas__spt",
+            "pemberi_tugas__spt__kota_tujuan",
+            "pemberi_tugas__penandatangan",
+            "pemberi_tugas__penandatangan__jenis_jabatan",
+            "pemberi_tugas__penandatangan__opd",
+        ).order_by("-pemberi_tugas__tanggal_spt", "-id")
+
+        queryset = filter_queryset_by_active_opd(
+            queryset,
+            self.request,
+            "pemberi_tugas__spt__pelaksana__nama__opd_id",
         )
         return queryset.distinct()
 

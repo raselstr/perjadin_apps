@@ -19,7 +19,7 @@ from .document_utils import (
     get_spt_pelaksana_scope,
     is_single_eselon_two_pelaksana,
 )
-from .models import Pelaksana, PemberiTugas, Spt
+from .models import Pelaksana, PemberiTugas, Spt, TtdSptSpd
 
 
 def _normalize_optional_document_number(value):
@@ -652,3 +652,46 @@ PelaksanaFormSet = inlineformset_factory(
     extra=1,
     can_delete=True,
 )
+
+class TtdSptSpdForm(BaseAppModelForm):
+    field_layout = {
+        "pemberi_tugas": 6,
+        "hardcopy": 6,
+    }
+
+    class Meta:
+        model = TtdSptSpd
+        fields = [
+            "pemberi_tugas",
+            "hardcopy",
+        ]
+        labels = {
+            "pemberi_tugas": "Pemberi Tugas",
+            "hardcopy": "Hard Copy TTD SPT/SPD",
+        }
+        widgets = {
+            "pemberi_tugas": forms.Select(attrs={
+                "class": "form-control select2",
+                "placeholder": "Masukkan nama pemberi tugas",
+            }),
+            "hardcopy": forms.ClearableFileInput(attrs={
+                "class": "form-control",
+            }),
+        }
+        
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["hardcopy"].help_text = (
+            "Upload Hard Copy SPT/SPD yang sudah di tandatangani."
+        )
+        self.fields["pemberi_tugas"].label_from_instance = self._format_ttdsptspd_label
+    
+    @staticmethod
+    def _format_ttdsptspd_label(obj):
+        lokasi = obj.kota_tujuan_display or "-"
+        tanggal = (
+            obj.tgl_berangkat.strftime("%d-%m-%Y")
+            if obj.tgl_berangkat else "-"
+        )
+        return f"SPT #{obj.pk} - {lokasi} - {tanggal}"

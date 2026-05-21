@@ -503,7 +503,7 @@ body {
 
                     <div class="signature-space"></div>
 
-                    <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ penandatangan_dokumen.nama|default:"-" }}</div>
+                    <div class="signature-name-no-underline">{{ penandatangan_dokumen.nama|default:"-" }}</div>
                     {% if show_signature_identity_details and penandatangan_dokumen.nip %}
                         Nip. {{ penandatangan_dokumen.nip}}
                     {% endif %}

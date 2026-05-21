@@ -332,3 +332,27 @@ class PemberiTugas(models.Model):
 
     def __str__(self):
         return str(self.penandatangan)
+
+class TtdSptSpd(models.Model):
+    pemberi_tugas = models.OneToOneField(
+        PemberiTugas, 
+        on_delete=models.PROTECT, 
+        null=True, 
+        unique=True,
+        error_messages={
+            'unique': "Nama Dinas sudah digunakan. Pilih nama dinas lain."
+        },
+        related_name='ttdsptspd'
+        )
+    hardcopy = models.FileField(upload_to='hardcopy/', null=True, blank=True)
+
+    class Meta:
+        ordering = ['pemberi_tugas']
+        verbose_name = 'Tanda Tangan SPT/SPD'
+        verbose_name_plural = 'Tanda Tangan SPT/SPD'
+
+    def __str__(self):
+        return str(self.pemberi_tugas)
+    
+
+

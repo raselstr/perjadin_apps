@@ -2,7 +2,7 @@ import django_tables2 as tables
 
 from core.tables import BaseTable, render_numbered_list, action_column
 
-from .models import PemberiTugas, Spt
+from .models import PemberiTugas, Spt, TtdSptSpd
 
 
 class SptTable(BaseTable):
@@ -149,4 +149,11 @@ class PemberiTugasTable(BaseTable):
             "dokumen",
             "aksi",
         )
-        
+
+class TtdSptSpdTable(BaseTable):
+    class Meta(BaseTable.Meta):
+        model = TtdSptSpd
+        fields = (
+            "no",
+            "pemberi_tugas",
+        )

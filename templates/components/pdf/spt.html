@@ -455,7 +455,7 @@ table {
                         </span>
                         <div class="signature-space"></div>
                         <div class="signature-identity">
-                            <div class="signature-name{% if not show_signature_identity_details %} signature-name-no-underline{% endif %}">{{ pemberi_tugas.nama|default:"-" }}</div>
+                            <div class="signature-name-no-underline">{{ pemberi_tugas.nama|default:"-" }}</div>
                             {% if show_signature_identity_details %}
                                 {% if pemberi_tugas.pangkat %}
                                 <div>{{ pemberi_tugas.penandatangan.pangkat }}</div>

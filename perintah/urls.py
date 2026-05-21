@@ -8,6 +8,7 @@ from .views import (
     SptView,
     PemberiTugasPreviewSPDBelakangView,
     PemberiTugasPrintSPDBelakangView,
+    TtdSptSpdView,
 )
 urlpatterns = [
     path("spt/", SptView.as_view(), name="spt_list"),
@@ -50,5 +51,21 @@ urlpatterns = [
         "pemberi-tugas/cetak/spd-belakang/<int:pk>/",
         PemberiTugasPrintSPDBelakangView.as_view(),
         name="pemberi_tugas_print_spd_belakang",
+    ),
+    path("ttd-spt-spd/", TtdSptSpdView.as_view(), name="ttd_spt_spd_list"),
+    path(
+        "ttd-spt-spd/form/",
+        TtdSptSpdView.as_view(),
+        name="ttd_spt_spd_action",
+    ),
+    path(
+        "ttd-spt-spd/form/<int:pk>/<str:action>/",
+        TtdSptSpdView.as_view(),
+        name="ttd_spt_spd_action_pk",
+    ),
+    path(
+        "ttd-spt-spd/delete/<int:pk>/<str:action>/",
+        TtdSptSpdView.as_view(),
+        name="ttd_spt_spd_delete",
     ),
 ]
