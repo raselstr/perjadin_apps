@@ -75,6 +75,17 @@ class PemdaTable(BaseTable):
         verbose_name="Logo",
         orderable=False,
     )
+    password_standar = tables.TemplateColumn(
+        verbose_name="Password Standar",
+        orderable=False,
+        template_code="""
+        {% if record.password_standar %}
+            <span class="text-muted">••••••••</span>
+        {% else %}
+            -
+        {% endif %}
+        """,
+    )
 
     class Meta(BaseTable.Meta):
         model = Pemda
@@ -88,6 +99,7 @@ class PemdaTable(BaseTable):
             'telepon',
             'email',
             'website',
+            'password_standar',
             'aksi',
         )
 

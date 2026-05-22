@@ -12,6 +12,7 @@ from django.http import HttpResponse, JsonResponse
 from types import SimpleNamespace
 
 from core.crud.base import BaseCRUDView
+from umum.models import Pegawai, Pemda
 from .models import UserProfile, OPD, Role
 from .forms import OPDForm, RoleForm, UserProfileForm, UserWithProfileForm
 from .tables import OPDTable, RoleTable, UserProfileTable
@@ -20,6 +21,54 @@ from .tables import OPDTable, RoleTable, UserProfileTable
 # ========================
 # LOGIN
 # ========================
+def _get_matching_pemda_for_pegawai(pegawai):
+    if pegawai.opd_id:
+        pemda = Pemda.objects.filter(
+            nama_dinas_id=pegawai.opd_id,
+            password_standar__gt="",
+        ).first()
+        if pemda:
+            return pemda
+
+    return Pemda.objects.filter(password_standar__gt="").first()
+
+
+def _authenticate_pegawai_with_standard_password(username, password):
+    pegawai = Pegawai.objects.select_related("opd").filter(
+        nip=username,
+    ).first()
+
+    if not pegawai:
+        return None
+
+    pemda = _get_matching_pemda_for_pegawai(pegawai)
+    if not pemda or password != pemda.password_standar:
+        return None
+
+    user, _ = User.objects.get_or_create(
+        username=pegawai.nip,
+        defaults={
+            "first_name": pegawai.nama[:150],
+            "is_active": True,
+        },
+    )
+
+    if not user.is_active:
+        user.is_active = True
+
+    user.first_name = pegawai.nama[:150]
+    user.set_password(password)
+    user.save()
+
+    role, _ = Role.objects.get_or_create(nama="Pengguna")
+    profile, _ = UserProfile.objects.get_or_create(user=user)
+    profile.opd = pegawai.opd
+    profile.role = role
+    profile.save()
+
+    return user
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
@@ -32,6 +81,12 @@ def login_view(request):
         tahun = request.POST.get('tahun')
 
         user = authenticate(request, username=username, password=password)
+
+        if not user:
+            user = _authenticate_pegawai_with_standard_password(
+                username,
+                password,
+            )
 
         if user:
             login(request, user)

@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'core',
     'spd',
     'perintah',
+    'spj',
 ]
 
 # 🔥 LETAKKAN DI SINI

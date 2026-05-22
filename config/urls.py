@@ -17,6 +17,7 @@ urlpatterns = [
     path('core/', include('core.urls')),
     path('spd/', include('spd.urls')),
     path('perintah/', include('perintah.urls')),
+    path('spj/', include('spj.urls')),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])

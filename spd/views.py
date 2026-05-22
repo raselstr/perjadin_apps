@@ -272,8 +272,12 @@ class StandardRepresentasiView(BaseCRUDView):
     url_export = "standard_representasi_export"
     url_import = "standard_representasi_import"
 
-    def get_queryset(self):
-        return super().get_queryset().select_related('dasar_peraturan', 'jenis_jabatan', 'jenis_spd').order_by('jenis_jabatan__nama', 'jenis_spd__nama')
+    def get_base_queryset(self):
+        return StandardRepresentasi.objects.select_related(
+            'dasar_peraturan',
+            'tingkat_spd',
+            'jenis_spd',
+        ).order_by('tingkat_spd__tingkat', 'jenis_spd__nama')
 
 class StandardRepresentasiExportView(ExcelExportView):
     """Download Standard Representasi data sebagai Excel"""
@@ -285,4 +289,4 @@ class StandardRepresentasiImportView(ExcelImportView):
     success_url = '/spd/standard-representasi/'
     
     # Column mapping untuk import
-    columns = ('dasar_peraturan', 'jenis_jabatan', 'jenis_spd', 'biaya')
+    columns = ('dasar_peraturan', 'tingkat_spd', 'jenis_spd', 'biaya')

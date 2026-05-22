@@ -240,8 +240,8 @@ class StandardTransportasi(BaseMasterModel):
 
 
 class StandardRepresentasi(BaseMasterModel):
-    jenis_jabatan = models.ForeignKey(
-        "umum.JenisJabatan",
+    tingkat_spd = models.ForeignKey(
+        "umum.Tingkat",
         on_delete=models.PROTECT,
         related_name="standard_representasi",
     )
@@ -253,16 +253,16 @@ class StandardRepresentasi(BaseMasterModel):
     biaya = models.DecimalField(max_digits=14, decimal_places=2)
 
     class Meta:
-        ordering = ["jenis_jabatan", "jenis_spd"]
+        ordering = ["tingkat_spd", "jenis_spd"]
         verbose_name = "Standar Representasi"
         verbose_name_plural = "Standar Representasi"
         constraints = [
             models.UniqueConstraint(
-                fields=["jenis_jabatan", "jenis_spd", "dasar_peraturan"],
-                name="unique_representasi_jabatan_spd_dasar_peraturan",
+                fields=["tingkat_spd", "jenis_spd", "dasar_peraturan"],
+                name="unique_representasi_tingkat_spd_dasar_peraturan",
             )
         ]
 
     def __str__(self):
-        return f"{self.jenis_jabatan} - {self.jenis_spd}"
+        return f"{self.tingkat_spd} - {self.jenis_spd}"
 

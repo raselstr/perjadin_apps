@@ -69,5 +69,5 @@ class StandardRepresentasiTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = StandardRepresentasi
-        fields = ('no', 'jenis_jabatan', 'jenis_spd', 'biaya', 'aksi')
+        fields = ('no', 'tingkat_spd', 'jenis_spd', 'biaya', 'aksi')
         

@@ -364,6 +364,7 @@ class PemdaForm(BaseAppModelForm):
         "telepon": 4,
         "email": 4,
         "website": 4,
+        "password_standar": 6,
         "logo": 6,
     }
 
@@ -378,6 +379,7 @@ class PemdaForm(BaseAppModelForm):
             "telepon",
             "email",
             "website",
+            "password_standar",
             "logo",
         ]
         labels = {
@@ -418,6 +420,11 @@ class PemdaForm(BaseAppModelForm):
                 "class": "form-control",
                 "placeholder": "Masukkan alamat website",
             }),
+            "password_standar": forms.PasswordInput(attrs={
+                "class": "form-control",
+                "placeholder": "Masukkan password standar pegawai",
+                "autocomplete": "new-password",
+            }, render_value=True),
             "logo": forms.ClearableFileInput(attrs={
                 "class": "form-control",
             }),
