@@ -151,9 +151,51 @@ class PemberiTugasTable(BaseTable):
         )
 
 class TtdSptSpdTable(BaseTable):
+    hardcopy_status = tables.TemplateColumn(
+        verbose_name="File Hardcopy",
+        orderable=False,
+        template_code="""
+        {% if record.hardcopy %}
+            <span class="badge bg-success">Ada</span>
+        {% else %}
+            <span class="badge bg-warning">Belum Upload</span>
+        {% endif %}
+        """
+    )
+
+    aksi = tables.TemplateColumn(
+        verbose_name="Aksi",
+        orderable=False,
+        template_code="""
+        <div class="d-flex gap-1 justify-content-center">
+            <input type="file" 
+                   id="file-upload-{{ record.id }}" 
+                   class="d-none pdf-file-input"
+                   accept="application/pdf"
+                   data-ttd-id="{{ record.id }}">
+            <button class="btn btn-sm btn-outline-primary upload-pdf-btn"
+                    type="button"
+                    data-ttd-id="{{ record.id }}"
+                    onclick="document.getElementById('file-upload-{{ record.id }}').click();">
+                Upload
+            </button>
+            {% if record.hardcopy %}
+                <button class="btn btn-sm btn-outline-info"
+                        hx-get="{% url 'ttd_spt_spd_view_modal' record.id %}"
+                        hx-target="#modal-body"
+                        hx-trigger="click">
+                    Lihat
+                </button>
+            {% endif %}
+        </div>
+        """
+    )
+
     class Meta(BaseTable.Meta):
         model = TtdSptSpd
         fields = (
             "no",
             "pemberi_tugas",
+            "hardcopy_status",
+            "aksi",
         )

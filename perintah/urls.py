@@ -9,6 +9,8 @@ from .views import (
     PemberiTugasPreviewSPDBelakangView,
     PemberiTugasPrintSPDBelakangView,
     TtdSptSpdView,
+    TtdSptSpdViewModalView,
+    TtdSptSpdUploadView,
 )
 urlpatterns = [
     path("spt/", SptView.as_view(), name="spt_list"),
@@ -67,5 +69,15 @@ urlpatterns = [
         "ttd-spt-spd/delete/<int:pk>/<str:action>/",
         TtdSptSpdView.as_view(),
         name="ttd_spt_spd_delete",
+    ),
+    path(
+        "ttd-spt-spd/view/<int:pk>/",
+        TtdSptSpdViewModalView.as_view(),
+        name="ttd_spt_spd_view_modal",
+    ),
+    path(
+        "ttd-spt-spd/upload/<int:pk>/",
+        TtdSptSpdUploadView.as_view(),
+        name="ttd_spt_spd_upload",
     ),
 ]

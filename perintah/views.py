@@ -30,7 +30,7 @@ from .document_utils import (
 )
 from .forms import PelaksanaFormSet, PemberiTugasForm, SptForm, TtdSptSpdForm
 from .models import Pelaksana, PemberiTugas, Spt, TtdSptSpd
-from .tables import PemberiTugasTable, SptTable
+from .tables import PemberiTugasTable, SptTable, TtdSptSpdTable
 
 
 def _get_default_signature_location(spt):
@@ -179,7 +179,6 @@ class PemberiTugasView(BaseCRUDView):
 class TtdSptSpdView(BaseCRUDView):
     model = TtdSptSpd
     form_class = TtdSptSpdForm
-    table_class = None
     enable_excel = False
 
     title = "Berkas Tanda Tangan SPT/SPD"
@@ -187,6 +186,11 @@ class TtdSptSpdView(BaseCRUDView):
     url_list = "ttd_spt_spd_list"
     url_action = "ttd_spt_spd_action"
     url_action_pk = "ttd_spt_spd_action_pk"
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.table_class is None:
+            self.table_class = TtdSptSpdTable
 
     def get_base_queryset(self):
         queryset = TtdSptSpd.objects.select_related(
@@ -507,3 +511,62 @@ class PemberiTugasPreviewSPDBelakangView(PemberiTugasPreviewBaseView):
 
     def can_preview(self, pemberi_tugas):
         return pemberi_tugas.can_print_spd_belakang
+
+
+class TtdSptSpdViewModalView(LoginRequiredMixin, View):
+    def get(self, request, pk):
+        ttd = get_object_or_404(
+            TtdSptSpd.objects.select_related('pemberi_tugas'),
+            pk=pk
+        )
+        
+        if not ttd.hardcopy:
+            raise Http404("File PDF tidak ditemukan.")
+        
+        context = {
+            'ttd': ttd,
+            'pdf_url': ttd.hardcopy.url,
+            'pemberi_tugas_name': str(ttd.pemberi_tugas),
+        }
+        
+        return render(request, 'components/ttd/pdf_view_modal.html', context)
+
+
+class TtdSptSpdUploadView(LoginRequiredMixin, View):
+    def post(self, request, pk):
+        from django.http import JsonResponse
+        from django.core.files.storage import default_storage
+        
+        ttd = get_object_or_404(TtdSptSpd, pk=pk)
+        
+        if 'file' not in request.FILES:
+            return JsonResponse({
+                'success': False,
+                'message': 'File tidak ditemukan.'
+            }, status=400)
+        
+        file = request.FILES['file']
+        
+        if not file.name.lower().endswith('.pdf'):
+            return JsonResponse({
+                'success': False,
+                'message': 'Hanya file PDF yang diperbolehkan.'
+            }, status=400)
+        
+        if file.size > 50 * 1024 * 1024:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ukuran file terlalu besar (maksimal 50MB).'
+            }, status=400)
+        
+        if ttd.hardcopy:
+            default_storage.delete(ttd.hardcopy.name)
+        
+        ttd.hardcopy = file
+        ttd.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'File berhasil di-upload.',
+            'file_url': ttd.hardcopy.url,
+        })

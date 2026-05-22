@@ -944,5 +944,66 @@ document.body.addEventListener('htmx:xhr:loadend', function (evt) {
   initialMessages.forEach(function (message) {
     showAppToast(message);
   });
+
+  // PDF Upload Handler
+  document.addEventListener('change', function (evt) {
+    if (!evt.target.classList.contains('pdf-file-input')) {
+      return;
+    }
+
+    const fileInput = evt.target;
+    const file = fileInput.files[0];
+    const ttdId = fileInput.dataset.ttdId;
+
+    if (!file) {
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const uploadUrl = `/perintah/ttd-spt-spd/upload/${ttdId}/`;
+
+    fetch(uploadUrl, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || '',
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showAppToast({
+          title: 'Sukses',
+          message: data.message,
+          level: 'success',
+        });
+        
+        // Refresh the table/page
+        if (window.htmx) {
+          htmx.ajax('GET', window.location.href, { target: '#main-content', swap: 'innerHTML' });
+        } else {
+          location.reload();
+        }
+      } else {
+        showAppToast({
+          title: 'Gagal',
+          message: data.message,
+          level: 'error',
+        });
+      }
+    })
+    .catch(error => {
+      showAppToast({
+        title: 'Error',
+        message: 'Terjadi kesalahan saat upload: ' + error,
+        level: 'error',
+      });
+    })
+    .finally(() => {
+      fileInput.value = '';
+    });
+  });
 </script>
 {% endblock %}
