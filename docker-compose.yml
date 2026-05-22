@@ -30,6 +30,7 @@ services:
     restart: always
     volumes:
     - ./staticfiles:/app/staticfiles
+    - ./media:/app/media
     secrets:
       - db_name
       - db_user
