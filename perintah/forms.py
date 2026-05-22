@@ -689,9 +689,10 @@ class TtdSptSpdForm(BaseAppModelForm):
     
     @staticmethod
     def _format_ttdsptspd_label(obj):
-        lokasi = obj.kota_tujuan_display or "-"
+        spt = obj.spt
+        lokasi = spt.kota_tujuan_display or "-"
         tanggal = (
-            obj.tgl_berangkat.strftime("%d-%m-%Y")
-            if obj.tgl_berangkat else "-"
+            spt.tgl_berangkat.strftime("%d-%m-%Y")
+            if spt.tgl_berangkat else "-"
         )
-        return f"SPT #{obj.pk} - {lokasi} - {tanggal}"
+        return f"SPT #{spt.pk} - {obj.penandatangan} - {lokasi} - {tanggal}"

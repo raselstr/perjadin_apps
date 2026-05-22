@@ -1,7 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Prefetch
-from django.http import Http404
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views import View
@@ -193,6 +193,40 @@ class TtdSptSpdView(BaseCRUDView):
             self.table_class = TtdSptSpdTable
 
     def get_base_queryset(self):
+        pemberi_tugas_queryset = PemberiTugas.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "penandatangan",
+            "penandatangan__jenis_jabatan",
+            "penandatangan__opd",
+        )
+        pemberi_tugas_queryset = filter_queryset_by_active_opd(
+            pemberi_tugas_queryset,
+            self.request,
+            "spt__pelaksana__nama__opd_id",
+        ).distinct()
+
+        pemberi_tugas_ids = list(
+            pemberi_tugas_queryset.values_list("id", flat=True)
+        )
+
+        existing_pemberi_tugas_ids = set(
+            TtdSptSpd.objects.filter(
+                pemberi_tugas_id__in=pemberi_tugas_ids,
+            ).values_list("pemberi_tugas_id", flat=True)
+        )
+        missing_ttd_records = [
+            TtdSptSpd(pemberi_tugas_id=pemberi_tugas_id)
+            for pemberi_tugas_id in pemberi_tugas_ids
+            if pemberi_tugas_id not in existing_pemberi_tugas_ids
+        ]
+
+        if missing_ttd_records:
+            TtdSptSpd.objects.bulk_create(
+                missing_ttd_records,
+                ignore_conflicts=True,
+            )
+
         queryset = TtdSptSpd.objects.select_related(
             "pemberi_tugas",
             "pemberi_tugas__spt",
@@ -202,11 +236,7 @@ class TtdSptSpdView(BaseCRUDView):
             "pemberi_tugas__penandatangan__opd",
         ).order_by("-pemberi_tugas__tanggal_spt", "-id")
 
-        queryset = filter_queryset_by_active_opd(
-            queryset,
-            self.request,
-            "pemberi_tugas__spt__pelaksana__nama__opd_id",
-        )
+        queryset = queryset.filter(pemberi_tugas_id__in=pemberi_tugas_ids)
         return queryset.distinct()
 
 
@@ -514,10 +544,22 @@ class PemberiTugasPreviewSPDBelakangView(PemberiTugasPreviewBaseView):
 
 
 class TtdSptSpdViewModalView(LoginRequiredMixin, View):
+    def get_queryset(self, request):
+        queryset = TtdSptSpd.objects.select_related(
+            "pemberi_tugas",
+            "pemberi_tugas__spt",
+            "pemberi_tugas__spt__kota_tujuan",
+        )
+        return filter_queryset_by_active_opd(
+            queryset,
+            request,
+            "pemberi_tugas__spt__pelaksana__nama__opd_id",
+        ).distinct()
+
     def get(self, request, pk):
         ttd = get_object_or_404(
-            TtdSptSpd.objects.select_related('pemberi_tugas'),
-            pk=pk
+            self.get_queryset(request),
+            pk=pk,
         )
         
         if not ttd.hardcopy:
@@ -525,19 +567,54 @@ class TtdSptSpdViewModalView(LoginRequiredMixin, View):
         
         context = {
             'ttd': ttd,
-            'pdf_url': ttd.hardcopy.url,
+            'pdf_url': reverse("ttd_spt_spd_pdf", kwargs={"pk": ttd.pk}),
+            'download_url': ttd.hardcopy.url,
             'pemberi_tugas_name': str(ttd.pemberi_tugas),
         }
         
         return render(request, 'components/ttd/pdf_view_modal.html', context)
 
 
+class TtdSptSpdPdfView(TtdSptSpdViewModalView):
+    def get(self, request, pk):
+        ttd = get_object_or_404(
+            self.get_queryset(request),
+            pk=pk,
+        )
+
+        if not ttd.hardcopy:
+            raise Http404("File PDF tidak ditemukan.")
+
+        response = FileResponse(
+            ttd.hardcopy.open("rb"),
+            content_type="application/pdf",
+            as_attachment=False,
+            filename=ttd.hardcopy.name.rsplit("/", 1)[-1],
+        )
+        response["X-Frame-Options"] = "SAMEORIGIN"
+        response["Content-Security-Policy"] = (
+            "default-src 'self'; frame-ancestors 'self'; object-src 'none'"
+        )
+        return response
+
+
 class TtdSptSpdUploadView(LoginRequiredMixin, View):
+    def get_queryset(self, request):
+        queryset = TtdSptSpd.objects.select_related(
+            "pemberi_tugas",
+            "pemberi_tugas__spt",
+        )
+        return filter_queryset_by_active_opd(
+            queryset,
+            request,
+            "pemberi_tugas__spt__pelaksana__nama__opd_id",
+        ).distinct()
+
     def post(self, request, pk):
         from django.http import JsonResponse
         from django.core.files.storage import default_storage
         
-        ttd = get_object_or_404(TtdSptSpd, pk=pk)
+        ttd = get_object_or_404(self.get_queryset(request), pk=pk)
         
         if 'file' not in request.FILES:
             return JsonResponse({

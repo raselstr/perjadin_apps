@@ -9,6 +9,7 @@ from .views import (
     PemberiTugasPreviewSPDBelakangView,
     PemberiTugasPrintSPDBelakangView,
     TtdSptSpdView,
+    TtdSptSpdPdfView,
     TtdSptSpdViewModalView,
     TtdSptSpdUploadView,
 )
@@ -74,6 +75,11 @@ urlpatterns = [
         "ttd-spt-spd/view/<int:pk>/",
         TtdSptSpdViewModalView.as_view(),
         name="ttd_spt_spd_view_modal",
+    ),
+    path(
+        "ttd-spt-spd/pdf/<int:pk>/",
+        TtdSptSpdPdfView.as_view(),
+        name="ttd_spt_spd_pdf",
     ),
     path(
         "ttd-spt-spd/upload/<int:pk>/",
