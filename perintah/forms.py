@@ -473,7 +473,7 @@ class PemberiTugasForm(BaseAppModelForm):
         ),
         "Wakil Bupati": (
             "SPT untuk Wakil Bupati harus memiliki minimal satu "
-            "pelaksana mulai eselon II sampai non eselon."
+            "pelaksana dengan eselon II."
         ),
     }
 
@@ -613,6 +613,7 @@ class PemberiTugasForm(BaseAppModelForm):
                 self.add_error(field_name, message)
 
         if spt and penandatangan:
+            active_opd_id = get_active_opd_id(self.request)
             pelaksana_queryset = spt.pelaksana.select_related(
                 "nama",
                 "nama__eselon",
@@ -620,11 +621,13 @@ class PemberiTugasForm(BaseAppModelForm):
             pelaksana_scope = get_spt_pelaksana_scope(
                 pelaksana_queryset,
                 penandatangan.tugas,
-                opd_id=getattr(penandatangan, "opd_id", None),
+                opd_id=active_opd_id,
             )
             matching_pelaksana = filter_spt_pelaksana(
                 pelaksana_scope,
                 penandatangan.tugas,
+                opd_id=active_opd_id,
+                signatory_opd_id=getattr(penandatangan, "opd_id", None),
             )
             validation_message = self.TASK_VALIDATION_MESSAGES.get(
                 penandatangan.tugas,

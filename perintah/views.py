@@ -1,8 +1,10 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
+from django.core.files.storage import default_storage
+from django.db import transaction
 from django.db.models import Prefetch
 from django.http import FileResponse, Http404
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
 
@@ -14,6 +16,7 @@ from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
 from .document_utils import (
     build_contact_line,
     build_penandatangan_title,
+    can_print_spt_document,
     filter_spd_pelaksana,
     build_spt_signature_title_parts,
     filter_spt_pelaksana,
@@ -175,6 +178,39 @@ class PemberiTugasView(BaseCRUDView):
             "spt__pelaksana__nama__opd_id",
         )
         return queryset.distinct()
+
+    def delete_view(self, request, pk):
+        if request.method != "POST":
+            return super().delete_view(request, pk)
+
+        perm = self.get_permission()
+
+        if not perm or not perm.can_delete:
+            return self._forbidden(request)
+
+        pemberi_tugas = get_object_or_404(
+            self.get_object_queryset(),
+            pk=pk,
+        )
+
+        with transaction.atomic():
+            ttd = getattr(pemberi_tugas, "ttdsptspd", None)
+            hardcopy_name = ""
+
+            if ttd:
+                hardcopy_name = ttd.hardcopy.name if ttd.hardcopy else ""
+                ttd.delete()
+
+            pemberi_tugas.delete()
+
+        if hardcopy_name:
+            default_storage.delete(hardcopy_name)
+
+        if request.headers.get("HX-Request"):
+            return self._build_htmx_success_response("delete")
+
+        self._add_success_message(request, "delete")
+        return redirect(self.url_list)
 
 class TtdSptSpdView(BaseCRUDView):
     model = TtdSptSpd
@@ -389,10 +425,16 @@ class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
     template_name = "components/pdf/spt.html"
 
     def get_context_data(self, pemberi_tugas):
+        active_opd_id = get_active_opd_id(self.request)
         pelaksana_list = filter_spt_pelaksana(
             pemberi_tugas.spt.pelaksana.all(),
             pemberi_tugas.penandatangan.tugas,
-            opd_id=getattr(pemberi_tugas.penandatangan, "opd_id", None),
+            opd_id=active_opd_id,
+            signatory_opd_id=getattr(
+                pemberi_tugas.penandatangan,
+                "opd_id",
+                None,
+            ),
         )
         pemda = get_matching_pemda(pemberi_tugas.penandatangan.opd)
         context = self.build_document_context(
@@ -520,7 +562,19 @@ class PemberiTugasPreviewSptView(PemberiTugasPreviewBaseView):
     unavailable_message = "SPT tidak tersedia untuk dicetak."
 
     def can_preview(self, pemberi_tugas):
-        return pemberi_tugas.can_print_spt
+        return can_print_spt_document(
+            pemberi_tugas.spt.pelaksana.select_related(
+                "nama",
+                "nama__eselon",
+            ).all(),
+            pemberi_tugas.penandatangan.tugas,
+            opd_id=get_active_opd_id(self.request),
+            signatory_opd_id=getattr(
+                pemberi_tugas.penandatangan,
+                "opd_id",
+                None,
+            ),
+        )
 
 
 class PemberiTugasPreviewSpdView(PemberiTugasPreviewBaseView):

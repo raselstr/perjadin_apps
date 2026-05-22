@@ -8,7 +8,7 @@ from django.utils.formats import date_format
 from umum.models import KopSurat, Pemda, Penandatangan
 
 
-GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
+GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati", "Sekretaris Daerah")
 TUGAS_DISPLAY_MAP = dict(Penandatangan.TUGAS_CHOICES)
 ROMAN_MAP = {
     "I": 1,
@@ -166,11 +166,11 @@ def build_spt_signature_title_parts(penandatangan, pemda=None):
             "lines": [get_letterhead_office_name(penandatangan, pemda=pemda)],
         }
 
-    if tugas == "Sekretaris Daerah":
-        return {
-            "prefix": "",
-            "lines": [tugas],
-        }
+    # if tugas == "Sekretaris Daerah":
+    #     return {
+    #         "prefix": "",
+    #         "lines": [tugas],
+    #     }
 
     if tugas != "Kepala":
         return {
@@ -286,14 +286,36 @@ def get_spt_pelaksana_scope(pelaksana_list, tugas, opd_id=None):
     return pelaksana_list
 
 
-def filter_spt_pelaksana(pelaksana_list, tugas, opd_id=None):
+def filter_spt_pelaksana(
+    pelaksana_list,
+    tugas,
+    opd_id=None,
+    signatory_opd_id=None,
+):
     pelaksana_list = get_spt_pelaksana_scope(
         pelaksana_list,
         tugas,
         opd_id=opd_id,
     )
 
-    if tugas == "Bupati":
+    if tugas == "Sekretaris Daerah":
+        is_active_signatory_opd = (
+            opd_id
+            and signatory_opd_id
+            and str(opd_id) == str(signatory_opd_id)
+        )
+        eselon_filter = (
+            is_eselon_two_to_non
+            if is_active_signatory_opd
+            else is_eselon_two
+        )
+        filtered_pelaksana = [
+            pelaksana for pelaksana in pelaksana_list
+            if eselon_filter(pelaksana.nama)
+        ]
+        return sort_pelaksana_by_priority(filtered_pelaksana)
+
+    if tugas in ("Bupati", "Wakil Bupati"):
         filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
             if is_eselon_two(pelaksana.nama)
@@ -304,13 +326,6 @@ def filter_spt_pelaksana(pelaksana_list, tugas, opd_id=None):
         filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
             if is_eselon_three_to_non(pelaksana.nama)
-        ]
-        return sort_pelaksana_by_priority(filtered_pelaksana)
-
-    if tugas in ("Sekretaris Daerah", "Wakil Bupati"):
-        filtered_pelaksana = [
-            pelaksana for pelaksana in pelaksana_list
-            if is_eselon_two_to_non(pelaksana.nama)
         ]
         return sort_pelaksana_by_priority(filtered_pelaksana)
 
@@ -390,8 +405,20 @@ def select_spd_primary_pelaksana(pelaksana_list):
     return primary, followers
 
 
-def can_print_spt_document(pelaksana_list, tugas, opd_id=None):
-    return bool(filter_spt_pelaksana(pelaksana_list, tugas, opd_id=opd_id))
+def can_print_spt_document(
+    pelaksana_list,
+    tugas,
+    opd_id=None,
+    signatory_opd_id=None,
+):
+    return bool(
+        filter_spt_pelaksana(
+            pelaksana_list,
+            tugas,
+            opd_id=opd_id,
+            signatory_opd_id=signatory_opd_id,
+        )
+    )
 
 
 def find_ppk_penandatangan(opd=None, fallback_opd_id=None):
