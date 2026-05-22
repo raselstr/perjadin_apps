@@ -151,6 +151,17 @@ class PemberiTugasTable(BaseTable):
         )
 
 class TtdSptSpdTable(BaseTable):
+    spt = tables.TemplateColumn(
+        verbose_name="Maksud dan Tujuan Perjalanan Dinas",
+        orderable=False,
+        template_code="""
+        {{ record.pemberi_tugas.spt.tujuan_perjalanan_display|default:"-" }}<br>
+        <span class="text-muted small fst-italic">
+            {{ record.pemberi_tugas.spt.berita }}
+        </span>
+        """
+    )
+
     hardcopy_status = tables.TemplateColumn(
         verbose_name="File Hardcopy",
         orderable=False,
@@ -195,6 +206,7 @@ class TtdSptSpdTable(BaseTable):
         model = TtdSptSpd
         fields = (
             "no",
+            "spt",
             "pemberi_tugas",
             "hardcopy_status",
             "aksi",
