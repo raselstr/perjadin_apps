@@ -39,6 +39,19 @@ services:
       DB_HOST: perjadin_apps_postgres_db
       DB_PORT: 5432
       DEBUG: "False"
+      # =========================
+      # HTTP / HTTPS
+      # =========================
+      # HTTP:
+      # USE_HTTPS: "False"
+      # SECURE_SSL_REDIRECT: "False"
+      #
+      # HTTPS:
+      # USE_HTTPS: "True"
+      # SECURE_SSL_REDIRECT: "True"
+      # SECURE_HSTS_SECONDS: "31536000"
+      # ALLOWED_HOSTS: "domain.go.id,www.domain.go.id"
+      # CSRF_TRUSTED_ORIGINS: "https://domain.go.id,https://www.domain.go.id"
     depends_on:
       db:
         condition: service_healthy
@@ -51,10 +64,14 @@ services:
     restart: always
     ports:
       - "8085:80"
+      # Aktifkan saat HTTPS digunakan:
+      # - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./staticfiles:/app/staticfiles   # 🔥 INI DI SINI
       - ./media:/app/media               # optional
+      # Aktifkan saat HTTPS digunakan dengan Let's Encrypt host:
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
     depends_on:
       - web
     networks:

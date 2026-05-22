@@ -99,24 +99,33 @@ class SecurityHeadersMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+        csp_directives = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
+            "img-src 'self' data: blob:; "
+            "font-src 'self' data: https://cdn.jsdelivr.net; "
+            "connect-src 'self'; "
+            "frame-ancestors 'none'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
+            "object-src 'none'"
+        )
+
+        if getattr(settings, "USE_HTTPS", False):
+            csp_directives = f"{csp_directives}; upgrade-insecure-requests"
+
         response.setdefault(
             "Content-Security-Policy",
-            (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net https://unpkg.com; "
-                "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
-                "img-src 'self' data: blob:; "
-                "font-src 'self' data: https://cdn.jsdelivr.net; "
-                "connect-src 'self'; "
-                "frame-ancestors 'none'; "
-                "base-uri 'self'; "
-                "form-action 'self'; "
-                "object-src 'none'"
-            ),
+            csp_directives,
         )
         response.setdefault(
             "Permissions-Policy",
             "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
         )
         response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
+        response.setdefault("Referrer-Policy", "same-origin")
+        response.setdefault("X-Content-Type-Options", "nosniff")
+        response.setdefault("X-Permitted-Cross-Domain-Policies", "none")
         return response

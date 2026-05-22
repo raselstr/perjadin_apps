@@ -36,6 +36,30 @@ if not SECRET_KEY:
 DEBUG = env.bool('DEBUG', default=False)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
+
+# =========================
+# HTTP / HTTPS MODE
+# =========================
+# Mode HTTP lokal/intranet:
+#   USE_HTTPS=False
+#   SECURE_SSL_REDIRECT=False
+#   CSRF_TRUSTED_ORIGINS=http://domain-atau-ip:port
+#
+# Mode HTTPS production:
+#   USE_HTTPS=True
+#   SECURE_SSL_REDIRECT=True
+#   ALLOWED_HOSTS=domain.go.id,www.domain.go.id
+#   CSRF_TRUSTED_ORIGINS=https://domain.go.id,https://www.domain.go.id
+#
+# Perintah yang perlu diaktifkan saat HTTPS dipakai:
+#   1. Set env:
+#      USE_HTTPS=True
+#      SECURE_SSL_REDIRECT=True
+#      SECURE_HSTS_SECONDS=31536000
+#   2. Pasang sertifikat TLS di reverse proxy/nginx:
+#      sudo certbot --nginx -d domain.go.id -d www.domain.go.id
+#   3. Restart service:
+#      docker compose restart nginx web
 USE_HTTPS = env.bool('USE_HTTPS', default=False)
 
 
@@ -217,13 +241,15 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
 SECURE_CROSS_ORIGIN_RESOURCE_POLICY = 'same-origin'
 X_FRAME_OPTIONS = 'DENY'
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=False)
+USE_X_FORWARDED_HOST = True
+SECURE_SSL_REDIRECT = env.bool('SECURE_SSL_REDIRECT', default=USE_HTTPS)
 SECURE_HSTS_SECONDS = env.int(
     'SECURE_HSTS_SECONDS',
     default=31536000 if USE_HTTPS else 0,
 )
 SECURE_HSTS_INCLUDE_SUBDOMAINS = USE_HTTPS
 SECURE_HSTS_PRELOAD = USE_HTTPS
+SECURE_HSTS_SECONDS = 0 if not USE_HTTPS else SECURE_HSTS_SECONDS
 
 LOGIN_URL = '/profiles/masuk/'
 LOGIN_REDIRECT_URL = '/dashboard/'
