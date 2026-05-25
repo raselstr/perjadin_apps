@@ -342,7 +342,7 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
 
         # Get kop_surat config for default number format
         kop_surat = get_kop_surat_config(pemda)
-        tanggal_spt = pemberi_tugas.tanggal_spt or spt.tgl_berangkat
+        tanggal_spt = pemberi_tugas.tanggal_spt or ""
 
         nomor_spt = _build_number_from_format(
             pemberi_tugas.nomor_spt,
