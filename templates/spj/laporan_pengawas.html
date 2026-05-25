@@ -1,0 +1,322 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="col-md-12">
+            <div class="page-header-title">
+              <h5 class="m-b-10">{{ title }}</h5>
+            </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item" aria-current="page">{{ title }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="mb-0">{{ title }}</h3>
+          </div>
+          <div class="card-body">
+            <!-- Filter Form -->
+            <div class="row mb-3">
+              <div class="col-12">
+                <form method="post" class="row g-2 align-items-end">
+                  {% csrf_token %}
+                  <div class="col-auto">
+                    <label for="tgl_mulai" class="form-label">Tanggal Mulai</label>
+                    <input type="date" id="tgl_mulai" name="tgl_mulai" class="form-control" 
+                           value="{{ tgl_mulai|default:'' }}">
+                  </div>
+                  <div class="col-auto">
+                    <label for="tgl_akhir" class="form-label">Tanggal Akhir</label>
+                    <input type="date" id="tgl_akhir" name="tgl_akhir" class="form-control" 
+                           value="{{ tgl_akhir|default:'' }}">
+                  </div>
+                  <div class="col-auto">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="fas fa-search"></i> Filter
+                    </button>
+                    {% if tgl_mulai or tgl_akhir %}
+                      <a href="{% url 'laporan_pengawas' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Reset
+                      </a>
+                    {% endif %}
+                  </div>
+                </form>
+              </div>
+            </div>
+
+            <!-- Table Wrapper for Horizontal Scroll -->
+            <div class="table-responsive" style="overflow-x: auto;">
+              <table class="table table-sm table-bordered table-head-fixed" style="min-width: 3000px;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="text-center align-middle" style="width: 40px;">NO</th>
+                    <th class="text-center align-middle" style="width: 100px;">TAHUN</th>
+                    <th class="text-center align-middle" style="width: 150px;">JENIS PERJALANAN</th>
+                    <th class="text-center align-middle" style="width: 150px;">NAMA</th>
+                    <th class="text-center align-middle" style="width: 150px;">JABATAN / GOL / TINGKAT BIAYA</th>
+                    
+                    <!-- SPT -->
+                    <th class="text-center align-middle" style="width: 80px;">NO. SPT</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL SPT</th>
+                    <th class="text-center align-middle" style="width: 120px;">TEMPAT TUJUAN</th>
+                    <th class="text-center align-middle" style="width: 80px;">JUMLAH HARI</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL. BERANGKAT</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL. KEMBALI</th>
+                    
+                    <!-- SPD -->
+                    <th class="text-center align-middle" style="width: 80px;">NO. SPD</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL SPD</th>
+                    <th class="text-center align-middle" style="width: 120px;">TEMPAT TUJUAN</th>
+                    <th class="text-center align-middle" style="width: 80px;">JUMLAH HARI</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL. BERANGKAT</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL. KEMBALI</th>
+                    
+                    <!-- Biaya Perjalanan -->
+                    <th class="text-center align-middle" style="width: 120px;">UANG HARIAN</th>
+                    <th class="text-center align-middle" style="width: 120px;">PENGGANTI TRANSPORT</th>
+                    <th class="text-center align-middle" style="width: 120px;">REPRESENTATIF</th>
+                    
+                    <!-- Pesawat Berangkat -->
+                    <th class="text-center align-middle" style="width: 120px;">MASKAPAI (Berangkat)</th>
+                    <th class="text-center align-middle" style="width: 100px;">HARGA (Berangkat)</th>
+                    
+                    <!-- Pesawat Kembali -->
+                    <th class="text-center align-middle" style="width: 120px;">MASKAPAI (Kembali)</th>
+                    <th class="text-center align-middle" style="width: 100px;">HARGA (Kembali)</th>
+                    
+                    <!-- Hotel -->
+                    <th class="text-center align-middle" style="width: 180px;">NAMA & LOKASI HOTEL</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL CHECK-IN</th>
+                    <th class="text-center align-middle" style="width: 100px;">TGL CHECK-OUT</th>
+                    <th class="text-center align-middle" style="width: 80px;">LAMA MENGINAP</th>
+                    <th class="text-center align-middle" style="width: 120px;">HARGA/MALAM</th>
+                    <th class="text-center align-middle" style="width: 120px;">TOTAL HOTEL</th>
+                    
+                    <!-- Transport Lokal -->
+                    <th class="text-center align-middle" style="width: 150px;">TUJUAN TRANSPORT (Berangkat)</th>
+                    <th class="text-center align-middle" style="width: 120px;">HARGA TRANSPORT (Berangkat)</th>
+                    <th class="text-center align-middle" style="width: 150px;">TUJUAN TRANSPORT (Kembali)</th>
+                    <th class="text-center align-middle" style="width: 120px;">HARGA TRANSPORT (Kembali)</th>
+                    
+                    <!-- Total -->
+                    <th class="text-center align-middle" style="width: 120px;">TOTAL</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in data %}
+                    <tr>
+                      <td class="text-center align-middle">{{ forloop.counter }}</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_berangkat|date:"Y" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.jenis_kegiatan|default:"-" }}</td>
+                      <td class="text-left align-middle">
+                        {{ row.pelaksana.nama.nama }}<br>
+                        <small class="text-muted">NIP. {{ row.pelaksana.nama.nip|default:"-" }}</small>
+                      </td>
+                      <td class="text-center align-middle">
+                        {{ row.pelaksana.nama.jabatan|default:"-" }}<br>
+                        {% if row.pelaksana.nama.pangkat %}
+                          <small>{{ row.pelaksana.nama.pangkat.pangkat|default:"-" }}</small>
+                        {% endif %}
+                        {% if row.pelaksana.nama.tingkat %}
+                          <br><small>Tingkat {{ row.pelaksana.nama.tingkat.nama|default:"-" }}</small>
+                        {% endif %}
+                      </td>
+                      
+                      <!-- SPT Data -->
+                      <td class="text-center align-middle">{{ row.spt.id|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_berangkat|date:"d-m-Y"|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.kota_tujuan.nama|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.lama_perjalanan|default:"-" }} hari</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_berangkat|date:"d-m-Y"|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_kembali|date:"d-m-Y"|default:"-" }}</td>
+                      
+                      <!-- SPD Data (same as SPT in this context) -->
+                      <td class="text-center align-middle">{{ row.spt.id|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_berangkat|date:"d-m-Y"|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.kota_tujuan.nama|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.lama_perjalanan|default:"-" }} hari</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_berangkat|date:"d-m-Y"|default:"-" }}</td>
+                      <td class="text-center align-middle">{{ row.spt.tgl_kembali|date:"d-m-Y"|default:"-" }}</td>
+                      
+                      <!-- Biaya Perjalanan -->
+                      <td class="text-right align-middle">
+                        {% if row.uang_harian %}
+                          {{ row.uang_harian.total_biaya|floatformat:2 }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      <td class="text-right align-middle">-</td>
+                      <td class="text-right align-middle">
+                        {% if row.uang_representasi %}
+                          {{ row.uang_representasi.biaya|floatformat:2 }}
+                        {% else %}
+                          -
+                        {% endif %}
+                      </td>
+                      
+                      <!-- Pesawat Berangkat -->
+                      <td class="text-left align-middle">
+                        {% for pesawat in row.pesawat_berangkat %}
+                          {{ pesawat.lokasi_bandara.nama }} → {{ pesawat.tujuan_bandara.nama }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-right align-middle">
+                        {% for pesawat in row.pesawat_berangkat %}
+                          {{ pesawat.harga_tiket|floatformat:2 }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      
+                      <!-- Pesawat Kembali -->
+                      <td class="text-left align-middle">
+                        {% for pesawat in row.pesawat_kembali %}
+                          {{ pesawat.lokasi_bandara.nama }} → {{ pesawat.tujuan_bandara.nama }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-right align-middle">
+                        {% for pesawat in row.pesawat_kembali %}
+                          {{ pesawat.harga_tiket|floatformat:2 }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      
+                      <!-- Hotel -->
+                      <td class="text-left align-middle">
+                        {% for hotel in row.hotel %}
+                          {{ hotel.nama_hotel }}<br><small class="text-muted">{{ hotel.alamat_hotel|truncatewords:5 }}</small><br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-center align-middle">
+                        {% for hotel in row.hotel %}
+                          {{ hotel.created_at|date:"d-m-Y" }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-center align-middle">
+                        {% for hotel in row.hotel %}
+                          {{ hotel.updated_at|date:"d-m-Y" }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-center align-middle">
+                        {% for hotel in row.hotel %}
+                          {{ hotel.lama_menginap }} mlm<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-right align-middle">
+                        {% for hotel in row.hotel %}
+                          {{ hotel.harga_per_malam|floatformat:2 }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-right align-middle">
+                        {% for hotel in row.hotel %}
+                          {{ hotel.total_biaya|floatformat:2 }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      
+                      <!-- Transport Berangkat -->
+                      <td class="text-left align-middle">
+                        {% for transport in row.transport_berangkat %}
+                          {{ transport.lokasi_berangkat.nama }} → {{ transport.tujuan.nama }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-right align-middle">
+                        {% for transport in row.transport_berangkat %}
+                          {{ transport.biaya|floatformat:2 }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      
+                      <!-- Transport Kembali -->
+                      <td class="text-left align-middle">
+                        {% for transport in row.transport_kembali %}
+                          {{ transport.lokasi_berangkat.nama }} → {{ transport.tujuan.nama }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      <td class="text-right align-middle">
+                        {% for transport in row.transport_kembali %}
+                          {{ transport.biaya|floatformat:2 }}<br>
+                        {% empty %}
+                          -
+                        {% endfor %}
+                      </td>
+                      
+                      <!-- Total -->
+                      <td class="text-right align-middle fw-bold">{{ row.total_biaya|floatformat:2 }}</td>
+                    </tr>
+                  {% empty %}
+                    <tr>
+                      <td colspan="37" class="text-center text-muted py-4">
+                        Belum ada data perjalanan dinas yang sesuai dengan filter.
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+                <tfoot>
+                  <tr class="table-light fw-bold">
+                    <td colspan="36" class="text-end pe-2">GRAND TOTAL</td>
+                    <td class="text-right">{{ grand_total|floatformat:2 }}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .table-responsive {
+    overflow-x: auto;
+  }
+  .table-head-fixed thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa;
+    z-index: 10;
+  }
+  .text-right {
+    text-align: right;
+  }
+  .fw-bold {
+    font-weight: bold;
+  }
+</style>
+{% endblock content %}
