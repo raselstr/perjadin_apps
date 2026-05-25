@@ -350,8 +350,6 @@ class LaporanPerjalananForm(SPJModelForm):
         "foto_2": 3,
         "foto_3": 3,
         "foto_4": 3,
-        "verif_status": 4,
-        "verif_catatan": 8,
     }
 
     class Meta:
@@ -364,8 +362,6 @@ class LaporanPerjalananForm(SPJModelForm):
             "foto_2",
             "foto_3",
             "foto_4",
-            "verif_status",
-            "verif_catatan",
         ]
         widgets = {
             "hasil": forms.Textarea(attrs={"rows": 5}),

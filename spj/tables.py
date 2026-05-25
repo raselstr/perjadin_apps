@@ -205,6 +205,8 @@ class UangRepresentasiTable(SPJBaseTable):
 
 
 class LaporanPerjalananTable(SPJBaseTable):
+    standar_maksimal = None
+    total_biaya = None
     aksi = action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
     dokumen = tables.TemplateColumn(
         verbose_name="Cetak",
@@ -225,7 +227,7 @@ class LaporanPerjalananTable(SPJBaseTable):
         orderable=False,
         template_code="""
         {% with total=0 %}
-          {% if record.foto_1 %}<a href="{{ record.foto_1.url }}" target="_blank">1</a>{% endif %}
+          {% if record.foto_1 %} <a href="{{ record.foto_1.url }}" target="_blank">1</a>{% endif %}
           {% if record.foto_2 %} <a href="{{ record.foto_2.url }}" target="_blank">2</a>{% endif %}
           {% if record.foto_3 %} <a href="{{ record.foto_3.url }}" target="_blank">3</a>{% endif %}
           {% if record.foto_4 %} <a href="{{ record.foto_4.url }}" target="_blank">4</a>{% endif %}
