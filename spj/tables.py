@@ -206,6 +206,20 @@ class UangRepresentasiTable(SPJBaseTable):
 
 class LaporanPerjalananTable(SPJBaseTable):
     aksi = action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
+    dokumen = tables.TemplateColumn(
+        verbose_name="Cetak",
+        orderable=False,
+        template_code="""
+        <a
+          class="btn btn-sm btn-outline-primary"
+          href="{% url 'laporan_perjalanan_print' record.id %}?autoprint=0"
+          hx-get="{% url 'laporan_perjalanan_preview' record.id %}"
+          hx-target="#print-preview-modal-body"
+          hx-swap="innerHTML">
+          Cetak
+        </a>
+        """,
+    )
     foto = tables.TemplateColumn(
         verbose_name="Foto",
         orderable=False,
@@ -228,5 +242,6 @@ class LaporanPerjalananTable(SPJBaseTable):
             "judul",
             "foto",
             "verifikasi",
+            "dokumen",
             "aksi",
         )

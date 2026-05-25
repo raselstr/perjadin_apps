@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Laporan Perjalanan Dinas</title>
+  <style>
+    @page { size: A4 portrait; margin: 18mm 18mm 20mm; }
+    body { font-family: Arial, sans-serif; font-size: 11px; color: #111; line-height: 1.25; }
+    h1 { font-size: 12px; text-align: center; margin: 0 0 22px; text-transform: uppercase; }
+    .row { display: grid; grid-template-columns: 28px 110px 12px 1fr; gap: 6px; margin-bottom: 8px; }
+    .content { white-space: pre-line; text-align: justify; }
+    .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
+    .photos img { width: 100%; height: 145px; object-fit: cover; border: 1px solid #333; }
+    .signature { width: 50%; margin-left: auto; text-align: center; margin-top: 20px; }
+    .name-list { margin-top: 50px; text-align: left; }
+    .line { border-bottom: 1px dotted #111; display: inline-block; min-width: 290px; }
+  </style>
+</head>
+<body>
+  <h1>{{ laporan.judul }}</h1>
+
+  <div class="row">
+    <div>I.</div><div>Dasar Pelaksanaan</div><div>:</div>
+    <div class="content">{{ laporan.dasar_pelaksanaan }}</div>
+  </div>
+  <div class="row">
+    <div>II.</div><div>Maksud Perjalanan Dinas</div><div>:</div>
+    <div class="content">{{ laporan.maksud_perjalanan }}</div>
+  </div>
+  <div class="row">
+    <div>III.</div><div>Dinas/Instansi yang dikunjungi</div><div>:</div>
+    <div class="content">{{ laporan.instansi_dikunjungi }}</div>
+  </div>
+  <div class="row">
+    <div>IV.</div><div>Waktu Pelaksanaan</div><div>:</div>
+    <div class="content">{{ laporan.waktu_pelaksanaan }}</div>
+  </div>
+  <div class="row">
+    <div>V.</div><div>Hasil</div><div>:</div>
+    <div class="content">{{ laporan.hasil }}</div>
+  </div>
+  <div class="row">
+    <div>VI.</div><div>Penutup</div><div>:</div>
+    <div class="content">{{ laporan.penutup }}</div>
+  </div>
+
+  <div class="photos">
+    {% if laporan.foto_1 %}<img src="{{ laporan.foto_1.url }}" alt="Foto kegiatan 1">{% endif %}
+    {% if laporan.foto_2 %}<img src="{{ laporan.foto_2.url }}" alt="Foto kegiatan 2">{% endif %}
+    {% if laporan.foto_3 %}<img src="{{ laporan.foto_3.url }}" alt="Foto kegiatan 3">{% endif %}
+    {% if laporan.foto_4 %}<img src="{{ laporan.foto_4.url }}" alt="Foto kegiatan 4">{% endif %}
+  </div>
+
+  <div class="signature">
+    <div>Yang Membuat</div>
+    <div class="name-list">
+      {% for pelaksana in pelaksana_list %}
+        <div>{{ forloop.counter }}. {{ pelaksana.nama.nama }} <span class="line"></span></div>
+        <div style="font-size:10px; margin: 1px 0 14px 18px;">({{ pelaksana.nama.jabatan|default:"-" }})</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if auto_print %}
+    <script>window.addEventListener('load', function () { window.print(); });</script>
+  {% endif %}
+</body>
+</html>

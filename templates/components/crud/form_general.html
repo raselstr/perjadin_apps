@@ -39,3 +39,60 @@
     </button>
   </div>
 </form>
+<script>
+(function () {
+  const sptField = document.querySelector('[data-spj-spt-field="1"]');
+  const pelaksanaField = document.querySelector('[data-spj-pelaksana-field="1"]');
+
+  if (!sptField || !pelaksanaField || pelaksanaField.dataset.spjBindingReady) {
+    return;
+  }
+
+  pelaksanaField.dataset.spjBindingReady = '1';
+
+  function replaceOptions(items, selectedValue) {
+    pelaksanaField.innerHTML = '';
+    const emptyOption = document.createElement('option');
+    emptyOption.value = '';
+    emptyOption.textContent = '---------';
+    pelaksanaField.appendChild(emptyOption);
+
+    items.forEach(function (item) {
+      const option = document.createElement('option');
+      option.value = item.id;
+      option.textContent = item.text;
+      if (String(item.id) === String(selectedValue)) {
+        option.selected = true;
+      }
+      pelaksanaField.appendChild(option);
+    });
+
+    if (window.jQuery && window.jQuery.fn.select2) {
+      window.jQuery(pelaksanaField).trigger('change.select2');
+    } else {
+      pelaksanaField.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
+
+  function loadPelaksana() {
+    const sptId = sptField.value;
+    const url = pelaksanaField.dataset.spjPelaksanaUrl;
+    if (!sptId || !url) {
+      return;
+    }
+
+    const selectedValue = pelaksanaField.value;
+    fetch(url + '?spt=' + encodeURIComponent(sptId), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+      .then(function (response) { return response.json(); })
+      .then(function (data) { replaceOptions(data.results || [], selectedValue); })
+      .catch(function () {});
+  }
+
+  sptField.addEventListener('change', loadPelaksana);
+  if (sptField.value) {
+    loadPelaksana();
+  }
+})();
+</script>

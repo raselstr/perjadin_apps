@@ -2,16 +2,24 @@ from django.urls import path
 
 from .views import (
     JenisSPJView,
+    LaporanPerjalananPreviewView,
+    LaporanPerjalananPrintView,
     LaporanPerjalananView,
     PenginapanView,
     PesawatView,
     SPJReportView,
+    SPJPelaksanaOptionsView,
     TransportView,
     UangHarianView,
     UangRepresentasiView,
 )
 
 urlpatterns = [
+    path(
+        "pelaksana-options/",
+        SPJPelaksanaOptionsView.as_view(),
+        name="spj_pelaksana_options",
+    ),
     path("jenis-spj/", JenisSPJView.as_view(), name="jenis_spj_list"),
     path("jenis-spj/form/", JenisSPJView.as_view(), name="jenis_spj_action"),
     path(
@@ -121,6 +129,16 @@ urlpatterns = [
         "laporan-perjalanan/delete/<int:pk>/<str:action>/",
         LaporanPerjalananView.as_view(),
         name="laporan_perjalanan_delete",
+    ),
+    path(
+        "laporan-perjalanan/preview/<int:pk>/",
+        LaporanPerjalananPreviewView.as_view(),
+        name="laporan_perjalanan_preview",
+    ),
+    path(
+        "laporan-perjalanan/cetak/<int:pk>/",
+        LaporanPerjalananPrintView.as_view(),
+        name="laporan_perjalanan_print",
     ),
 
     path("laporan/", SPJReportView.as_view(), name="spj_report"),

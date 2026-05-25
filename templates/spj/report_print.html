@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }}</title>
+  <style>
+    @page { size: A4 landscape; margin: 8mm; }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; font-size: 7px; color: #111827; }
+    h1 { text-align: center; font-size: 13px; margin: 0 0 8px; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #111827; padding: 2px; vertical-align: top; word-break: break-word; }
+    th { text-align: center; background: #eef2f7; font-weight: 700; }
+    .text-end { text-align: right; }
+    .text-center { text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>LAPORAN PENGAWAS PERJALANAN DINAS</h1>
+  <table>
+    <thead>
+      <tr>
+        <th rowspan="3">NO</th>
+        <th rowspan="3">TAHUN</th>
+        <th rowspan="3">JENIS PERJALANAN</th>
+        <th rowspan="3">NAMA</th>
+        <th rowspan="3">JABATAN/GOL/TINGKAT BIAYA</th>
+        <th colspan="6" rowspan="2">SURAT PERINTAH TUGAS</th>
+        <th colspan="6" rowspan="2">SURAT PERJALANAN DINAS</th>
+        <th colspan="2" rowspan="2">BIAYA PERJALANAN DINAS</th>
+        <th colspan="10">PESAWAT</th>
+        <th colspan="8" rowspan="2">HOTEL</th>
+        <th colspan="6">TAKSI/TRANSPORT LOKAL</th>
+        <th rowspan="3">TOTAL</th>
+      </tr>
+      <tr>
+        <th colspan="5">BERANGKAT</th>
+        <th colspan="5">KEMBALI</th>
+        <th colspan="3">BERANGKAT</th>
+        <th colspan="3">KEMBALI</th>
+      </tr>
+      <tr>
+        <th>NO. SPT</th><th>TANGGAL</th><th>TEMPAT TUJUAN</th><th>JUMLAH HARI</th><th>TGL BERANGKAT</th><th>TGL KEMBALI</th>
+        <th>NO. SPD</th><th>TANGGAL</th><th>TEMPAT TUJUAN</th><th>JUMLAH HARI</th><th>TGL BERANGKAT</th><th>TGL KEMBALI</th>
+        <th>UANG HARIAN</th><th>REPRESENTATIF</th>
+        <th>MASKAPAI</th><th>NO. TIKET</th><th>KODE BOOKING</th><th>TGL PENERBANGAN</th><th>HARGA</th>
+        <th>MASKAPAI</th><th>NO. TIKET</th><th>KODE BOOKING</th><th>TGL PENERBANGAN</th><th>HARGA</th>
+        <th>NAMA DAN LOKASI HOTEL</th><th>TIPE KAMAR</th><th>NOMOR KAMAR</th><th>TGL CHECKIN</th><th>TGL CHECKOUT</th><th>LAMA</th><th>HARGA/MALAM</th><th>TOTAL</th>
+        <th>TUJUAN</th><th>TGL BERANGKAT</th><th>HARGA</th><th>TUJUAN</th><th>TGL BERANGKAT</th><th>HARGA</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+        <tr>
+          <td class="text-center">{{ forloop.counter }}</td>
+          <td>{{ row.spt.tgl_berangkat|date:"Y" }}</td>
+          <td>{{ row.spt.jenis_kegiatan|default:"-" }}</td>
+          <td>{{ row.pelaksana.nama.nama }}</td>
+          <td>{{ row.pelaksana.nama.jabatan|default:"-" }} / {{ row.pelaksana.nama.pangkat|default:"-" }} / {{ row.pelaksana.nama.tingkat|default:"-" }}</td>
+          <td>{{ row.pemberi.nomor_spt|default:"-" }}</td>
+          <td>{{ row.pemberi.tanggal_spt|date:"d/m/Y"|default:"-" }}</td>
+          <td>{{ row.spt.tujuan_perjalanan_display|default:"-" }}</td>
+          <td>{{ row.spt.lama_perjalanan }}</td>
+          <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
+          <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
+          <td>{{ row.pemberi.nomor_spd|default:"-" }}</td>
+          <td>{{ row.pemberi.tanggal_spt|date:"d/m/Y"|default:"-" }}</td>
+          <td>{{ row.spt.tujuan_perjalanan_display|default:"-" }}</td>
+          <td>{{ row.spt.lama_perjalanan }}</td>
+          <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
+          <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
+          <td class="text-end">{{ row.uang_harian.total_biaya|default:0|floatformat:2 }}</td>
+          <td class="text-end">{{ row.representasi.total_biaya|default:0|floatformat:2 }}</td>
+          <td>{{ row.pesawat_berangkat.nama_maskapai|default:"-" }}</td>
+          <td>{{ row.pesawat_berangkat.nomor_tiket|default:"-" }}</td>
+          <td>{{ row.pesawat_berangkat.kode_booking|default:"-" }}</td>
+          <td>{{ row.pesawat_berangkat.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-end">{{ row.pesawat_berangkat.harga_tiket|default:0|floatformat:2 }}</td>
+          <td>{{ row.pesawat_kembali.nama_maskapai|default:"-" }}</td>
+          <td>{{ row.pesawat_kembali.nomor_tiket|default:"-" }}</td>
+          <td>{{ row.pesawat_kembali.kode_booking|default:"-" }}</td>
+          <td>{{ row.pesawat_kembali.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-end">{{ row.pesawat_kembali.harga_tiket|default:0|floatformat:2 }}</td>
+          <td>{{ row.hotel.nama_hotel|default:"-" }} {{ row.hotel.alamat_hotel|default:"" }}</td>
+          <td>{{ row.hotel.tipe_kamar|default:"-" }}</td>
+          <td>{{ row.hotel.nomor_kamar|default:"-" }}</td>
+          <td>{{ row.hotel.tanggal_checkin|date:"d/m/Y"|default:"-" }}</td>
+          <td>{{ row.hotel.tanggal_checkout|date:"d/m/Y"|default:"-" }}</td>
+          <td>{{ row.hotel.lama_menginap|default:"-" }}</td>
+          <td class="text-end">{{ row.hotel.harga_per_malam|default:0|floatformat:2 }}</td>
+          <td class="text-end">{{ row.hotel.total_biaya|default:0|floatformat:2 }}</td>
+          <td>{{ row.transport_berangkat.tujuan|default:"-" }}</td>
+          <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
+          <td class="text-end">{{ row.transport_berangkat.biaya|default:0|floatformat:2 }}</td>
+          <td>{{ row.transport_kembali.tujuan|default:"-" }}</td>
+          <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
+          <td class="text-end">{{ row.transport_kembali.biaya|default:0|floatformat:2 }}</td>
+          <td class="text-end">{{ row.total|floatformat:2 }}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="40" class="text-center">Belum ada data.</td></tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr>
+        <th colspan="39" class="text-end">Grand Total</th>
+        <th class="text-end">{{ grand_total|floatformat:2 }}</th>
+      </tr>
+    </tfoot>
+  </table>
+  {% if auto_print %}
+    <script>window.addEventListener('load', function () { window.print(); });</script>
+  {% endif %}
+</body>
+</html>

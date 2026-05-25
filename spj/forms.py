@@ -1,4 +1,6 @@
 from django import forms
+from django.core.exceptions import ValidationError
+from django.urls import reverse_lazy
 
 from core.forms import BaseAppModelForm
 from perintah.models import Pelaksana
@@ -27,6 +29,12 @@ class SPJModelForm(BaseAppModelForm):
         is_pengguna = is_spj_pengguna_user(user)
 
         if "spt" in self.fields:
+            selected_spt_id = None
+            if self.is_bound:
+                selected_spt_id = self.data.get(self.add_prefix("spt"))
+            elif getattr(self.instance, "spt_id", None):
+                selected_spt_id = self.instance.spt_id
+
             if is_pengguna:
                 self.fields["spt"].queryset = (
                     self.fields["spt"].queryset.filter(
@@ -42,10 +50,17 @@ class SPJModelForm(BaseAppModelForm):
             self.fields["spt"].widget.attrs.update({
                 "class": self.spt_field_class,
                 "data-placeholder": "Pilih SPT",
+                "data-spj-spt-field": "1",
             })
             self.fields["spt"].label_from_instance = self._format_spt_label
 
         if "pelaksana" in self.fields:
+            selected_spt_id = None
+            if self.is_bound:
+                selected_spt_id = self.data.get(self.add_prefix("spt"))
+            elif getattr(self.instance, "spt_id", None):
+                selected_spt_id = self.instance.spt_id
+
             pelaksana_queryset = (
                 Pelaksana.objects.select_related(
                     "spt",
@@ -62,14 +77,24 @@ class SPJModelForm(BaseAppModelForm):
                 pelaksana_queryset = pelaksana_queryset.filter(
                     nama__opd_id=active_opd_id,
                 )
+            if selected_spt_id:
+                pelaksana_queryset = pelaksana_queryset.filter(
+                    spt_id=selected_spt_id,
+                )
             self.fields["pelaksana"].queryset = pelaksana_queryset
             self.fields["pelaksana"].widget.attrs.update({
                 "class": "form-select select2",
                 "data-placeholder": "Pilih Pelaksana",
+                "data-spj-pelaksana-field": "1",
+                "data-spj-pelaksana-url": str(
+                    reverse_lazy("spj_pelaksana_options")
+                ),
             })
             self.fields["pelaksana"].label_from_instance = (
                 self._format_pelaksana_label
             )
+            if is_pengguna and pelaksana_queryset.count() == 1:
+                self.fields["pelaksana"].initial = pelaksana_queryset.first()
 
         self._configure_verification_fields(user)
 
@@ -97,6 +122,20 @@ class SPJModelForm(BaseAppModelForm):
     @staticmethod
     def _format_pelaksana_label(obj):
         return f"SPT #{obj.spt_id} - {obj.nama}"
+
+    def clean(self):
+        cleaned_data = super().clean()
+        spt = cleaned_data.get("spt")
+        pelaksana = cleaned_data.get("pelaksana")
+
+        if spt and pelaksana and pelaksana.spt_id != spt.id:
+            raise ValidationError({
+                "pelaksana": (
+                    "Pelaksana harus sesuai dengan SPT yang dipilih."
+                )
+            })
+
+        return cleaned_data
 
 
 class JenisSPJForm(BaseAppModelForm):

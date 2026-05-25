@@ -5,8 +5,9 @@ from io import BytesIO
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from types import SimpleNamespace
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 from openpyxl import Workbook
@@ -47,6 +48,31 @@ from .tables import (
     UangHarianTable,
     UangRepresentasiTable,
 )
+
+
+class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
+    def get(self, request):
+        spt_id = request.GET.get("spt")
+        queryset = Pelaksana.objects.select_related("nama").order_by("nama__nama")
+
+        if spt_id:
+            queryset = queryset.filter(spt_id=spt_id)
+
+        if is_spj_pengguna_user(request.user):
+            queryset = queryset.filter(nama__nip=request.user.username)
+        else:
+            queryset = filter_spj_queryset_for_user(
+                queryset,
+                request,
+                "nama__nip",
+            )
+
+        return JsonResponse({
+            "results": [
+                {"id": item.id, "text": f"SPT #{item.spt_id} - {item.nama}"}
+                for item in queryset.distinct()
+            ]
+        })
 
 
 def _date_param(request, name):
@@ -376,12 +402,12 @@ class SPJReportView(LoginRequiredMixin, View):
         return [
             idx,
             spt.tgl_berangkat.year if spt.tgl_berangkat else "",
-            spt.jenis_kegiatan,
+            str(spt.jenis_kegiatan or ""),
             pegawai.nama,
             f"{pegawai.jabatan} / {pangkat} / {tingkat}",
             getattr(pemberi, "nomor_spt", "") or "-",
             getattr(pemberi, "tanggal_spt", "") or "",
-            spt.tujuan_perjalanan_display,
+            spt.tujuan_perjalanan_display or "",
             spt.lama_perjalanan,
             spt.tgl_berangkat,
             spt.tgl_kembali,
@@ -440,7 +466,10 @@ class SPJReportView(LoginRequiredMixin, View):
             cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
 
         for idx, row in enumerate(rows, start=1):
-            ws.append(self._row_values(idx, row))
+            ws.append([
+                self._excel_value(value)
+                for value in self._row_values(idx, row)
+            ])
         stream = BytesIO()
         wb.save(stream)
         response = HttpResponse(
@@ -451,61 +480,23 @@ class SPJReportView(LoginRequiredMixin, View):
         return response
 
     def _pdf_response(self, rows):
-        headers = [
-            "NO", "TAHUN", "JENIS", "NAMA", "JAB/GOL/TINGKAT",
-            "NO SPT", "TGL SPT", "TUJUAN", "HARI", "BERANGKAT",
-            "KEMBALI", "NO SPD", "UANG HARIAN", "REP", "MASK B",
-            "TIKET B", "BOOK B", "HARGA B", "MASK K", "TIKET K",
-            "BOOK K", "HARGA K", "HOTEL", "KAMAR", "CHECKIN",
-            "CHECKOUT", "TOTAL HOTEL", "TR B", "BIAYA B", "TR K",
-            "BIAYA K", "TOTAL",
-        ]
-        column_indexes = [
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
-            10, 11, 13, 14, 15, 16, 17, 19, 20, 21,
-            22, 24, 25, 26, 28, 29, 32, 33, 35, 36,
-            38, 39,
-        ]
-        lines = ["LAPORAN PENGAWAS PERJALANAN DINAS", " | ".join(headers)]
-        lines.append("-" * 260)
-        for idx, row in enumerate(rows, start=1):
-            values = self._row_values(idx, row)
-            selected = [self._pdf_cell(values[i], 18) for i in column_indexes]
-            lines.append(" | ".join(selected))
-        content = "\n".join(lines[:120])
-        objects = [
-            "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj",
-            "2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj",
-            "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 842 595] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj",
-            "4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj",
-        ]
-        text = "BT /F1 5 Tf 18 570 Td "
-        for line in content.split("\n"):
-            safe = line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
-            text += f"({safe}) Tj 0 -8 Td "
-        text += "ET"
-        stream = f"<< /Length {len(text.encode('latin-1', 'ignore'))} >> stream\n{text}\nendstream"
-        objects.append(f"5 0 obj {stream} endobj")
-        pdf = "%PDF-1.4\n"
-        offsets = [0]
-        for obj in objects:
-            offsets.append(len(pdf.encode("latin-1")))
-            pdf += obj + "\n"
-        xref = len(pdf.encode("latin-1"))
-        pdf += f"xref\n0 {len(objects) + 1}\n0000000000 65535 f \n"
-        for offset in offsets[1:]:
-            pdf += f"{offset:010d} 00000 n \n"
-        pdf += f"trailer << /Size {len(objects) + 1} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF"
-        response = HttpResponse(pdf.encode("latin-1", "ignore"), content_type="application/pdf")
-        response["Content-Disposition"] = 'attachment; filename="laporan-pengawas.pdf"'
+        grand_total = sum((row["total"] for row in rows), Decimal("0"))
+        response = render(self.request, "spj/report_print.html", {
+            "title": "Laporan Pengawas",
+            "rows": rows,
+            "grand_total": grand_total,
+            "auto_print": True,
+        })
+        response["X-Frame-Options"] = "SAMEORIGIN"
         return response
 
     @staticmethod
-    def _pdf_cell(value, max_length):
+    def _excel_value(value):
         if hasattr(value, "strftime"):
-            value = value.strftime("%d/%m/%Y")
-        text = str(value or "-").replace("\n", " ")
-        return text[: max_length - 3] + "..." if len(text) > max_length else text
+            return value
+        if isinstance(value, (int, float, Decimal)) or value is None:
+            return value
+        return str(value)
 
     def get(self, request):
         rows, start_date, end_date, nama_pelaksana = self._build_rows(request)
@@ -523,4 +514,64 @@ class SPJReportView(LoginRequiredMixin, View):
             "start_date": start_date,
             "end_date": end_date,
             "nama_pelaksana": nama_pelaksana,
+        })
+
+
+class LaporanPerjalananPrintView(LoginRequiredMixin, View):
+    template_name = "spj/laporan_perjalanan_print.html"
+
+    def get_queryset(self, request):
+        queryset = LaporanPerjalanan.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "spt__jenis_kegiatan",
+            "pelaksana",
+            "pelaksana__nama",
+            "pelaksana__nama__opd",
+        )
+        if is_spj_pengguna_user(request.user):
+            return queryset.filter(
+                spt__pelaksana__nama__nip=request.user.username,
+            ).distinct()
+        return filter_spj_queryset_for_user(
+            queryset,
+            request,
+            "pelaksana__nama__nip",
+        ).distinct()
+
+    def get(self, request, pk):
+        laporan = get_object_or_404(self.get_queryset(request), pk=pk)
+        context = {
+            "laporan": laporan,
+            "spt": laporan.spt,
+            "pelaksana_list": laporan.spt.pelaksana.select_related(
+                "nama",
+                "nama__pangkat",
+            ).all(),
+            "auto_print": request.GET.get("autoprint", "1") != "0",
+        }
+        response = render(request, self.template_name, context)
+        response["X-Frame-Options"] = "SAMEORIGIN"
+        return response
+
+
+class LaporanPerjalananPreviewView(LaporanPerjalananPrintView):
+    template_name = "components/pdf/preview_modal.html"
+
+    def get(self, request, pk):
+        laporan = get_object_or_404(self.get_queryset(request), pk=pk)
+        iframe_src = (
+            reverse("laporan_perjalanan_print", args=[laporan.pk])
+            + "?autoprint=0"
+        )
+        return render(request, self.template_name, {
+            "title": "Preview Laporan Perjalanan",
+            "document_code": "laporan",
+            "preview_description": (
+                "Tinjau Laporan Perjalanan terlebih dahulu sebelum dicetak."
+            ),
+            "iframe_src": iframe_src,
+            "open_url": iframe_src,
+            "frame_id": f"print-preview-frame-laporan-{laporan.pk}",
+            "print_button_label": "Cetak Laporan",
         })
