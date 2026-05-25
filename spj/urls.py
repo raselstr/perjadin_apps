@@ -5,6 +5,7 @@ from .views import (
     PenginapanView,
     PesawatView,
     SPJReportView,
+    SupervisorReportView,
     TransportView,
     UangHarianView,
     UangRepresentasiView,
@@ -102,4 +103,5 @@ urlpatterns = [
     ),
 
     path("laporan/", SPJReportView.as_view(), name="spj_report"),
+    path("laporan-pengawas/", SupervisorReportView.as_view(), name="laporan_pengawas"),
 ]

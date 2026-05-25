@@ -229,3 +229,187 @@ class SPJReportView(LoginRequiredMixin, View):
             "rows": rows,
             "grand_total": grand_total,
         })
+
+
+class SupervisorReportView(LoginRequiredMixin, View):
+    template_name = "spj/laporan_pengawas.html"
+
+    def _filter(self, queryset):
+        return filter_spj_queryset_for_user(
+            queryset,
+            self.request,
+            "pelaksana__nama__nip",
+        ).distinct()
+
+    def get_filter_dates(self):
+        """Extract filter dates from GET/POST parameters"""
+        tgl_mulai = self.request.GET.get("tgl_mulai") or self.request.POST.get("tgl_mulai")
+        tgl_akhir = self.request.GET.get("tgl_akhir") or self.request.POST.get("tgl_akhir")
+        return tgl_mulai, tgl_akhir
+
+    def get_filtered_spt(self):
+        """Get SPT data with date filters"""
+        from perintah.models import Spt
+        
+        queryset = Spt.objects.select_related(
+            "kota_tujuan",
+            "jenis_kegiatan",
+        ).order_by("-tgl_berangkat", "-id")
+        
+        tgl_mulai, tgl_akhir = self.get_filter_dates()
+        
+        if tgl_mulai:
+            queryset = queryset.filter(tgl_berangkat__gte=tgl_mulai)
+        if tgl_akhir:
+            queryset = queryset.filter(tgl_berangkat__lte=tgl_akhir)
+        
+        return queryset
+
+    def get_data_for_row(self, spt, pelaksana):
+        """Aggregate SPJ data for a specific SPT + Pelaksana combination"""
+        result = {
+            "pesawat_berangkat": [],
+            "pesawat_kembali": [],
+            "hotel": [],
+            "transport_berangkat": [],
+            "transport_kembali": [],
+            "uang_harian": None,
+            "uang_representasi": None,
+            "total_biaya": Decimal("0"),
+        }
+        
+        # Pesawat Berangkat
+        pesawat_berangkat = Pesawat.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana,
+            jenis_spj__jenis_spj="Berangkat"
+        ).select_related("lokasi_bandara", "tujuan_bandara", "jenis_spj")
+        result["pesawat_berangkat"] = list(pesawat_berangkat)
+        result["total_biaya"] += sum(p.total_biaya for p in pesawat_berangkat)
+        
+        # Pesawat Kembali
+        pesawat_kembali = Pesawat.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana,
+            jenis_spj__jenis_spj="Kembali"
+        ).select_related("lokasi_bandara", "tujuan_bandara", "jenis_spj")
+        result["pesawat_kembali"] = list(pesawat_kembali)
+        result["total_biaya"] += sum(p.total_biaya for p in pesawat_kembali)
+        
+        # Hotel
+        hotel = Penginapan.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana
+        )
+        result["hotel"] = list(hotel)
+        result["total_biaya"] += sum(h.total_biaya for h in hotel)
+        
+        # Transport Berangkat
+        transport_berangkat = Transport.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana,
+            jenis_spj__jenis_spj="Berangkat"
+        ).select_related(
+            "jenis_transportasi",
+            "lokasi_berangkat",
+            "tujuan",
+            "jenis_spj"
+        )
+        result["transport_berangkat"] = list(transport_berangkat)
+        result["total_biaya"] += sum(t.total_biaya for t in transport_berangkat)
+        
+        # Transport Kembali
+        transport_kembali = Transport.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana,
+            jenis_spj__jenis_spj="Kembali"
+        ).select_related(
+            "jenis_transportasi",
+            "lokasi_berangkat",
+            "tujuan",
+            "jenis_spj"
+        )
+        result["transport_kembali"] = list(transport_kembali)
+        result["total_biaya"] += sum(t.total_biaya for t in transport_kembali)
+        
+        # Uang Harian
+        uang_harian = UangHarian.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana
+        ).first()
+        if uang_harian:
+            result["uang_harian"] = uang_harian
+            result["total_biaya"] += uang_harian.total_biaya
+        
+        # Uang Representasi
+        uang_representasi = UangRepresentasi.objects.filter(
+            spt=spt,
+            pelaksana=pelaksana
+        ).first()
+        if uang_representasi:
+            result["uang_representasi"] = uang_representasi
+            result["total_biaya"] += uang_representasi.total_biaya
+        
+        return result
+
+    def get(self, request):
+        from perintah.models import Spt
+        
+        spt_list = self.get_filtered_spt()
+        
+        data = []
+        grand_total = Decimal("0")
+        
+        for spt in spt_list:
+            # Get pelaksana directly from database
+            from perintah.models import Pelaksana
+            
+            pelaksana_qs = Pelaksana.objects.filter(spt=spt).select_related(
+                "nama",
+                "nama__opd",
+                "nama__tingkat",
+                "nama__pangkat",
+            ).order_by("nama__nama")
+            
+            # Filter by permission - check if user can see this OPD
+            for pelaksana in pelaksana_qs:
+                # Create a mock request-like object for filtering check
+                if self._can_access_pelaksana(pelaksana):
+                    row_data = self.get_data_for_row(spt, pelaksana)
+                    row_data["spt"] = spt
+                    row_data["pelaksana"] = pelaksana
+                    data.append(row_data)
+                    grand_total += row_data["total_biaya"]
+        
+        tgl_mulai, tgl_akhir = self.get_filter_dates()
+        
+        return render(request, self.template_name, {
+            "title": "Laporan Pengawas",
+            "data": data,
+            "grand_total": grand_total,
+            "tgl_mulai": tgl_mulai,
+            "tgl_akhir": tgl_akhir,
+        })
+
+    def _can_access_pelaksana(self, pelaksana):
+        """Check if current user can access this pelaksana"""
+        from .access import is_spj_admin_user, is_spj_pengguna_user
+        
+        user = self.request.user
+        
+        if is_spj_admin_user(user):
+            return True
+        
+        if is_spj_pengguna_user(user):
+            return user.username == pelaksana.nama.nip
+        
+        # Check by OPD
+        user_opd_ids = self.request.session.get("active_opd", [])
+        if pelaksana.nama.opd_id in user_opd_ids:
+            return True
+        
+        return False
+
+    def post(self, request):
+        """Handle POST request with same logic as GET"""
+        return self.get(request)
