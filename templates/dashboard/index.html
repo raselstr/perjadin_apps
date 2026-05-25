@@ -189,9 +189,78 @@
           </div>
         </div>
       </div>
+
+      <div class="col-12">
+        <div class="card border-0 shadow-sm birthday-card">
+          <div class="card-header border-0 pt-4 pb-0">
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+              <div>
+                <h5 class="mb-1">Ulang Tahun Hari Ini</h5>
+                <p class="text-muted mb-0">Pegawai yang berulang tahun pada {{ today|date:"d/m/Y" }}.</p>
+              </div>
+              <span class="badge rounded-pill bg-light-success text-success px-3 py-2">{{ birthday_employees|length }} pegawai</span>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if birthday_employees %}
+              <div class="row g-3">
+                {% for pegawai in birthday_employees %}
+                  <div class="col-md-6 col-xl-4">
+                    <div class="birthday-person">
+                      {% if pegawai.foto %}
+                        <img src="{{ pegawai.foto.url }}" alt="{{ pegawai.nama }}" class="birthday-avatar">
+                      {% else %}
+                        <div class="birthday-avatar birthday-initial">{{ pegawai.nama|slice:":1" }}</div>
+                      {% endif %}
+                      <div>
+                        <div class="fw-semibold">{{ pegawai.nama }}</div>
+                        <div class="text-muted small">{{ pegawai.jabatan|default:"-" }}</div>
+                        <div class="small">{{ pegawai.opd|default:"-" }}</div>
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="text-muted">Tidak ada pegawai yang berulang tahun hari ini.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+{% if birthday_employees %}
+<div class="modal fade" id="birthdayGreetingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 birthday-greeting-modal">
+      <div class="modal-body p-4 p-md-5 text-center">
+        <div class="birthday-greeting-icon mx-auto mb-3">
+          <i class="ti ti-cake"></i>
+        </div>
+        <h4 class="mb-2">Selamat Ulang Tahun</h4>
+        <p class="text-muted mb-4">{{ today|date:"d F Y" }}</p>
+        <div class="birthday-greeting-list">
+          {% for pegawai in birthday_employees|slice:":4" %}
+            <div class="birthday-greeting-person">
+              {% if pegawai.foto %}
+                <img src="{{ pegawai.foto.url }}" alt="{{ pegawai.nama }}">
+              {% else %}
+                <span>{{ pegawai.nama|slice:":1" }}</span>
+              {% endif %}
+              <div class="text-start">
+                <div class="fw-semibold">{{ pegawai.nama }}</div>
+                <div class="small text-muted">{{ pegawai.jabatan|default:"-" }}</div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        <button type="button" class="btn btn-primary mt-4" data-bs-dismiss="modal">Lanjut ke Dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 {% endblock content %}
 
 {% block extrastyle %}
@@ -237,6 +306,89 @@
   background: #e9f2ff;
   color: #0d6efd;
   font-size: 28px;
+}
+
+.birthday-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f5fbf8 100%);
+}
+
+.birthday-person {
+  min-height: 94px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(22, 163, 74, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.birthday-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.birthday-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #dcfce7;
+  color: #166534;
+  font-weight: 700;
+}
+
+.birthday-greeting-modal {
+  border-radius: 22px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #ffffff 0%, #eefaf2 100%);
+}
+
+.birthday-greeting-icon {
+  width: 74px;
+  height: 74px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 34px;
+}
+
+.birthday-greeting-list {
+  display: grid;
+  gap: 10px;
+}
+
+.birthday-greeting-person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(21, 128, 61, 0.12);
+}
+
+.birthday-greeting-person img,
+.birthday-greeting-person span {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.birthday-greeting-person span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #bbf7d0;
+  color: #166534;
+  font-weight: 700;
 }
 </style>
 {% endblock extrastyle %}
@@ -306,6 +458,22 @@
 
   const chart = new ApexCharts(target, options);
   chart.render();
+})();
+
+(function () {
+  const modalNode = document.getElementById('birthdayGreetingModal');
+  if (!modalNode || typeof bootstrap === 'undefined') {
+    return;
+  }
+
+  const storageKey = 'birthdayGreetingShown:' + new Date().toISOString().slice(0, 10);
+  if (sessionStorage.getItem(storageKey)) {
+    return;
+  }
+
+  const modal = new bootstrap.Modal(modalNode);
+  modal.show();
+  sessionStorage.setItem(storageKey, '1');
 })();
 </script>
 {% endblock extra_js %}

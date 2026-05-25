@@ -1,0 +1,70 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}Account Settings{% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="page-header-title">
+          <h5 class="m-b-10">Account Settings</h5>
+        </div>
+        <ul class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+          <li class="breadcrumb-item" aria-current="page">Account Settings</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header border-0">
+            <h5 class="mb-0">Data Pribadi</h5>
+          </div>
+          <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="profile">
+              <div class="row g-3">
+                {% for field in account_form %}
+                  <div class="col-md-6">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="mt-4">
+                <button class="btn btn-primary" type="submit"><i class="ti ti-device-floppy"></i> Simpan Profil</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header border-0">
+            <h5 class="mb-0">Ganti Password</h5>
+          </div>
+          <div class="card-body">
+            <form method="post">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="password">
+              {% for field in password_form %}
+                <div class="mb-3">
+                  <label class="form-label">{{ field.label }}</label>
+                  {{ field }}
+                  {% for error in field.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                </div>
+              {% endfor %}
+              <button class="btn btn-dark" type="submit"><i class="ti ti-lock"></i> Update Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

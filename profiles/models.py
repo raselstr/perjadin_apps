@@ -19,6 +19,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     opd = models.ForeignKey(OPD, on_delete=models.SET_NULL, null=True, blank=True)
     role = models.ForeignKey(Role, on_delete=models.SET_NULL, null=True, blank=True)
+    foto = models.ImageField(upload_to="profiles/users/", null=True, blank=True)
 
     def __str__(self):
         return self.user.username

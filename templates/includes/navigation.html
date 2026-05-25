@@ -1,4 +1,6 @@
-{% load static %}
+{% load static profile_tags %}
+{% user_initials user as nav_initials %}
+{% user_photo_url user as nav_photo_url %}
 <!-- [ Header Topbar ] start -->
 <header class="pc-header">
   <div class="m-header">
@@ -179,7 +181,11 @@
     <li class="dropdown pc-h-item header-user-profile">
       <a class="pc-head-link head-link-primary dropdown-toggle arrow-none me-0" data-bs-toggle="dropdown" href="#"
         role="button" aria-haspopup="false" aria-expanded="false">
-        <img src="{% static 'assets/images/user/avatar-2.jpg' %}" alt="user-image" class="user-avtar" />
+        {% if nav_photo_url %}
+          <img src="{{ nav_photo_url }}" alt="user-image" class="user-avtar" />
+        {% else %}
+          <div class="user-avtar bg-primary text-white fw-semibold d-inline-flex align-items-center justify-content-center">{{ nav_initials }}</div>
+        {% endif %}
         <span>
           <i class="ti ti-settings"></i>
         </span>
@@ -218,7 +224,7 @@
               </div>
             </div> {% endcomment %}
             {% comment %} <hr /> {% endcomment %}
-            <a href="#" class="dropdown-item">
+            <a href="{% url 'account_settings' %}" class="dropdown-item">
               <i class="ti ti-settings"></i>
               <span>Account Settings</span>
             </a>

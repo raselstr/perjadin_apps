@@ -91,7 +91,8 @@ class PegawaiForm(BaseAppModelForm):
         "eselon": 4,
         "jenis_jabatan": 4,
         "status": 4,
-        "tgl_lahir": 6,
+        "tgl_lahir": 4,
+        "foto": 4,
         "tingkat": 6,
         "opd": 12,
     }
@@ -106,6 +107,7 @@ class PegawaiForm(BaseAppModelForm):
             "jenis_jabatan",
             "status",
             "tgl_lahir",
+            "foto",
             "tingkat",
             "opd",
         ]
@@ -121,6 +123,7 @@ class PegawaiForm(BaseAppModelForm):
                 'class': 'form-control',
                 'type': 'date'
             }, format="%Y-%m-%d"),
+            'foto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
             'tingkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tingkat'}),
         }

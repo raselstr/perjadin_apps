@@ -99,6 +99,7 @@ class Pegawai(models.Model):
     )
 
     tgl_lahir = models.DateField(null=True, blank=True)
+    foto = models.ImageField(upload_to="pegawai/foto/", null=True, blank=True)
 
     opd = models.ForeignKey(
         'profiles.OPD',

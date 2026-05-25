@@ -5,6 +5,7 @@ from core.utils.formatting import format_indonesian_number
 
 from .models import (
     JenisSPJ,
+    LaporanPerjalanan,
     Penginapan,
     Pesawat,
     Transport,
@@ -57,6 +58,19 @@ class SPJBaseTable(BaseTable):
         verbose_name="Total",
         orderable=False,
     )
+    verifikasi = tables.TemplateColumn(
+        verbose_name="Verifikasi",
+        orderable=False,
+        template_code="""
+        {% if record.verif_status == "verified" %}
+          <span class="badge bg-light-success text-success">Diverifikasi</span>
+        {% elif record.verif_status == "rejected" %}
+          <span class="badge bg-light-danger text-danger">Ditolak</span>
+        {% else %}
+          <span class="badge bg-light-secondary text-secondary">Belum</span>
+        {% endif %}
+        """,
+    )
 
     def render_standar_maksimal(self, record):
         value = record.get_standar_maksimal()
@@ -77,6 +91,19 @@ class JenisSPJTable(BaseTable):
 class PenginapanTable(SPJBaseTable):
     aksi = action_column("penginapan_action_pk", "penginapan_delete")
     bukti_link = BuktiColumn(verbose_name="Bukti")
+    lokasi_hotel = tables.TemplateColumn(
+        verbose_name="Lokasi",
+        orderable=False,
+        template_code="""
+        {% if record.latitude and record.longitude %}
+          <a href="https://www.openstreetmap.org/?mlat={{ record.latitude }}&mlon={{ record.longitude }}#map=17/{{ record.latitude }}/{{ record.longitude }}" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="ti ti-map-pin"></i> Titik
+          </a>
+        {% else %}
+          -
+        {% endif %}
+        """,
+    )
 
     class Meta(BaseTable.Meta):
         model = Penginapan
@@ -89,6 +116,8 @@ class PenginapanTable(SPJBaseTable):
             "harga_per_malam",
             "standar_maksimal",
             "total_biaya",
+            "lokasi_hotel",
+            "verifikasi",
             "bukti_link",
             "aksi",
         )
@@ -105,10 +134,13 @@ class PesawatTable(SPJBaseTable):
             "spt_info",
             "pelaksana_info",
             "jenis_spj",
+            "nama_maskapai",
             "lokasi_bandara",
             "tujuan_bandara",
+            "tanggal_penerbangan",
             "harga_tiket",
             "standar_maksimal",
+            "verifikasi",
             "bukti_link",
             "aksi",
         )
@@ -126,6 +158,7 @@ class UangHarianTable(SPJBaseTable):
             "uang_harian_per_hari",
             "standar_maksimal",
             "total_uang_harian",
+            "verifikasi",
             "aksi",
         )
 
@@ -146,6 +179,7 @@ class TransportTable(SPJBaseTable):
             "tujuan",
             "biaya",
             "standar_maksimal",
+            "verifikasi",
             "bukti_link",
             "aksi",
         )
@@ -165,5 +199,34 @@ class UangRepresentasiTable(SPJBaseTable):
             "pelaksana_info",
             "biaya",
             "standar_maksimal",
+            "verifikasi",
+            "aksi",
+        )
+
+
+class LaporanPerjalananTable(SPJBaseTable):
+    aksi = action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
+    foto = tables.TemplateColumn(
+        verbose_name="Foto",
+        orderable=False,
+        template_code="""
+        {% with total=0 %}
+          {% if record.foto_1 %}<a href="{{ record.foto_1.url }}" target="_blank">1</a>{% endif %}
+          {% if record.foto_2 %} <a href="{{ record.foto_2.url }}" target="_blank">2</a>{% endif %}
+          {% if record.foto_3 %} <a href="{{ record.foto_3.url }}" target="_blank">3</a>{% endif %}
+          {% if record.foto_4 %} <a href="{{ record.foto_4.url }}" target="_blank">4</a>{% endif %}
+        {% endwith %}
+        """,
+    )
+
+    class Meta(BaseTable.Meta):
+        model = LaporanPerjalanan
+        fields = (
+            "no",
+            "spt_info",
+            "pelaksana_info",
+            "judul",
+            "foto",
+            "verifikasi",
             "aksi",
         )

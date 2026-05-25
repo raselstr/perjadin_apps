@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -14,7 +15,7 @@ from types import SimpleNamespace
 from core.crud.base import BaseCRUDView
 from umum.models import Pegawai, Pemda
 from .models import UserProfile, OPD, Role
-from .forms import OPDForm, RoleForm, UserProfileForm, UserWithProfileForm
+from .forms import AccountSettingsForm, OPDForm, RoleForm, UserProfileForm, UserWithProfileForm
 from .tables import OPDTable, RoleTable, UserProfileTable
 
 
@@ -240,3 +241,38 @@ def create_user_with_profile(request):
 
     context['url_list'] = 'userprofile_list'
     return render(request, 'pages/page.html', context)
+
+
+@login_required
+def account_settings(request):
+    account_form = AccountSettingsForm(user=request.user)
+    password_form = PasswordChangeForm(request.user)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        if action == "profile":
+            account_form = AccountSettingsForm(
+                request.POST,
+                request.FILES,
+                user=request.user,
+            )
+            if account_form.is_valid():
+                account_form.save()
+                messages.success(request, "Profil berhasil diperbarui.")
+                return redirect("account_settings")
+        elif action == "password":
+            password_form = PasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, "Password berhasil diganti.")
+                return redirect("account_settings")
+
+    for field in password_form.fields.values():
+        field.widget.attrs.setdefault("class", "form-control")
+
+    return render(request, "profiles/account_settings.html", {
+        "account_form": account_form,
+        "password_form": password_form,
+        "pegawai": Pegawai.objects.filter(nip=request.user.username).first(),
+    })

@@ -1,0 +1,106 @@
+
+  <div class="content-wrapper">
+    <!-- Content Header (Page header) -->
+    <!-- Main content -->
+    <div class="content">
+      
+      <div class="col">
+        <div class="card card-primary">
+          <div class="card-header">
+            <h5 class="card-title"><?=$title;?></h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="text-center d-flex align-items-center justify-content-center">
+                <form action="<?= site_url('bpk/cari'); ?>" method="post">
+                  <div class="row">
+                    <div class="col-auto">
+                      <label for="" class="col-form-label">Tanggal Mulai</label>
+                    </div>
+                    <div class="col-auto">
+                      <input type="date" class="form-control" name="tgl1">
+                    </div>
+                    <div class="col-auto">
+                      <label for="" class="col-form-label">s.d</label>
+                    </div>
+                    <div class="col-auto">
+                      <input type="date" class="form-control" name="tgl2">
+                    </div>
+                    <div class="col">
+                      <button type="submit" class="btn btn-primary">Cari</button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="card"></div>
+            <!-- <div class="card-body row justify-content-center"> -->
+          <div class="card-body table-responsive p-0 " style="height: 600px;">
+            <div class="col-12">
+              <table id="myTable1" class="table table-bordered table-head-fixed table-sm">
+                <thead>
+                  <tr>
+                    <th class="align-middle text-center" rowspan="3">NO</th>
+                    <th class="align-middle text-center" rowspan="3">TAHUN</th>
+                    <th class="align-middle text-center" rowspan="3">JENIS PERJALANAN</th>
+                    <th class="align-middle text-center" rowspan="3">NAMA</th>
+                    <th class="align-middle text-center" rowspan="3">JABATAN/ GOL/ TINGKAT BIAYA</th>
+                    <th class="align-middle text-center" rowspan="2" colspan="6">SURAT PERINTAH TUGAS</th>
+                    <th class="align-middle text-center" rowspan="2" colspan="6">SURAT PERJALANAN DINAS</th>
+                    <th class="align-middle text-center" rowspan="2" colspan="4">BIAYA PERJALANAN DINAS</th>
+                    <th class="align-middle text-center" colspan="10">PESAWAT</th>
+                    <th class="align-middle text-center" colspan="8" rowspan="2">HOTEL</th>
+                    <th class="align-middle text-center" colspan="6">TAKSI/TRANSPORT LOKAL</th>
+                    <th class="align-middle text-center" rowspan="3">TOTAL</th>
+                  </tr>
+                  <tr>
+                    <th class="align-middle text-center" colspan="5">BERANGKAT</th>
+                    <th class="align-middle text-center" colspan="5">KEMBALI</th>
+                    <th class="align-middle text-center" colspan="3">BERANGKAT</th>
+                    <th class="align-middle text-center" colspan="3">KEMBALI</th>
+                  </tr>
+                  <tr>
+                    <th class="align-middle text-center">NO. SPT</th>
+                    <th class="align-middle text-center">TANGGAL</th>
+                    <th class="align-middle text-center">TEMPAT TUJUAN</th>
+                    <th class="align-middle text-center">JUMLAH HARI</th>
+                    <th class="align-middle text-center">TGL. BERANGKAT</th>
+                    <th class="align-middle text-center">TGL. KEMBALI</th>
+                    <th class="align-middle text-center">NO. SPD</th>
+                    <th class="align-middle text-center">TANGGAL</th>
+                    <th class="align-middle text-center">TEMPAT TUJUAN</th>
+                    <th class="align-middle text-center">JUMLAH HARI</th>
+                    <th class="align-middle text-center">TGL. BERANGKAT</th>
+                    <th class="align-middle text-center">TGL. KEMBALI</th>
+                    <th class="align-middle text-center">UANG HARIAN</th>
+                    <th class="align-middle text-center">PENGGANTI TRANSPORT</th>
+                    <th class="align-middle text-center">REPRESENTATIF</th>
+                    <th class="align-middle text-center">SEWA MOBIL</th>
+                    <th class="align-middle text-center">MASKAPAI (Berangkat)</th>
+                    <th class="align-middle text-center">NO. TIKET</th>
+                    <th class="align-middle text-center">KODE BOKING</th>
+                    <th class="align-middle text-center">TANGGAL PENERBANGAN</th>
+                    <th class="align-middle text-center">HARGA</th>
+                    <th class="align-middle text-center">MASKAPAI (Kembali)</th>
+                    <th class="align-middle text-center">NO. TIKET</th>
+                    <th class="align-middle text-center">KODE BOKING</th>
+                    <th class="align-middle text-center">TANGGAL PENERBANGAN</th>
+                    <th class="align-middle text-center">HARGA</th>
+                    <th class="align-middle text-center">NAMA DAN LOKASI HOTEL</th>
+                    <th class="align-middle text-center">TIPE KAMAR</th>
+                    <th class="align-middle text-center">NOMOR KAMAR</th>
+                    <th class="align-middle text-center">TGL. CHECKIN</th>
+                    <th class="align-middle text-center">TGL. CHECKOUT</th>
+                    <th class="align-middle text-center">LAMA</th>
+                    <th class="align-middle text-center">HARGA PER MALAM</th>
+                    <th class="align-middle text-center">TOTAL HARGA</th>
+                    <th class="align-middle text-center">TUJUAN</th>
+                    <th class="align-middle text-center">TGL. BERANGKAT</th>
+                    <th class="align-middle text-center">HARGA</th>
+                    <th class="align-middle text-center">TUJUAN</th>
+                    <th class="align-middle text-center">TGL. BERANGKAT</th>
+                    <th class="align-middle text-center">HARGA</th>
+                  </tr>
+                </thead>
+                

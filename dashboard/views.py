@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from perintah.models import Pelaksana, Spt
+from umum.models import Pegawai
 
 
 MONTH_LABELS = [
@@ -114,6 +115,14 @@ def dashboard_view(request):
         "spt__tgl_kembali",
     )
 
+    birthday_employees = Pegawai.objects.select_related("opd").filter(
+        tgl_lahir__month=today.month,
+        tgl_lahir__day=today.day,
+    )
+    if session_opd_id and not request.user.is_superuser:
+        birthday_employees = birthday_employees.filter(opd_id=session_opd_id)
+    birthday_employees = birthday_employees.order_by("nama")
+
     stats = {
         "total_spt_year": spt_queryset.filter(
             tgl_berangkat__year=dashboard_year
@@ -133,6 +142,7 @@ def dashboard_view(request):
         "dashboard_year": dashboard_year,
         "today": today,
         "today_travelers": today_travelers,
+        "birthday_employees": birthday_employees,
         "stats": stats,
         "chart_data": {
             "labels": MONTH_LABELS,

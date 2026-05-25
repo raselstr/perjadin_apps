@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     JenisSPJView,
+    LaporanPerjalananView,
     PenginapanView,
     PesawatView,
     SPJReportView,
@@ -99,6 +100,27 @@ urlpatterns = [
         "uang-representasi/delete/<int:pk>/<str:action>/",
         UangRepresentasiView.as_view(),
         name="uang_representasi_delete",
+    ),
+
+    path(
+        "laporan-perjalanan/",
+        LaporanPerjalananView.as_view(),
+        name="laporan_perjalanan_list",
+    ),
+    path(
+        "laporan-perjalanan/form/",
+        LaporanPerjalananView.as_view(),
+        name="laporan_perjalanan_action",
+    ),
+    path(
+        "laporan-perjalanan/form/<int:pk>/<str:action>/",
+        LaporanPerjalananView.as_view(),
+        name="laporan_perjalanan_action_pk",
+    ),
+    path(
+        "laporan-perjalanan/delete/<int:pk>/<str:action>/",
+        LaporanPerjalananView.as_view(),
+        name="laporan_perjalanan_delete",
     ),
 
     path("laporan/", SPJReportView.as_view(), name="spj_report"),
