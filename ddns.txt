@@ -1,3 +1,5 @@
 Update DDNS
-user : 6d44sqr@ddnskey.com
-Pass : rvSuJXKsvUWW
+email   : pengenbaralangit29@gmail.com
+website : perjadinbkad.ddns.net
+user    : qmfrg7h@ddnskey.com
+Pass    : stozWcyCR4qX
