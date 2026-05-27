@@ -1,10 +1,7 @@
 #!/bin/bash
 
 # ======================================================
-# PRODUCTION PostgreSQL Backup / Restore Script
-# Project  : Django + PostgreSQL + Docker
-# Container: perjadin_apps_postgres_db
-# Usage    : Production-safe database maintenance
+# PostgreSQL Global Maintenance Script
 # ======================================================
 
 set -e
@@ -12,32 +9,37 @@ set -e
 BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$BASE_DIR"
 
-# ------------------------------------------------------
-# CONFIGURATION
-# ------------------------------------------------------
-DB_CONTAINER="perjadin_apps_postgres_db"
+# ======================================================
+# CONFIG
+# ======================================================
+
+DB_CONTAINER="postgres"
 SECRETS_DIR="./secrets"
-BACKUP_DIR="./backups"
-DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 
 DB_NAME=$(cat ${SECRETS_DIR}/db_name.txt)
 DB_USER=$(cat ${SECRETS_DIR}/db_user.txt)
+DB_PASSWORD=$(cat ${SECRETS_DIR}/db_password.txt)
+
+BACKUP_DIR="./backups"
+
+DATE=$(date +"%Y-%m-%d_%H-%M-%S")
 
 DATA_BACKUP_FILE="${BACKUP_DIR}/backup_data_${DATE}.sql"
 FULL_BACKUP_FILE="${BACKUP_DIR}/full_backup_${DATE}.sql"
 LATEST_BACKUP_FILE="${BACKUP_DIR}/latest_backup.sql"
 
-# ------------------------------------------------------
-# PRECHECKS
-# ------------------------------------------------------
+# ======================================================
+# CHECK ENVIRONMENT
+# ======================================================
+
 check_requirements() {
+
     echo "Checking environment..."
 
     if ! command -v docker >/dev/null 2>&1; then
         echo "ERROR: Docker tidak ditemukan"
         exit 1
     fi
-
     if [ ! -d "$SECRETS_DIR" ]; then
         echo "ERROR: Folder ./secrets tidak ditemukan"
         exit 1
@@ -45,14 +47,13 @@ check_requirements() {
 
     mkdir -p "$BACKUP_DIR"
 
-    if ! docker ps >/dev/null 2>&1; then
-        echo "ERROR: User tidak memiliki akses ke Docker"
-        echo "Jalankan: sudo usermod -aG docker $USER"
-        echo "Lalu logout/login kembali"
+    # gunakan sudo otomatis
+    if ! sudo docker ps >/dev/null 2>&1; then
+        echo "ERROR: Docker tidak dapat diakses"
         exit 1
     fi
 
-    if ! docker ps --format '{{.Names}}' | grep -q "^${DB_CONTAINER}$"; then
+    if ! sudo docker ps --format '{{.Names}}' | grep -q "^${DB_CONTAINER}$"; then
         echo "ERROR: Container ${DB_CONTAINER} tidak berjalan"
         exit 1
     fi
@@ -60,36 +61,45 @@ check_requirements() {
     echo "Environment OK"
 }
 
+# ======================================================
+# CONFIRM
+# ======================================================
+
 confirm_action() {
     read -p "$1 (yes/no): " confirm
+
     if [ "$confirm" != "yes" ]; then
         echo "Dibatalkan"
         exit 0
     fi
 }
 
-# ------------------------------------------------------
-# PERMISSION SETUP
-# ------------------------------------------------------
+# ======================================================
+# SETUP
+# ======================================================
+
 setup_permissions() {
-    echo "=== Setup permission script & backup folder ==="
+
+    echo "Setup permission..."
 
     chmod +x "$0"
+
     mkdir -p "$BACKUP_DIR"
+
     chmod 700 "$BACKUP_DIR" 2>/dev/null || true
 
     echo "Permission updated"
-    echo "Script executable: yes"
-    echo "Backup folder protected: yes"
 }
 
-# ------------------------------------------------------
+# ======================================================
 # BACKUP DATA ONLY
-# ------------------------------------------------------
-backup_data() {
-    echo "=== Backup DATA ONLY dimulai ==="
+# ======================================================
 
-    docker exec -t ${DB_CONTAINER} pg_dump \
+backup_data() {
+
+    echo "Backup DATA ONLY..."
+
+    sudo docker exec -t ${DB_CONTAINER} pg_dump \
         -U ${DB_USER} \
         -d ${DB_NAME} \
         --data-only \
@@ -100,110 +110,87 @@ backup_data() {
     cp "${DATA_BACKUP_FILE}" "${LATEST_BACKUP_FILE}"
 
     echo "Backup selesai"
-    echo "File: ${DATA_BACKUP_FILE}"
+    echo "File:"
+    echo "${DATA_BACKUP_FILE}"
 }
 
-# ------------------------------------------------------
-# FULL BACKUP (SCHEMA + DATA)
-# ------------------------------------------------------
-backup_full() {
-    echo "=== Full Backup dimulai ==="
+# ======================================================
+# FULL BACKUP
+# ======================================================
 
-    docker exec -t ${DB_CONTAINER} pg_dump \
+backup_full() {
+
+    echo "Full backup..."
+
+    sudo docker exec -t ${DB_CONTAINER} pg_dump \
         -U ${DB_USER} \
         -d ${DB_NAME} \
         > "${FULL_BACKUP_FILE}"
 
-    echo "Full backup selesai"
-    echo "File: ${FULL_BACKUP_FILE}"
+    echo "Backup selesai"
+    echo "File:"
+    echo "${FULL_BACKUP_FILE}"
 }
 
-# ------------------------------------------------------
-# TRUNCATE MASTER TABLES
-# ------------------------------------------------------
-truncate_tables() {
-    confirm_action "PERINGATAN: Ini akan menghapus data tabel master. Lanjutkan?"
+# ======================================================
+# RESTORE
+# ======================================================
 
-    echo "=== Truncate dimulai ==="
-
-    docker exec -i ${DB_CONTAINER} psql \
-        -U ${DB_USER} \
-        -d ${DB_NAME} <<EOF
-TRUNCATE TABLE
-    spd_standardpenginapan,
-    spd_standardtransport,
-    spd_lokasi
-RESTART IDENTITY CASCADE;
-EOF
-
-    echo "Truncate selesai"
-}
-
-# ------------------------------------------------------
-# RESTORE LATEST BACKUP
-# ------------------------------------------------------
 restore_latest() {
+
     if [ ! -f "${LATEST_BACKUP_FILE}" ]; then
-        echo "ERROR: latest backup tidak ditemukan"
+        echo "ERROR: latest_backup.sql tidak ditemukan"
         exit 1
     fi
 
-    confirm_action "Restore akan menimpa data existing jika belum truncate. Lanjutkan?"
+    confirm_action "Restore akan menimpa data. Lanjutkan?"
 
-    echo "=== Restore dimulai ==="
+    echo "Restore database..."
 
-    cat "${LATEST_BACKUP_FILE}" | docker exec -i ${DB_CONTAINER} psql \
+    cat "${LATEST_BACKUP_FILE}" | sudo docker exec -i ${DB_CONTAINER} psql \
         -U ${DB_USER} \
         -d ${DB_NAME}
 
     echo "Restore selesai"
 }
 
-# ------------------------------------------------------
-# TRUNCATE + RESTORE
-# ------------------------------------------------------
-truncate_and_restore() {
-    truncate_tables
-    restore_latest
-}
-
-# ------------------------------------------------------
+# ======================================================
 # LIST BACKUPS
-# ------------------------------------------------------
+# ======================================================
+
 list_backups() {
-    echo "=== Daftar Backup ==="
+
+    echo "Daftar backup:"
     ls -lh "$BACKUP_DIR"
 }
 
-# ------------------------------------------------------
+# ======================================================
 # MENU
-# ------------------------------------------------------
+# ======================================================
+
 main_menu() {
+
     check_requirements
 
     echo ""
     echo "================================================="
-    echo " PostgreSQL Production Maintenance Script"
+    echo " PostgreSQL Global Maintenance"
     echo "================================================="
     echo "1. Setup Permission"
-    echo "2. Backup Data Only (Recommended)"
-    echo "3. Full Backup (Schema + Data)"
-    echo "4. Truncate Master Tables"
-    echo "5. Restore latest_backup.sql"
-    echo "6. Truncate + Restore"
-    echo "7. List Backup Files"
+    echo "2. Backup Data Only"
+    echo "3. Full Backup"
+    echo "4. Restore latest_backup.sql"
+    echo "5. List Backup Files"
     echo "================================================="
 
-    read -p "Pilih menu (1-7): " pilihan
+    read -p "Pilih menu (1-5): " pilihan
 
     case $pilihan in
         1) setup_permissions ;;
         2) backup_data ;;
         3) backup_full ;;
-        4) truncate_tables ;;
-        5) restore_latest ;;
-        6) truncate_and_restore ;;
-        7) list_backups ;;
+        4) restore_latest ;;
+        5) list_backups ;;
         *) echo "Pilihan tidak valid" ;;
     esac
 }
