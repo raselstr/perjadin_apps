@@ -28,7 +28,7 @@ services:
       USE_HTTPS: "False"
       SECURE_SSL_REDIRECT: "False"
 
-      ALLOWED_HOSTS: "*"
+      ALLOWED_HOSTS: "103.188.249.54,perjadinbkad.ddns.net"
 
     networks:
       - production_network
