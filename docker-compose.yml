@@ -25,8 +25,8 @@ services:
 
       DEBUG: "False"
 
-      USE_HTTPS: "False"
-      SECURE_SSL_REDIRECT: "False"
+      USE_HTTPS: "True"
+      SECURE_SSL_REDIRECT: "True"
 
       ALLOWED_HOSTS: "103.188.249.54,perjadinbkad.ddns.net"
 
