@@ -44,56 +44,47 @@
   const scope = document.currentScript.closest('.modal-content') || document;
   const sptField = scope.querySelector('[data-spj-spt-field="1"]');
   const pelaksanaField = scope.querySelector('[data-spj-pelaksana-field="1"]');
-
-  if (!sptField || !pelaksanaField || pelaksanaField.dataset.spjBindingReady) {
+  const jenisSpjField = scope.querySelector('[data-spj-jenis-spj-field="1"]');
+  if (!pelaksanaField || pelaksanaField.dataset.spjHtmxBindingReady) {
     return;
   }
+  pelaksanaField.dataset.spjHtmxBindingReady = '1';
 
-  pelaksanaField.dataset.spjBindingReady = '1';
-
-  function replaceOptions(items, selectedValue) {
-    pelaksanaField.innerHTML = '';
-    const emptyOption = document.createElement('option');
-    emptyOption.value = '';
-    emptyOption.textContent = '---------';
-    pelaksanaField.appendChild(emptyOption);
-
-    items.forEach(function (item) {
-      const option = document.createElement('option');
-      option.value = item.id;
-      option.textContent = item.text;
-      if (String(item.id) === String(selectedValue)) {
-        option.selected = true;
-      }
-      pelaksanaField.appendChild(option);
-    });
-
-    if (window.jQuery && window.jQuery.fn.select2) {
-      window.jQuery(pelaksanaField).trigger('change.select2');
-    } else {
-      pelaksanaField.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  }
-
-  function loadPelaksana() {
-    const sptId = sptField.value;
-    const url = pelaksanaField.dataset.spjPelaksanaUrl;
-    if (!sptId || !url) {
+  function refreshSelect2Field(field) {
+    if (!window.jQuery || !window.jQuery.fn.select2) {
+      field.dispatchEvent(new Event('change', { bubbles: true }));
       return;
     }
 
-    const selectedValue = pelaksanaField.value;
-    fetch(url + '?spt=' + encodeURIComponent(sptId), {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
-    })
-      .then(function (response) { return response.json(); })
-      .then(function (data) { replaceOptions(data.results || [], selectedValue); })
-      .catch(function () {});
+    const $field = window.jQuery(field);
+    const $dropdownParent = $field.closest('[data-formset-row], .modal');
+    if ($field.hasClass('select2-hidden-accessible')) {
+      $field.select2('destroy');
+    }
+    $field.select2({
+      width: '100%',
+      dropdownParent: $dropdownParent.length ? $dropdownParent : window.jQuery(document.body),
+      theme: 'bootstrap-5'
+    });
+    $field.trigger('change');
   }
 
-  sptField.addEventListener('change', loadPelaksana);
-  if (sptField.value) {
-    loadPelaksana();
+  document.body.addEventListener('htmx:afterSwap', function (event) {
+    if (event.detail.target !== pelaksanaField) {
+      return;
+    }
+    refreshSelect2Field(pelaksanaField);
+  });
+
+  if (window.jQuery && window.jQuery.fn.select2 && window.htmx && sptField) {
+    window.jQuery(sptField).on('select2:select select2:clear', function () {
+      window.htmx.trigger(sptField, 'change');
+    });
+    if (jenisSpjField) {
+      window.jQuery(jenisSpjField).on('select2:select select2:clear', function () {
+        window.htmx.trigger(sptField, 'change');
+      });
+    }
   }
 })();
 </script>

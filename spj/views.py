@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.db.models import Count
+from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 from django.views import View
 from openpyxl import Workbook
@@ -16,9 +17,11 @@ from openpyxl.styles import Alignment, Font, PatternFill
 
 from core.crud.base import BaseCRUDView
 from perintah.models import Pelaksana, PemberiTugas
+from profiles.utils import get_active_opd_id
 
 from .access import (
     filter_spj_queryset_for_user,
+    is_spj_admin_user,
     is_spj_pengguna_user,
     is_spj_verifikator_user,
 )
@@ -52,26 +55,57 @@ from .tables import (
 
 
 class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
+    @staticmethod
+    def _param(request, name):
+        value = request.GET.get(name)
+        if value:
+            return value
+        suffix = f"-{name}"
+        for key, item in request.GET.items():
+            if key.endswith(suffix) and item:
+                return item
+        return None
+
+    @staticmethod
+    def _html_options(queryset, selected_id=None):
+        options = [format_html('<option value="">---------</option>')]
+        options.append(
+            format_html_join(
+                "",
+                '<option value="{}"{}>{}</option>',
+                (
+                    (
+                        item.id,
+                        format_html(" selected") if str(item.id) == str(selected_id) else "",
+                        f"SPT #{item.spt_id} - {item.nama}",
+                    )
+                    for item in queryset.distinct()
+                ),
+            )
+        )
+        return HttpResponse("".join(str(option) for option in options))
+
     def get(self, request):
-        spt_id = request.GET.get("spt")
-        model = request.GET.get("model")
-        jenis_spj_id = request.GET.get("jenis_spj")
-        instance_id = request.GET.get("instance")
+        spt_id = self._param(request, "spt")
+        model = self._param(request, "model")
+        jenis_spj_id = self._param(request, "jenis_spj")
+        instance_id = self._param(request, "instance")
+        selected_id = self._param(request, "pelaksana")
         queryset = Pelaksana.objects.select_related("nama").order_by("nama__nama")
 
         if not spt_id:
+            if request.headers.get("HX-Request"):
+                return self._html_options(queryset.none())
             return JsonResponse({"results": []})
 
         queryset = queryset.filter(spt_id=spt_id)
 
         if is_spj_pengguna_user(request.user):
             queryset = queryset.filter(nama__nip=request.user.username)
-        else:
-            queryset = filter_spj_queryset_for_user(
-                queryset,
-                request,
-                "nama__nip",
-            )
+        elif not is_spj_admin_user(request.user):
+            active_opd_id = get_active_opd_id(request)
+            if active_opd_id:
+                queryset = queryset.filter(nama__opd_id=active_opd_id)
 
         used = None
         if model == "penginapan":
@@ -92,6 +126,9 @@ class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
             queryset = queryset.exclude(
                 pk__in=used.values_list("pelaksana_id", flat=True)
             )
+
+        if request.headers.get("HX-Request"):
+            return self._html_options(queryset, selected_id)
 
         return JsonResponse({
             "results": [

@@ -1,3 +1,5 @@
+import json
+
 from django import forms
 from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
@@ -100,6 +102,21 @@ class SPJModelForm(BaseAppModelForm):
                 "data-spj-model": self._spj_model_key(),
                 "data-spj-instance": str(getattr(self.instance, "pk", "") or ""),
             })
+            if "spt" in self.fields:
+                trigger = "change, load"
+                if "jenis_spj" in self.fields:
+                    trigger += f", change from:#{self['jenis_spj'].id_for_label}"
+                self.fields["spt"].widget.attrs.update({
+                    "hx-get": str(reverse_lazy("spj_pelaksana_options")),
+                    "hx-trigger": trigger,
+                    "hx-target": f"#{self['pelaksana'].id_for_label}",
+                    "hx-swap": "innerHTML",
+                    "hx-include": "closest form",
+                    "hx-vals": json.dumps({
+                        "model": self._spj_model_key(),
+                        "instance": str(getattr(self.instance, "pk", "") or ""),
+                    }),
+                })
             self.fields["pelaksana"].label_from_instance = (
                 self._format_pelaksana_label
             )
