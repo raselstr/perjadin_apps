@@ -54,10 +54,15 @@ from .tables import (
 class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
     def get(self, request):
         spt_id = request.GET.get("spt")
+        model = request.GET.get("model")
+        jenis_spj_id = request.GET.get("jenis_spj")
+        instance_id = request.GET.get("instance")
         queryset = Pelaksana.objects.select_related("nama").order_by("nama__nama")
 
-        if spt_id:
-            queryset = queryset.filter(spt_id=spt_id)
+        if not spt_id:
+            return JsonResponse({"results": []})
+
+        queryset = queryset.filter(spt_id=spt_id)
 
         if is_spj_pengguna_user(request.user):
             queryset = queryset.filter(nama__nip=request.user.username)
@@ -66,6 +71,26 @@ class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
                 queryset,
                 request,
                 "nama__nip",
+            )
+
+        used = None
+        if model == "penginapan":
+            used = Penginapan.objects.filter(spt_id=spt_id)
+        elif model == "uang_harian":
+            used = UangHarian.objects.filter(spt_id=spt_id)
+        elif model == "uang_representasi":
+            used = UangRepresentasi.objects.filter(spt_id=spt_id)
+        elif model == "pesawat" and jenis_spj_id:
+            used = Pesawat.objects.filter(
+                spt_id=spt_id,
+                jenis_spj_id=jenis_spj_id,
+            )
+
+        if used is not None:
+            if instance_id:
+                used = used.exclude(pk=instance_id)
+            queryset = queryset.exclude(
+                pk__in=used.values_list("pelaksana_id", flat=True)
             )
 
         return JsonResponse({
@@ -534,10 +559,10 @@ class SPJReportView(LoginRequiredMixin, View):
             getattr(hotel, "harga_per_malam", 0) or 0,
             getattr(hotel, "total_biaya", 0) or 0,
             str(getattr(tb, "tujuan", "") or "-"),
-            spt.tgl_berangkat,
+            getattr(tb, "tanggal_berangkat", None) or spt.tgl_berangkat,
             getattr(tb, "biaya", 0) or 0,
             str(getattr(tk, "tujuan", "") or "-"),
-            spt.tgl_kembali,
+            getattr(tk, "tanggal_berangkat", None) or spt.tgl_kembali,
             getattr(tk, "biaya", 0) or 0,
             row["total"],
         ]

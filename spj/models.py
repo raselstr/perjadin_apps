@@ -317,29 +317,6 @@ class Pesawat(BaseSPJModel):
                 },
                 "SPJ Pesawat dengan jenis ini untuk SPT dan pelaksana ini sudah dibuat.",
             )
-        jenis_spj = (
-            (self.jenis_spj.jenis_spj or "").lower()
-            if self.jenis_spj_id else ""
-        )
-        lokasi_spt_id = self.spt.kota_tujuan_id if self.spt_id else None
-        lokasi_asal_id = (
-            self.lokasi_bandara.provinsi_id if self.lokasi_bandara_id else None
-        )
-        lokasi_tujuan_id = (
-            self.tujuan_bandara.provinsi_id if self.tujuan_bandara_id else None
-        )
-        if lokasi_spt_id and jenis_spj == "berangkat" and lokasi_tujuan_id != lokasi_spt_id:
-            raise ValidationError({
-                "tujuan_bandara": (
-                    "Bandara tujuan berangkat harus sesuai lokasi tujuan SPT."
-                )
-            })
-        if lokasi_spt_id and jenis_spj == "kembali" and lokasi_asal_id != lokasi_spt_id:
-            raise ValidationError({
-                "lokasi_bandara": (
-                    "Bandara asal kembali harus sesuai lokasi tujuan SPT."
-                )
-            })
         maksimal = self.get_standar_maksimal()
         if (
             maksimal is not None
@@ -449,6 +426,7 @@ class Transport(BaseSPJModel):
         on_delete=models.PROTECT,
         related_name="spj_transport_tujuan",
     )
+    tanggal_berangkat = models.DateField(blank=True, null=True)
     biaya = models.DecimalField(
         max_digits=14,
         decimal_places=2,

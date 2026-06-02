@@ -1,6 +1,5 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from django.db.models import Count
 from django.urls import reverse_lazy
 
 from core.forms import BaseAppModelForm
@@ -52,6 +51,7 @@ class SPJModelForm(BaseAppModelForm):
                 "class": self.spt_field_class,
                 "data-placeholder": "Pilih SPT",
                 "data-spj-spt-field": "1",
+                "data-spj-model": self._spj_model_key(),
             })
             self.fields["spt"].label_from_instance = self._format_spt_label
             self._filter_available_spt_options(user, selected_spt_id)
@@ -83,6 +83,12 @@ class SPJModelForm(BaseAppModelForm):
                 pelaksana_queryset = pelaksana_queryset.filter(
                     spt_id=selected_spt_id,
                 )
+                pelaksana_queryset = self._exclude_unavailable_pelaksana_options(
+                    pelaksana_queryset,
+                    selected_spt_id,
+                )
+            elif not getattr(self.instance, "pelaksana_id", None):
+                pelaksana_queryset = pelaksana_queryset.none()
             self.fields["pelaksana"].queryset = pelaksana_queryset
             self.fields["pelaksana"].widget.attrs.update({
                 "class": "form-select select2",
@@ -91,6 +97,8 @@ class SPJModelForm(BaseAppModelForm):
                 "data-spj-pelaksana-url": str(
                     reverse_lazy("spj_pelaksana_options")
                 ),
+                "data-spj-model": self._spj_model_key(),
+                "data-spj-instance": str(getattr(self.instance, "pk", "") or ""),
             })
             self.fields["pelaksana"].label_from_instance = (
                 self._format_pelaksana_label
@@ -119,20 +127,9 @@ class SPJModelForm(BaseAppModelForm):
             return
 
         model = self._meta.model
-        existing = model.objects.all()
-        if is_spj_pengguna_user(user) and model is not LaporanPerjalanan:
-            existing = existing.filter(pelaksana__nama__nip=user.username)
-
         exclude_spt_ids = []
-        if model in (Penginapan, UangHarian, UangRepresentasi, LaporanPerjalanan):
-            exclude_spt_ids = existing.values_list("spt_id", flat=True)
-        elif model is Pesawat:
-            exclude_spt_ids = (
-                existing.values("spt_id")
-                .annotate(jenis_count=Count("jenis_spj", distinct=True))
-                .filter(jenis_count__gte=2)
-                .values_list("spt_id", flat=True)
-            )
+        if model is LaporanPerjalanan:
+            exclude_spt_ids = model.objects.values_list("spt_id", flat=True)
 
         if selected_spt_id:
             exclude_spt_ids = [
@@ -144,6 +141,45 @@ class SPJModelForm(BaseAppModelForm):
             self.fields["spt"].queryset = self.fields["spt"].queryset.exclude(
                 pk__in=list(exclude_spt_ids),
             )
+
+    def _spj_model_key(self):
+        model_map = {
+            Penginapan: "penginapan",
+            Pesawat: "pesawat",
+            Transport: "transport",
+            UangHarian: "uang_harian",
+            UangRepresentasi: "uang_representasi",
+            LaporanPerjalanan: "laporan_perjalanan",
+        }
+        return model_map.get(self._meta.model, "")
+
+    def _exclude_unavailable_pelaksana_options(self, queryset, spt_id):
+        model = self._meta.model
+        instance_id = getattr(self.instance, "pk", None)
+        used = None
+
+        if model in (Penginapan, UangHarian, UangRepresentasi):
+            used = model.objects.filter(spt_id=spt_id)
+        elif model is Pesawat:
+            jenis_spj_id = (
+                self.data.get(self.add_prefix("jenis_spj"))
+                if self.is_bound else self.initial.get("jenis_spj")
+            )
+            if not jenis_spj_id and getattr(self.instance, "jenis_spj_id", None):
+                jenis_spj_id = self.instance.jenis_spj_id
+            if jenis_spj_id:
+                used = model.objects.filter(
+                    spt_id=spt_id,
+                    jenis_spj_id=jenis_spj_id,
+                )
+
+        if used is None:
+            return queryset
+        if instance_id:
+            used = used.exclude(pk=instance_id)
+        return queryset.exclude(
+            pk__in=used.values_list("pelaksana_id", flat=True)
+        )
 
     def _configure_upload_fields(self):
         for name, field in self.fields.items():
@@ -329,6 +365,13 @@ class PesawatForm(SPJModelForm):
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if "jenis_spj" in self.fields:
+            self.fields["jenis_spj"].widget.attrs.update({
+                "data-spj-jenis-spj-field": "1",
+            })
+
 
 class UangHarianForm(SPJModelForm):
     field_layout = {
@@ -421,6 +464,7 @@ class TransportForm(SPJModelForm):
         "pelaksana": 6,
         "jenis_spj": 4,
         "jenis_transportasi": 4,
+        "tanggal_berangkat": 4,
         "biaya": 4,
         "lokasi_berangkat": 6,
         "tujuan": 6,
@@ -435,6 +479,7 @@ class TransportForm(SPJModelForm):
             "pelaksana",
             "jenis_spj",
             "jenis_transportasi",
+            "tanggal_berangkat",
             "lokasi_berangkat",
             "tujuan",
             "biaya",
@@ -450,6 +495,7 @@ class TransportForm(SPJModelForm):
                 "class": "form-select select2",
             }),
             "tujuan": forms.Select(attrs={"class": "form-select select2"}),
+            "tanggal_berangkat": forms.DateInput(attrs={"type": "date"}),
             "biaya": forms.NumberInput(attrs={"class": "form-control"}),
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }

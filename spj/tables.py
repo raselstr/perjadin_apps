@@ -177,6 +177,7 @@ class TransportTable(SPJBaseTable):
             "jenis_transportasi",
             "lokasi_berangkat",
             "tujuan",
+            "tanggal_berangkat",
             "biaya",
             "standar_maksimal",
             "verifikasi",
