@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 from django.urls import reverse_lazy
 
 from core.forms import BaseAppModelForm
@@ -53,6 +54,7 @@ class SPJModelForm(BaseAppModelForm):
                 "data-spj-spt-field": "1",
             })
             self.fields["spt"].label_from_instance = self._format_spt_label
+            self._filter_available_spt_options(user, selected_spt_id)
 
         if "pelaksana" in self.fields:
             selected_spt_id = None
@@ -97,18 +99,85 @@ class SPJModelForm(BaseAppModelForm):
                 self.fields["pelaksana"].initial = pelaksana_queryset.first()
 
         self._configure_verification_fields(user)
+        self._configure_upload_fields()
+        self._configure_geo_fields()
 
     def _configure_verification_fields(self, user):
         if "verif_status" not in self.fields:
             return
 
         allowed = is_spj_verifikator_user(user)
-        for name in ("verif_status", "verif_catatan"):
+        for name in ("verif_status",):
             if name in self.fields:
                 self.fields[name].disabled = not allowed
                 self.fields[name].widget.attrs["class"] = (
                     self.fields[name].widget.attrs.get("class", "")
                 )
+
+    def _filter_available_spt_options(self, user, selected_spt_id=None):
+        if getattr(self.instance, "pk", None):
+            return
+
+        model = self._meta.model
+        existing = model.objects.all()
+        if is_spj_pengguna_user(user) and model is not LaporanPerjalanan:
+            existing = existing.filter(pelaksana__nama__nip=user.username)
+
+        exclude_spt_ids = []
+        if model in (Penginapan, UangHarian, UangRepresentasi, LaporanPerjalanan):
+            exclude_spt_ids = existing.values_list("spt_id", flat=True)
+        elif model is Pesawat:
+            exclude_spt_ids = (
+                existing.values("spt_id")
+                .annotate(jenis_count=Count("jenis_spj", distinct=True))
+                .filter(jenis_count__gte=2)
+                .values_list("spt_id", flat=True)
+            )
+
+        if selected_spt_id:
+            exclude_spt_ids = [
+                spt_id for spt_id in exclude_spt_ids
+                if str(spt_id) != str(selected_spt_id)
+            ]
+
+        if exclude_spt_ids:
+            self.fields["spt"].queryset = self.fields["spt"].queryset.exclude(
+                pk__in=list(exclude_spt_ids),
+            )
+
+    def _configure_upload_fields(self):
+        for name, field in self.fields.items():
+            widget = field.widget
+            if not isinstance(widget, forms.ClearableFileInput):
+                continue
+
+            if name.startswith("foto_") or name == "foto_hotel":
+                if name in ("foto_1", "foto_hotel"):
+                    field.required = True
+                widget.attrs.update({
+                    "accept": "image/*",
+                    "capture": "environment",
+                    "data-spj-geotag-upload": "1",
+                })
+            elif name == "bukti":
+                widget.attrs.update({
+                    "accept": "application/pdf,image/*",
+                })
+
+    def _configure_geo_fields(self):
+        if "latitude" not in self.fields or "longitude" not in self.fields:
+            self.has_geo_map = False
+            return
+
+        self.has_geo_map = True
+        self.geo_latitude_field_id = self["latitude"].id_for_label
+        self.geo_longitude_field_id = self["longitude"].id_for_label
+        for name in ("latitude", "longitude"):
+            self.fields[name].required = True
+            self.fields[name].widget.attrs.update({
+                "class": "form-control",
+                "step": "0.0000001",
+            })
 
     @staticmethod
     def _format_spt_label(obj):
@@ -138,6 +207,18 @@ class SPJModelForm(BaseAppModelForm):
         return cleaned_data
 
 
+class RichTextarea(forms.Textarea):
+    def __init__(self, attrs=None):
+        default_attrs = {
+            "class": "form-control",
+            "rows": 6,
+            "data-spj-rich-editor": "1",
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(attrs=default_attrs)
+
+
 class JenisSPJForm(BaseAppModelForm):
     class Meta:
         model = JenisSPJ
@@ -164,7 +245,6 @@ class PenginapanForm(SPJModelForm):
         "harga_per_malam": 3,
         "bukti": 3,
         "verif_status": 3,
-        "verif_catatan": 12,
     }
 
     class Meta:
@@ -185,7 +265,6 @@ class PenginapanForm(SPJModelForm):
             "harga_per_malam",
             "bukti",
             "verif_status",
-            "verif_catatan",
         ]
         widgets = {
             "nama_hotel": forms.TextInput(attrs={"class": "form-control"}),
@@ -200,6 +279,8 @@ class PenginapanForm(SPJModelForm):
                 "class": "form-control",
             }),
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
+            "latitude": forms.NumberInput(attrs={"class": "form-control"}),
+            "longitude": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
 
@@ -217,7 +298,6 @@ class PesawatForm(SPJModelForm):
         "harga_tiket": 4,
         "bukti": 4,
         "verif_status": 4,
-        "verif_catatan": 12,
     }
 
     class Meta:
@@ -235,7 +315,6 @@ class PesawatForm(SPJModelForm):
             "harga_tiket",
             "bukti",
             "verif_status",
-            "verif_catatan",
         ]
         widgets = {
             "jenis_spj": forms.Select(attrs={"class": "form-select select2"}),
@@ -256,9 +335,15 @@ class UangHarianForm(SPJModelForm):
         "spt": 6,
         "pelaksana": 6,
         "uang_harian_per_hari": 4,
+        "total_uang_harian": 4,
         "verif_status": 4,
-        "verif_catatan": 12,
     }
+    total_uang_harian = forms.DecimalField(
+        label="Total Uang Harian",
+        required=False,
+        disabled=True,
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
 
     class Meta:
         model = UangHarian
@@ -267,13 +352,67 @@ class UangHarianForm(SPJModelForm):
             "pelaksana",
             "uang_harian_per_hari",
             "verif_status",
-            "verif_catatan",
         ]
         widgets = {
             "uang_harian_per_hari": forms.NumberInput(attrs={
                 "class": "form-control",
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["uang_harian_per_hari"].disabled = True
+        self.fields["uang_harian_per_hari"].required = False
+        self.fields["uang_harian_per_hari"].widget.attrs.update({
+            "data-spj-calculation-field": "nilai",
+        })
+        self.fields["total_uang_harian"].widget.attrs.update({
+            "data-spj-calculation-field": "total",
+        })
+        if "spt" in self.fields:
+            self.fields["spt"].widget.attrs.update({
+                "data-spj-calculation-kind": "uang_harian",
+                "data-spj-calculation-url": str(reverse_lazy("spj_calculation")),
+            })
+        self.order_fields([
+            "spt",
+            "pelaksana",
+            "uang_harian_per_hari",
+            "total_uang_harian",
+            "verif_status",
+        ])
+        nilai, total = self._calculate_values()
+        self.fields["uang_harian_per_hari"].initial = nilai
+        self.fields["total_uang_harian"].initial = total
+
+    def _calculate_values(self):
+        spt_id = self.data.get(self.add_prefix("spt")) if self.is_bound else self.initial.get("spt")
+        pelaksana_id = self.data.get(self.add_prefix("pelaksana")) if self.is_bound else self.initial.get("pelaksana")
+        if not spt_id and getattr(self.instance, "spt_id", None):
+            spt_id = self.instance.spt_id
+        if not pelaksana_id and getattr(self.instance, "pelaksana_id", None):
+            pelaksana_id = self.instance.pelaksana_id
+        if not spt_id or not pelaksana_id:
+            return None, None
+
+        from perintah.models import Spt
+
+        try:
+            spt = Spt.objects.select_related("kota_tujuan", "jenis_kegiatan").get(pk=spt_id)
+        except Spt.DoesNotExist:
+            return None, None
+
+        obj = self._meta.model(spt=spt)
+        nilai = obj.get_standar_maksimal()
+        total = nilai * spt.lama_perjalanan if nilai is not None else None
+        return nilai, total
+
+    def clean(self):
+        cleaned_data = super().clean()
+        nilai, total = self._calculate_values()
+        cleaned_data["uang_harian_per_hari"] = nilai
+        cleaned_data["total_uang_harian"] = total
+        return cleaned_data
 
 
 class TransportForm(SPJModelForm):
@@ -287,7 +426,6 @@ class TransportForm(SPJModelForm):
         "tujuan": 6,
         "bukti": 4,
         "verif_status": 4,
-        "verif_catatan": 12,
     }
 
     class Meta:
@@ -302,7 +440,6 @@ class TransportForm(SPJModelForm):
             "biaya",
             "bukti",
             "verif_status",
-            "verif_catatan",
         ]
         widgets = {
             "jenis_spj": forms.Select(attrs={"class": "form-select select2"}),
@@ -324,7 +461,6 @@ class UangRepresentasiForm(SPJModelForm):
         "pelaksana": 6,
         "biaya": 4,
         "verif_status": 4,
-        "verif_catatan": 12,
     }
 
     class Meta:
@@ -334,22 +470,67 @@ class UangRepresentasiForm(SPJModelForm):
             "pelaksana",
             "biaya",
             "verif_status",
-            "verif_catatan",
         ]
         widgets = {
             "biaya": forms.NumberInput(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["biaya"].disabled = True
+        self.fields["biaya"].required = False
+        self.fields["biaya"].widget.attrs.update({
+            "data-spj-calculation-field": "nilai",
+        })
+        if "spt" in self.fields:
+            self.fields["spt"].widget.attrs.update({
+                "data-spj-calculation-kind": "representasi",
+                "data-spj-calculation-url": str(reverse_lazy("spj_calculation")),
+            })
+        self.fields["biaya"].initial = self._calculate_value()
+
+    def _calculate_value(self):
+        spt_id = self.data.get(self.add_prefix("spt")) if self.is_bound else self.initial.get("spt")
+        pelaksana_id = self.data.get(self.add_prefix("pelaksana")) if self.is_bound else self.initial.get("pelaksana")
+        if not spt_id and getattr(self.instance, "spt_id", None):
+            spt_id = self.instance.spt_id
+        if not pelaksana_id and getattr(self.instance, "pelaksana_id", None):
+            pelaksana_id = self.instance.pelaksana_id
+        if not spt_id or not pelaksana_id:
+            return None
+
+        try:
+            pelaksana = Pelaksana.objects.select_related(
+                "spt",
+                "spt__kota_tujuan",
+                "nama",
+                "nama__tingkat",
+            ).get(pk=pelaksana_id, spt_id=spt_id)
+        except Pelaksana.DoesNotExist:
+            return None
+
+        obj = self._meta.model(spt=pelaksana.spt, pelaksana=pelaksana)
+        return obj.get_standar_maksimal()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        cleaned_data["biaya"] = self._calculate_value()
+        return cleaned_data
 
 
 class LaporanPerjalananForm(SPJModelForm):
     field_layout = {
         "spt": 6,
         "pelaksana": 6,
-        "hasil": 12,
+        "pembukaan": 12,
+        "isi_pertemuan": 12,
+        "penutup": 12,
         "foto_1": 3,
         "foto_2": 3,
         "foto_3": 3,
         "foto_4": 3,
+        "latitude": 6,
+        "longitude": 6,
     }
 
     class Meta:
@@ -357,29 +538,29 @@ class LaporanPerjalananForm(SPJModelForm):
         fields = [
             "spt",
             "pelaksana",
-            "hasil",
+            "pembukaan",
+            "isi_pertemuan",
+            "penutup",
             "foto_1",
             "foto_2",
             "foto_3",
             "foto_4",
+            "latitude",
+            "longitude",
         ]
         widgets = {
-            "hasil": forms.Textarea(attrs={"rows": 5}),
+            "pembukaan": RichTextarea(),
+            "isi_pertemuan": RichTextarea(),
+            "penutup": RichTextarea(),
+            "latitude": forms.NumberInput(attrs={"class": "form-control"}),
+            "longitude": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["hasil"].help_text = (
-            "Isi hasil laporan dalam 3 bagian utama: 1. Pembukaan, "
-            "2. Gambaran acara berlangsung, 3. Penutup."
-        )
         if not self.is_bound and not getattr(self.instance, "pk", None):
-            self.fields["hasil"].initial = (
-                "1. Pembukaan\n\n"
-                "2. Gambaran acara berlangsung\n\n"
-                "3. Penutup"
-            )
-        if "spt" in self.fields and not getattr(self.instance, "pk", None):
-            self.fields["spt"].queryset = self.fields["spt"].queryset.exclude(
-                laporan_perjalanan__isnull=False,
+            self.fields["pembukaan"].initial = ""
+            self.fields["isi_pertemuan"].initial = ""
+            self.fields["penutup"].initial = (
+                "Demikian Laporan Perjalanan Dinas ini dibuat, sebagai bahan Laporan."
             )

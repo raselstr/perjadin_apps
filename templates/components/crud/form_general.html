@@ -41,8 +41,9 @@
 </form>
 <script>
 (function () {
-  const sptField = document.querySelector('[data-spj-spt-field="1"]');
-  const pelaksanaField = document.querySelector('[data-spj-pelaksana-field="1"]');
+  const scope = document.currentScript.closest('.modal-content') || document;
+  const sptField = scope.querySelector('[data-spj-spt-field="1"]');
+  const pelaksanaField = scope.querySelector('[data-spj-pelaksana-field="1"]');
 
   if (!sptField || !pelaksanaField || pelaksanaField.dataset.spjBindingReady) {
     return;
@@ -96,3 +97,241 @@
   }
 })();
 </script>
+<script>
+(function () {
+  const scope = document.currentScript.closest('.modal-content') || document;
+  const sptField = scope.querySelector('[data-spj-calculation-url]');
+  const pelaksanaField = scope.querySelector('[data-spj-pelaksana-field="1"]');
+  if (!sptField || !pelaksanaField || sptField.dataset.calculationReady) {
+    return;
+  }
+  sptField.dataset.calculationReady = '1';
+
+  function setCalculatedValue(name, value) {
+    const field = scope.querySelector('[data-spj-calculation-field="' + name + '"]');
+    if (field) {
+      field.value = value || '';
+    }
+  }
+
+  function loadCalculation() {
+    const url = sptField.dataset.spjCalculationUrl;
+    const kind = sptField.dataset.spjCalculationKind;
+    if (!url || !kind || !sptField.value || !pelaksanaField.value) {
+      setCalculatedValue('nilai', '');
+      setCalculatedValue('total', '');
+      return;
+    }
+
+    const params = new URLSearchParams({
+      jenis: kind,
+      spt: sptField.value,
+      pelaksana: pelaksanaField.value,
+    });
+    fetch(url + '?' + params.toString(), {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+      .then(function (response) { return response.json(); })
+      .then(function (data) {
+        setCalculatedValue('nilai', data.nilai);
+        setCalculatedValue('total', data.total);
+      })
+      .catch(function () {});
+  }
+
+  sptField.addEventListener('change', function () {
+    setTimeout(loadCalculation, 300);
+  });
+  pelaksanaField.addEventListener('change', loadCalculation);
+  if (window.jQuery && window.jQuery.fn.select2) {
+    window.jQuery(pelaksanaField).on('select2:select', loadCalculation);
+  }
+  loadCalculation();
+})();
+</script>
+<script>
+(function () {
+  const scope = document.currentScript.closest('.modal-content') || document;
+  scope.querySelectorAll('[data-spj-rich-editor="1"]').forEach(function (textarea) {
+    if (textarea.dataset.richReady) {
+      return;
+    }
+    textarea.dataset.richReady = '1';
+
+    const wrapper = document.createElement('div');
+    wrapper.className = 'spj-rich-editor border rounded';
+    const toolbar = document.createElement('div');
+    toolbar.className = 'd-flex flex-wrap gap-1 border-bottom bg-light p-2';
+    const editor = document.createElement('div');
+    editor.className = 'p-2';
+    editor.contentEditable = 'true';
+    editor.style.minHeight = '150px';
+    editor.style.outline = 'none';
+    editor.innerHTML = textarea.value || '';
+
+    function addButton(label, command, value) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'btn btn-sm btn-outline-secondary';
+      button.textContent = label;
+      button.addEventListener('click', function () {
+        editor.focus();
+        document.execCommand(command, false, value || null);
+        textarea.value = editor.innerHTML;
+      });
+      toolbar.appendChild(button);
+    }
+
+    function addSelect(options, command) {
+      const select = document.createElement('select');
+      select.className = 'form-select form-select-sm';
+      select.style.width = 'auto';
+      options.forEach(function (item) {
+        const option = document.createElement('option');
+        option.value = item.value;
+        option.textContent = item.label;
+        select.appendChild(option);
+      });
+      select.addEventListener('change', function () {
+        editor.focus();
+        document.execCommand(command, false, select.value);
+        textarea.value = editor.innerHTML;
+      });
+      toolbar.appendChild(select);
+    }
+
+    addSelect([
+      { label: 'Paragraf', value: 'p' },
+      { label: 'Judul 1', value: 'h1' },
+      { label: 'Judul 2', value: 'h2' },
+      { label: 'Judul 3', value: 'h3' },
+    ], 'formatBlock');
+    addSelect([
+      { label: 'Arial', value: 'Arial' },
+      { label: 'Times New Roman', value: 'Times New Roman' },
+      { label: 'Calibri', value: 'Calibri' },
+    ], 'fontName');
+    addSelect([
+      { label: 'Normal', value: '3' },
+      { label: 'Kecil', value: '2' },
+      { label: 'Besar', value: '4' },
+      { label: 'Sangat Besar', value: '5' },
+    ], 'fontSize');
+    addButton('B', 'bold');
+    addButton('I', 'italic');
+    addButton('U', 'underline');
+    addButton('Bullet', 'insertUnorderedList');
+    addButton('Numbering', 'insertOrderedList');
+    addButton('Tab', 'insertHTML', '&emsp;');
+
+    editor.addEventListener('input', function () {
+      textarea.value = editor.innerHTML;
+    });
+    textarea.form?.addEventListener('submit', function () {
+      textarea.value = editor.innerHTML;
+    });
+
+    textarea.classList.add('d-none');
+    textarea.parentNode.insertBefore(wrapper, textarea);
+    wrapper.appendChild(toolbar);
+    wrapper.appendChild(editor);
+  });
+})();
+</script>
+{% if form.has_geo_map %}
+<script>
+(function () {
+  const scope = document.currentScript.closest('.modal-content') || document;
+  function initializeGeoMap(attempt) {
+    const geoForm = scope.querySelector('[data-spj-geo-form="1"]');
+    if (!geoForm || geoForm.dataset.geoReady) {
+      return;
+    }
+    if (!window.L) {
+      if ((attempt || 0) < 20) {
+        setTimeout(function () { initializeGeoMap((attempt || 0) + 1); }, 100);
+      }
+      return;
+    }
+    geoForm.dataset.geoReady = '1';
+
+    const mapElement = geoForm.querySelector('[data-spj-geo-map="1"]');
+    const latitudeField = document.getElementById(geoForm.dataset.latField);
+    const longitudeField = document.getElementById(geoForm.dataset.lngField);
+    if (!mapElement || !latitudeField || !longitudeField) {
+      return;
+    }
+
+    const defaultPoint = [-6.1753924, 106.8271528];
+    const initialLatitude = parseFloat(latitudeField.value);
+    const initialLongitude = parseFloat(longitudeField.value);
+    const hasInitialPoint = !Number.isNaN(initialLatitude) && !Number.isNaN(initialLongitude);
+    const startPoint = hasInitialPoint ? [initialLatitude, initialLongitude] : defaultPoint;
+    const map = L.map(mapElement).setView(startPoint, hasInitialPoint ? 15 : 5);
+    const marker = L.marker(startPoint, { draggable: true }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap',
+    }).addTo(map);
+
+    function setLocation(latitude, longitude, zoom) {
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) {
+        return;
+      }
+      latitudeField.value = lat.toFixed(7);
+      longitudeField.value = lng.toFixed(7);
+      marker.setLatLng([lat, lng]);
+      map.setView([lat, lng], zoom || Math.max(map.getZoom(), 15));
+    }
+
+    function useDeviceLocation() {
+      if (!navigator.geolocation) {
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(function (position) {
+        setLocation(position.coords.latitude, position.coords.longitude, 17);
+      }, function () {}, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      });
+    }
+
+    map.on('click', function (event) {
+      setLocation(event.latlng.lat, event.latlng.lng);
+    });
+    marker.on('dragend', function () {
+      const point = marker.getLatLng();
+      setLocation(point.lat, point.lng);
+    });
+
+    scope.querySelectorAll('[data-spj-geotag-upload="1"]').forEach(function (input) {
+      input.addEventListener('change', function () {
+        if (input.files && input.files.length) {
+          useDeviceLocation();
+        }
+      });
+    });
+
+    if (!hasInitialPoint && window.matchMedia('(pointer: coarse)').matches) {
+      useDeviceLocation();
+    }
+
+    setTimeout(function () {
+      map.invalidateSize();
+    }, 250);
+    const modal = scope.closest('.modal');
+    if (modal) {
+      modal.addEventListener('shown.bs.modal', function () {
+        map.invalidateSize();
+      });
+    }
+  }
+
+  initializeGeoMap(0);
+})();
+</script>
+{% endif %}

@@ -9,6 +9,10 @@
     h1 { font-size: 12px; text-align: center; margin: 0 0 22px; text-transform: uppercase; }
     .row { display: grid; grid-template-columns: 28px 110px 12px 1fr; gap: 6px; margin-bottom: 8px; }
     .content { white-space: pre-line; text-align: justify; }
+    .content-rich { text-align: justify; }
+    .content-rich p { margin: 0 0 6px; }
+    .content-rich ul,
+    .content-rich ol { margin-top: 0; padding-left: 20px; }
     .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
     .photos img { width: 100%; height: 145px; object-fit: cover; border: 1px solid #333; }
     .signature { width: 50%; margin-left: auto; text-align: center; margin-top: 20px; }
@@ -36,12 +40,16 @@
     <div class="content">{{ laporan.waktu_pelaksanaan }}</div>
   </div>
   <div class="row">
-    <div>V.</div><div>Hasil</div><div>:</div>
-    <div class="content">{{ laporan.hasil }}</div>
+    <div>V.</div><div>Pembukaan</div><div>:</div>
+    <div class="content-rich">{{ laporan.pembukaan|safe }}</div>
   </div>
   <div class="row">
-    <div>VI.</div><div>Penutup</div><div>:</div>
-    <div class="content">{{ laporan.penutup }}</div>
+    <div>VI.</div><div>Isi Pertemuan</div><div>:</div>
+    <div class="content-rich">{{ laporan.isi_pertemuan|default:laporan.hasil|safe }}</div>
+  </div>
+  <div class="row">
+    <div>VII.</div><div>Penutup</div><div>:</div>
+    <div class="content-rich">{{ laporan.penutup|safe }}</div>
   </div>
 
   <div class="photos">

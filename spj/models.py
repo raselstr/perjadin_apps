@@ -9,8 +9,8 @@ from django.utils import timezone
 
 
 BUKTI_VALIDATOR = FileExtensionValidator(
-    allowed_extensions=["pdf", "jpg", "jpeg"],
-    message="Bukti dukung hanya boleh berupa PDF atau JPEG.",
+    allowed_extensions=["pdf", "jpg", "jpeg", "png", "webp"],
+    message="Bukti dukung hanya boleh berupa PDF atau foto.",
 )
 
 FOTO_VALIDATOR = FileExtensionValidator(
@@ -79,11 +79,6 @@ class BaseSPJModel(models.Model):
         default="draft",
         verbose_name="Status Verifikasi",
     )
-    verif_catatan = models.TextField(
-        blank=True,
-        default="",
-        verbose_name="Catatan Verifikasi",
-    )
     verified_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -136,6 +131,16 @@ class BaseSPJModel(models.Model):
             self.verified_by = None
             self.verified_at = None
 
+    def _raise_duplicate_error(self, filters, message):
+        if not self.spt_id or not self.pelaksana_id:
+            return
+
+        duplicate = self.__class__.objects.filter(**filters)
+        if self.pk:
+            duplicate = duplicate.exclude(pk=self.pk)
+        if duplicate.exists():
+            raise ValidationError({"spt": message})
+
 
 class Penginapan(BaseSPJModel):
     nama_hotel = models.CharField(max_length=200)
@@ -185,6 +190,12 @@ class Penginapan(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Penginapan"
         verbose_name_plural = "SPJ Penginapan"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["spt", "pelaksana"],
+                name="unique_spj_penginapan_spt_pelaksana",
+            )
+        ]
 
     @property
     def total_biaya(self):
@@ -207,6 +218,10 @@ class Penginapan(BaseSPJModel):
 
     def clean(self):
         super().clean()
+        self._raise_duplicate_error(
+            {"spt": self.spt, "pelaksana": self.pelaksana},
+            "SPJ Penginapan untuk SPT dan pelaksana ini sudah dibuat.",
+        )
         maksimal = self.get_standar_maksimal()
         if (
             maksimal is not None
@@ -259,6 +274,12 @@ class Pesawat(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Pesawat"
         verbose_name_plural = "SPJ Pesawat"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["spt", "pelaksana", "jenis_spj"],
+                name="unique_spj_pesawat_spt_pelaksana_jenis",
+            )
+        ]
 
     @property
     def total_biaya(self):
@@ -268,17 +289,18 @@ class Pesawat(BaseSPJModel):
         from spd.models import StandardPesawat
 
         tingkat = self.get_tingkat()
-        if (
-            not tingkat
-            or not self.lokasi_bandara_id
-            or not self.tujuan_bandara_id
-        ):
+        if not tingkat or not self.lokasi_bandara_id or not self.tujuan_bandara_id:
+            return None
+
+        asal = getattr(self.lokasi_bandara, "provinsi", None)
+        tujuan = getattr(self.tujuan_bandara, "provinsi", None)
+        if not asal or not tujuan:
             return None
 
         standard = _latest_standard(
             StandardPesawat.objects.filter(
-                kota_asal=self.lokasi_bandara,
-                kota_tujuan=self.tujuan_bandara,
+                kota_asal=asal,
+                kota_tujuan=tujuan,
                 tingkat=tingkat,
             )
         )
@@ -286,6 +308,38 @@ class Pesawat(BaseSPJModel):
 
     def clean(self):
         super().clean()
+        if self.spt_id and self.pelaksana_id and self.jenis_spj_id:
+            self._raise_duplicate_error(
+                {
+                    "spt": self.spt,
+                    "pelaksana": self.pelaksana,
+                    "jenis_spj": self.jenis_spj,
+                },
+                "SPJ Pesawat dengan jenis ini untuk SPT dan pelaksana ini sudah dibuat.",
+            )
+        jenis_spj = (
+            (self.jenis_spj.jenis_spj or "").lower()
+            if self.jenis_spj_id else ""
+        )
+        lokasi_spt_id = self.spt.kota_tujuan_id if self.spt_id else None
+        lokasi_asal_id = (
+            self.lokasi_bandara.provinsi_id if self.lokasi_bandara_id else None
+        )
+        lokasi_tujuan_id = (
+            self.tujuan_bandara.provinsi_id if self.tujuan_bandara_id else None
+        )
+        if lokasi_spt_id and jenis_spj == "berangkat" and lokasi_tujuan_id != lokasi_spt_id:
+            raise ValidationError({
+                "tujuan_bandara": (
+                    "Bandara tujuan berangkat harus sesuai lokasi tujuan SPT."
+                )
+            })
+        if lokasi_spt_id and jenis_spj == "kembali" and lokasi_asal_id != lokasi_spt_id:
+            raise ValidationError({
+                "lokasi_bandara": (
+                    "Bandara asal kembali harus sesuai lokasi tujuan SPT."
+                )
+            })
         maksimal = self.get_standar_maksimal()
         if (
             maksimal is not None
@@ -319,6 +373,12 @@ class UangHarian(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Uang Harian"
         verbose_name_plural = "SPJ Uang Harian"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["spt", "pelaksana"],
+                name="unique_spj_uang_harian_spt_pelaksana",
+            )
+        ]
 
     @property
     def total_biaya(self):
@@ -344,19 +404,19 @@ class UangHarian(BaseSPJModel):
 
     def clean(self):
         super().clean()
-        maksimal = self.get_standar_maksimal()
-        if (
-            maksimal is not None
-            and self.uang_harian_per_hari is not None
-            and self.uang_harian_per_hari > maksimal
-        ):
+        self._raise_duplicate_error(
+            {"spt": self.spt, "pelaksana": self.pelaksana},
+            "SPJ Uang Harian untuk SPT dan pelaksana ini sudah dibuat.",
+        )
+        if self.get_standar_maksimal() is None:
             raise ValidationError({
                 "uang_harian_per_hari": (
-                    f"Uang harian melebihi standar maksimal {maksimal}."
+                    "Standar uang harian untuk SPT ini belum tersedia."
                 )
             })
 
     def save(self, *args, **kwargs):
+        self.uang_harian_per_hari = self.get_standar_maksimal() or Decimal("0")
         self.total_uang_harian = (
             (self.uang_harian_per_hari or Decimal("0"))
             * (self.spt.lama_perjalanan if self.spt_id else 0)
@@ -405,6 +465,12 @@ class Transport(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Transport"
         verbose_name_plural = "SPJ Transport"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["spt", "pelaksana", "jenis_spj", "jenis_transportasi"],
+                name="unique_spj_transport_spt_pelaksana_jenis_transport",
+            )
+        ]
 
     @property
     def total_biaya(self):
@@ -426,6 +492,21 @@ class Transport(BaseSPJModel):
 
     def clean(self):
         super().clean()
+        if (
+            self.spt_id
+            and self.pelaksana_id
+            and self.jenis_spj_id
+            and self.jenis_transportasi_id
+        ):
+            self._raise_duplicate_error(
+                {
+                    "spt": self.spt,
+                    "pelaksana": self.pelaksana,
+                    "jenis_spj": self.jenis_spj,
+                    "jenis_transportasi": self.jenis_transportasi,
+                },
+                "SPJ Transport dengan jenis ini untuk SPT dan pelaksana ini sudah dibuat.",
+            )
         maksimal = self.get_standar_maksimal()
         if (
             maksimal is not None
@@ -451,6 +532,12 @@ class UangRepresentasi(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Uang Representasi"
         verbose_name_plural = "SPJ Uang Representasi"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["spt", "pelaksana"],
+                name="unique_spj_representasi_spt_pelaksana",
+            )
+        ]
 
     @property
     def total_biaya(self):
@@ -474,17 +561,21 @@ class UangRepresentasi(BaseSPJModel):
 
     def clean(self):
         super().clean()
-        maksimal = self.get_standar_maksimal()
-        if (
-            maksimal is not None
-            and self.biaya is not None
-            and self.biaya > maksimal
-        ):
+        self._raise_duplicate_error(
+            {"spt": self.spt, "pelaksana": self.pelaksana},
+            "SPJ Uang Representasi untuk SPT dan pelaksana ini sudah dibuat.",
+        )
+        if self.get_standar_maksimal() is None:
             raise ValidationError({
                 "biaya": (
-                    f"Uang representasi melebihi standar maksimal {maksimal}."
+                    "Pelaksana ini tidak memenuhi kriteria Standar Uang Representasi."
                 )
             })
+
+    def save(self, *args, **kwargs):
+        self.biaya = self.get_standar_maksimal() or Decimal("0")
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.pelaksana} - {self.biaya}"
@@ -507,7 +598,9 @@ class LaporanPerjalanan(BaseSPJModel):
     maksud_perjalanan = models.TextField(blank=True, default="")
     instansi_dikunjungi = models.TextField(blank=True, default="")
     waktu_pelaksanaan = models.TextField(blank=True, default="")
-    hasil = models.TextField()
+    pembukaan = models.TextField(blank=True, default="")
+    isi_pertemuan = models.TextField(blank=True, default="")
+    hasil = models.TextField(blank=True, default="")
     penutup = models.TextField(
         blank=True,
         default="Demikian Laporan Perjalanan Dinas ini dibuat, sebagai bahan Laporan.",
@@ -516,6 +609,22 @@ class LaporanPerjalanan(BaseSPJModel):
     foto_2 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR], blank=True, null=True)
     foto_3 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR], blank=True, null=True)
     foto_4 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR], blank=True, null=True)
+    latitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(Decimal("-90")), MaxValueValidator(Decimal("90"))],
+        verbose_name="Latitude Lokasi Foto",
+    )
+    longitude = models.DecimalField(
+        max_digits=10,
+        decimal_places=7,
+        blank=True,
+        null=True,
+        validators=[MinValueValidator(Decimal("-180")), MaxValueValidator(Decimal("180"))],
+        verbose_name="Longitude Lokasi Foto",
+    )
 
     class Meta:
         ordering = ["-id"]
@@ -585,10 +694,14 @@ class LaporanPerjalanan(BaseSPJModel):
             ] if part
         )
         self.waktu_pelaksanaan = self._build_waktu_pelaksanaan()
-        self.penutup = (
-            "Demikian Laporan Perjalanan Dinas ini dibuat, sebagai bahan Laporan."
-        )
 
     def save(self, *args, **kwargs):
         self.populate_from_spt()
+        self.hasil = "\n\n".join(
+            part for part in [
+                self.pembukaan,
+                self.isi_pertemuan,
+                self.penutup,
+            ] if part
+        )
         super().save(*args, **kwargs)

@@ -75,6 +75,45 @@ class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
         })
 
 
+class SPJCalculationView(LoginRequiredMixin, View):
+    def get(self, request):
+        jenis = request.GET.get("jenis")
+        spt_id = request.GET.get("spt")
+        pelaksana_id = request.GET.get("pelaksana")
+        data = {"nilai": None, "total": None, "eligible": False}
+
+        if not spt_id or not pelaksana_id:
+            return JsonResponse(data)
+
+        try:
+            pelaksana = Pelaksana.objects.select_related(
+                "spt",
+                "spt__kota_tujuan",
+                "spt__jenis_kegiatan",
+                "nama",
+                "nama__tingkat",
+            ).get(pk=pelaksana_id, spt_id=spt_id)
+        except Pelaksana.DoesNotExist:
+            return JsonResponse(data)
+
+        if jenis == "uang_harian":
+            obj = UangHarian(spt=pelaksana.spt, pelaksana=pelaksana)
+            nilai = obj.get_standar_maksimal()
+            data["nilai"] = str(nilai) if nilai is not None else None
+            data["total"] = (
+                str(nilai * pelaksana.spt.lama_perjalanan)
+                if nilai is not None else None
+            )
+            data["eligible"] = nilai is not None
+        elif jenis == "representasi":
+            obj = UangRepresentasi(spt=pelaksana.spt, pelaksana=pelaksana)
+            nilai = obj.get_standar_maksimal()
+            data["nilai"] = str(nilai) if nilai is not None else None
+            data["eligible"] = nilai is not None
+
+        return JsonResponse(data)
+
+
 def _date_param(request, name):
     value = request.GET.get(name)
     if not value:
@@ -212,7 +251,9 @@ class PesawatView(SPJQuerysetMixin, BaseCRUDView):
         return super().get_base_queryset().select_related(
             "jenis_spj",
             "lokasi_bandara",
+            "lokasi_bandara__provinsi",
             "tujuan_bandara",
+            "tujuan_bandara__provinsi",
         )
 
 
