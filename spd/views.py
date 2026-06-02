@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from core.crud.base import BaseCRUDView
 from core.views_excel import ExcelExportView, ExcelImportView
-from .models import DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardPesawat, StandardRepresentasi, StandardTransportasi, StandardUangHarian
-from .forms import DasarPeraturanForm, JenisSPDForm, JenisKegiatanForm, JenisTransportasiForm, LokasiForm, StandardPenginapanForm, StandardPesawatForm, StandardRepresentasiForm, StandardTransportasiForm, StandardUangHarianForm
-from .tables import DasarPeraturanTable, JenisSPDTable, JenisKegiatanTable, JenisTransportasiTable, LokasiTable, StandardPenginapanTable, StandardPesawatTable, StandardRepresentasiTable, StandardTransportasiTable, StandardUangHarianTable
+from .models import Bandara, DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardPesawat, StandardRepresentasi, StandardTransportasi, StandardUangHarian
+from .forms import BandaraForm, DasarPeraturanForm, JenisSPDForm, JenisKegiatanForm, JenisTransportasiForm, LokasiForm, StandardPenginapanForm, StandardPesawatForm, StandardRepresentasiForm, StandardTransportasiForm, StandardUangHarianForm
+from .tables import BandaraTable, DasarPeraturanTable, JenisSPDTable, JenisKegiatanTable, JenisTransportasiTable, LokasiTable, StandardPenginapanTable, StandardPesawatTable, StandardRepresentasiTable, StandardTransportasiTable, StandardUangHarianTable
 
 def get_paginate_by(self, queryset):
     per_page = self.request.GET.get("per_page")
@@ -124,6 +124,33 @@ class LokasiImportView(ExcelImportView):
     
     # Column mapping untuk import
     columns = ('lokasi', 'kota', 'jenis_spd')
+
+class BandaraView(BaseCRUDView):
+    model = Bandara
+    form_class = BandaraForm
+    table_class = BandaraTable
+
+    title = "Daftar Bandara"
+    url_list = "bandara_list"
+    url_action = "bandara_action"
+    url_action_pk = "bandara_action_pk"
+    url_export = "bandara_export"
+    url_import = "bandara_import"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related('provinsi').order_by('nama')
+
+class BandaraExportView(ExcelExportView):
+    """Download Bandara data sebagai Excel"""
+    model = Bandara
+
+class BandaraImportView(ExcelImportView):
+    """Upload & import Bandara data dari Excel"""
+    model = Bandara
+    success_url = '/spd/bandara/'
+    
+    # Column mapping untuk import
+    columns = ('nama','kota', 'provinsi')
 
 class StandardPenginapanView(BaseCRUDView):
     model = StandardPenginapan

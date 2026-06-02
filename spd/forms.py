@@ -1,5 +1,5 @@
 from django import forms
-from .models import DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardPesawat, StandardRepresentasi, StandardTransportasi, StandardUangHarian
+from .models import Bandara, DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardPesawat, StandardRepresentasi, StandardTransportasi, StandardUangHarian
 
 class DasarPeraturanForm(forms.ModelForm):
     class Meta:
@@ -41,6 +41,16 @@ class LokasiForm(forms.ModelForm):
             'lokasi': forms.TextInput(attrs={'class': 'form-control'}),
             'kota': forms.TextInput(attrs={'class': 'form-control'}),
             'jenis_spd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Jenis SPD'}),
+        }
+
+class BandaraForm(forms.ModelForm):
+    class Meta:
+        model = Bandara
+        fields = '__all__'
+        widgets = {
+            'nama': forms.TextInput(attrs={'class': 'form-control'}),
+            'kota': forms.TextInput(attrs={'class': 'form-control'}),
+            'provinsi': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Provinsi'}),
         }
 
 class StandardPenginapanForm(forms.ModelForm):

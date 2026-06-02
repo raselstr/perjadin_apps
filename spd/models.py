@@ -100,6 +100,25 @@ class Lokasi(models.Model):
             return self.lokasi
         return self.kota if self.kota else self.lokasi
 
+class Bandara(models.Model):
+    nama = models.CharField(max_length=150, unique=True)
+    kota = models.CharField(max_length=100)
+    provinsi = models.ForeignKey(
+        Lokasi,
+        on_delete=models.PROTECT,
+        related_name="bandara",
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["id"]
+        verbose_name = "Bandara"
+        verbose_name_plural = "Bandara"
+
+    def __str__(self):
+        return f"{self.nama} ({self.kota} - {self.provinsi})" if self.provinsi else f"{self.nama} ({self.kota})"
+
 
 class StandardPenginapan(BaseMasterModel):
     lokasi = models.ForeignKey(
@@ -265,4 +284,6 @@ class StandardRepresentasi(BaseMasterModel):
 
     def __str__(self):
         return f"{self.tingkat_spd} - {self.jenis_spd}"
+
+
 

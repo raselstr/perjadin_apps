@@ -1,5 +1,5 @@
 from core.tables import BaseTable, action_column
-from .models import DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardRepresentasi, StandardTransportasi, StandardUangHarian, StandardPesawat
+from .models import Bandara, DasarPeraturan, JenisSPD, JenisKegiatan, JenisTransportasi, Lokasi, StandardPenginapan, StandardRepresentasi, StandardTransportasi, StandardUangHarian, StandardPesawat
     
 class DasarPeraturanTable(BaseTable):
     aksi = action_column("dasar_peraturan_action_pk", "dasar_peraturan_delete")
@@ -28,6 +28,13 @@ class LokasiTable(BaseTable):
     class Meta(BaseTable.Meta):
         model = Lokasi
         fields = ('no', 'lokasi', 'kota', 'jenis_spd', 'aksi')
+
+class BandaraTable(BaseTable):
+    aksi = action_column("bandara_action_pk", "bandara_delete")
+
+    class Meta(BaseTable.Meta):
+        model = Bandara
+        fields = ('no', 'nama', 'kota', 'provinsi', 'aksi')
 
 class StandardPenginapanTable(BaseTable):
     aksi = action_column("standard_penginapan_action_pk", "standard_penginapan_delete")

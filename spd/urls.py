@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    DasarPeraturanView,DasarPeraturanExportView,DasarPeraturanImportView,
+    BandaraImportView, BandaraView, BandaraExportView, DasarPeraturanView,DasarPeraturanExportView,DasarPeraturanImportView,
     JenisSPDView,JenisSPDExportView,JenisSPDImportView,
     JenisKegiatanView,JenisKegiatanExportView,JenisKegiatanImportView,
     LokasiView,LokasiExportView,LokasiImportView,
@@ -40,6 +40,14 @@ urlpatterns = [
     path("lokasi-kegiatan/delete/<int:pk>/<str:action>/", LokasiView.as_view(), name="lokasi_kegiatan_delete"),
     path("lokasi-kegiatan/export/", LokasiExportView.as_view(), name="lokasi_kegiatan_export"),
     path("lokasi-kegiatan/import/", LokasiImportView.as_view(), name="lokasi_kegiatan_import"),
+
+    path("bandara/", BandaraView.as_view(), name="bandara_list"),
+    path("bandara/form/", BandaraView.as_view(), name="bandara_action"),
+    path("bandara/form/<int:pk>/<str:action>/", BandaraView.as_view(), name="bandara_action_pk"),
+    path("bandara/delete/<int:pk>/<str:action>/", BandaraView.as_view(), name="bandara_delete"),
+    path("bandara/export/", BandaraExportView.as_view(), name="bandara_export"),
+    path("bandara/import/", BandaraImportView.as_view(), name="bandara_import"),
+    
 
     path("standard-penginapan/", StandardPenginapanView.as_view(), name="standard_penginapan_list"),
     path("standard-penginapan/form/", StandardPenginapanView.as_view(), name="standard_penginapan_action"),

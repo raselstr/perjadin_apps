@@ -234,12 +234,12 @@ class Pesawat(BaseSPJModel):
     kode_booking = models.CharField(max_length=100, blank=True, default="")
     tanggal_penerbangan = models.DateField(blank=True, null=True)
     lokasi_bandara = models.ForeignKey(
-        "spd.Lokasi",
+        "spd.bandara",
         on_delete=models.PROTECT,
         related_name="spj_pesawat_lokasi_bandara",
     )
     tujuan_bandara = models.ForeignKey(
-        "spd.Lokasi",
+        "spd.bandara",
         on_delete=models.PROTECT,
         related_name="spj_pesawat_tujuan_bandara",
     )
