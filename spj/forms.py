@@ -205,7 +205,7 @@ class SPJModelForm(BaseAppModelForm):
                 continue
 
             if name.startswith("foto_") or name == "foto_hotel":
-                if name in ("foto_1", "foto_hotel"):
+                if name == "foto_hotel":
                     field.required = True
                 widget.attrs.update({
                     "accept": "image/*",
@@ -689,6 +689,9 @@ class LaporanPerjalananForm(SPJModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name in ("foto_1", "latitude", "longitude"):
+            if name in self.fields:
+                self.fields[name].required = False
         if not self.is_bound and not getattr(self.instance, "pk", None):
             self.fields["pembukaan"].initial = ""
             self.fields["isi_pertemuan"].initial = ""

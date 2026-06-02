@@ -682,6 +682,18 @@ class SPJReportView(LoginRequiredMixin, View):
 class LaporanPerjalananPrintView(LoginRequiredMixin, View):
     template_name = "spj/laporan_perjalanan_print.html"
 
+    @staticmethod
+    def _laporan_photos(laporan):
+        photos = []
+        for index in range(1, 5):
+            image = getattr(laporan, f"foto_{index}", None)
+            if image:
+                photos.append({
+                    "image": image,
+                    "caption": f"Foto kegiatan {index}",
+                })
+        return photos
+
     def get_queryset(self, request):
         queryset = LaporanPerjalanan.objects.select_related(
             "spt",
@@ -710,10 +722,22 @@ class LaporanPerjalananPrintView(LoginRequiredMixin, View):
                 "nama",
                 "nama__pangkat",
             ).all(),
+            "laporan_photos": self._laporan_photos(laporan),
             "auto_print": request.GET.get("autoprint", "1") != "0",
         }
         response = render(request, self.template_name, context)
         response["X-Frame-Options"] = "SAMEORIGIN"
+        response["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "font-src 'self' data:; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
+            "object-src 'none'"
+        )
         return response
 
 

@@ -583,7 +583,12 @@ class LaporanPerjalanan(BaseSPJModel):
         blank=True,
         default="Demikian Laporan Perjalanan Dinas ini dibuat, sebagai bahan Laporan.",
     )
-    foto_1 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR])
+    foto_1 = models.ImageField(
+        upload_to="spj/laporan/",
+        validators=[FOTO_VALIDATOR],
+        blank=True,
+        null=True,
+    )
     foto_2 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR], blank=True, null=True)
     foto_3 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR], blank=True, null=True)
     foto_4 = models.ImageField(upload_to="spj/laporan/", validators=[FOTO_VALIDATOR], blank=True, null=True)

@@ -13,8 +13,32 @@
     .content-rich p { margin: 0 0 6px; }
     .content-rich ul,
     .content-rich ol { margin-top: 0; padding-left: 20px; }
-    .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 14px; }
-    .photos img { width: 100%; height: 145px; object-fit: cover; border: 1px solid #333; }
+    .photo-section { margin-top: 16px; page-break-inside: avoid; }
+    .photo-title {
+      border-bottom: 1px solid #111;
+      font-weight: 700;
+      margin-bottom: 8px;
+      padding-bottom: 3px;
+      text-transform: uppercase;
+    }
+    .photos { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .photo-card {
+      border: 1px solid #444;
+      min-height: 168px;
+      page-break-inside: avoid;
+    }
+    .photo-card img {
+      display: block;
+      width: 100%;
+      height: 145px;
+      object-fit: cover;
+    }
+    .photo-caption {
+      border-top: 1px solid #444;
+      font-size: 10px;
+      padding: 4px 6px;
+      text-align: center;
+    }
     .signature { width: 50%; margin-left: auto; text-align: center; margin-top: 20px; }
     .name-list { margin-top: 50px; text-align: left; }
     .line { border-bottom: 1px dotted #111; display: inline-block; min-width: 290px; }
@@ -52,12 +76,19 @@
     <div class="content-rich">{{ laporan.penutup|safe }}</div>
   </div>
 
-  <div class="photos">
-    {% if laporan.foto_1 %}<img src="{{ laporan.foto_1.url }}" alt="Foto kegiatan 1">{% endif %}
-    {% if laporan.foto_2 %}<img src="{{ laporan.foto_2.url }}" alt="Foto kegiatan 2">{% endif %}
-    {% if laporan.foto_3 %}<img src="{{ laporan.foto_3.url }}" alt="Foto kegiatan 3">{% endif %}
-    {% if laporan.foto_4 %}<img src="{{ laporan.foto_4.url }}" alt="Foto kegiatan 4">{% endif %}
-  </div>
+  {% if laporan_photos %}
+    <div class="photo-section">
+      <div class="photo-title">Dokumentasi Kegiatan</div>
+      <div class="photos">
+        {% for photo in laporan_photos %}
+          <figure class="photo-card">
+            <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+            <figcaption class="photo-caption">{{ photo.caption }}</figcaption>
+          </figure>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
 
   <div class="signature">
     <div>Yang Membuat</div>

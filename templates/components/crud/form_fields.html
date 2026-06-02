@@ -92,9 +92,13 @@
       </button>
     </div>
     <div class="small text-muted mb-2" data-spj-geo-status="1"></div>
-    <div
+    <iframe
       data-spj-geo-map="1"
-      class="border rounded"
-      style="height: 360px; min-height: 360px;"></div>
+      class="border rounded w-100"
+      style="height: 360px; min-height: 360px;"
+      title="Peta titik lokasi"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade">
+    </iframe>
   </div>
 {% endif %}

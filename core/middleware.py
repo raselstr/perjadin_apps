@@ -105,7 +105,8 @@ class SecurityHeadersMiddleware:
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
             "img-src 'self' data: blob:; "
             "font-src 'self' data: https://cdn.jsdelivr.net; "
-            "connect-src 'self'; "
+            "connect-src 'self' https://nominatim.openstreetmap.org; "
+            "frame-src 'self' https://www.openstreetmap.org; "
             "frame-ancestors 'none'; "
             "base-uri 'self'; "
             "form-action 'self'; "
@@ -121,7 +122,7 @@ class SecurityHeadersMiddleware:
         )
         response.setdefault(
             "Permissions-Policy",
-            "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+            "camera=(), microphone=(), geolocation=(self), payment=(), usb=()",
         )
         response.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         response.setdefault("Cross-Origin-Resource-Policy", "same-origin")
