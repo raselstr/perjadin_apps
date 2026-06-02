@@ -66,6 +66,8 @@ class BaseAppModelForm(forms.ModelForm):
             if isinstance(widget, forms.DateInput):
                 append_widget_class(widget, "form-control")
                 widget.attrs.setdefault("type", "date")
+                widget.format = "%Y-%m-%d"
+                field.input_formats = ["%Y-%m-%d", "%d/%m/%Y"]
                 continue
 
             if isinstance(
