@@ -7,6 +7,7 @@ from .views import (
     LaporanPerjalananView,
     PenginapanView,
     PesawatView,
+    SPJAvailableOptionsView,
     SPJCalculationView,
     SPJReportView,
     SPJPelaksanaOptionsView,
@@ -22,6 +23,11 @@ urlpatterns = [
         name="spj_pelaksana_options",
     ),
     path("calculation/", SPJCalculationView.as_view(), name="spj_calculation"),
+    path(
+        "available-options/",
+        SPJAvailableOptionsView.as_view(),
+        name="spj_available_options",
+    ),
     path("jenis-spj/", JenisSPJView.as_view(), name="jenis_spj_list"),
     path("jenis-spj/form/", JenisSPJView.as_view(), name="jenis_spj_action"),
     path(

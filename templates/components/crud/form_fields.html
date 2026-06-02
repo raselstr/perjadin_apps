@@ -71,9 +71,30 @@
     data-lat-field="{{ form.geo_latitude_field_id }}"
     data-lng-field="{{ form.geo_longitude_field_id }}">
     <label class="form-label fw-semibold">Titik Lokasi</label>
+    <div class="input-group mb-2">
+      <input
+        type="search"
+        class="form-control"
+        placeholder="Cari tempat di peta"
+        aria-label="Cari tempat di peta"
+        data-spj-geo-search="1">
+      <button
+        type="button"
+        class="btn btn-outline-secondary"
+        data-spj-geo-search-button="1">
+        Cari
+      </button>
+      <button
+        type="button"
+        class="btn btn-outline-primary"
+        data-spj-geo-current-button="1">
+        Lokasi Saat Ini
+      </button>
+    </div>
+    <div class="small text-muted mb-2" data-spj-geo-status="1"></div>
     <div
       data-spj-geo-map="1"
       class="border rounded"
-      style="height: 280px; min-height: 280px;"></div>
+      style="height: 360px; min-height: 360px;"></div>
   </div>
 {% endif %}

@@ -256,13 +256,17 @@
     geoForm.dataset.geoReady = '1';
 
     const mapElement = geoForm.querySelector('[data-spj-geo-map="1"]');
+    const searchInput = geoForm.querySelector('[data-spj-geo-search="1"]');
+    const searchButton = geoForm.querySelector('[data-spj-geo-search-button="1"]');
+    const currentButton = geoForm.querySelector('[data-spj-geo-current-button="1"]');
+    const statusElement = geoForm.querySelector('[data-spj-geo-status="1"]');
     const latitudeField = document.getElementById(geoForm.dataset.latField);
     const longitudeField = document.getElementById(geoForm.dataset.lngField);
     if (!mapElement || !latitudeField || !longitudeField) {
       return;
     }
 
-    const defaultPoint = [-6.1753924, 106.8271528];
+    const defaultPoint = [-2.548926, 118.0148634];
     const initialLatitude = parseFloat(latitudeField.value);
     const initialLongitude = parseFloat(longitudeField.value);
     const hasInitialPoint = !Number.isNaN(initialLatitude) && !Number.isNaN(initialLongitude);
@@ -274,6 +278,16 @@
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap',
     }).addTo(map);
+
+    function setStatus(message, tone) {
+      if (!statusElement) {
+        return;
+      }
+      statusElement.textContent = message || '';
+      statusElement.classList.toggle('text-danger', tone === 'danger');
+      statusElement.classList.toggle('text-success', tone === 'success');
+      statusElement.classList.toggle('text-muted', !tone);
+    }
 
     function setLocation(latitude, longitude, zoom) {
       const lat = Number(latitude);
@@ -289,15 +303,51 @@
 
     function useDeviceLocation() {
       if (!navigator.geolocation) {
+        setStatus('Browser tidak mendukung lokasi saat ini.', 'danger');
         return;
       }
+      setStatus('Mengambil lokasi saat ini...');
       navigator.geolocation.getCurrentPosition(function (position) {
         setLocation(position.coords.latitude, position.coords.longitude, 17);
-      }, function () {}, {
+        setStatus('Lokasi saat ini berhasil ditampilkan.', 'success');
+      }, function () {
+        setStatus('Tidak dapat mengambil lokasi saat ini. Pastikan izin lokasi aktif.', 'danger');
+      }, {
         enableHighAccuracy: true,
         timeout: 10000,
         maximumAge: 0,
       });
+    }
+
+    function searchLocation() {
+      const query = searchInput ? searchInput.value.trim() : '';
+      if (!query) {
+        setStatus('Masukkan nama tempat yang ingin dicari.', 'danger');
+        return;
+      }
+
+      setStatus('Mencari lokasi...');
+      const url = new URL('https://nominatim.openstreetmap.org/search');
+      url.searchParams.set('format', 'json');
+      url.searchParams.set('limit', '1');
+      url.searchParams.set('countrycodes', 'id');
+      url.searchParams.set('q', query);
+
+      fetch(url.toString(), {
+        headers: { 'Accept': 'application/json' },
+      })
+        .then(function (response) { return response.ok ? response.json() : []; })
+        .then(function (results) {
+          if (!results.length) {
+            setStatus('Lokasi tidak ditemukan di Indonesia.', 'danger');
+            return;
+          }
+          setLocation(results[0].lat, results[0].lon, 16);
+          setStatus(results[0].display_name || 'Lokasi ditemukan.', 'success');
+        })
+        .catch(function () {
+          setStatus('Pencarian lokasi gagal. Coba beberapa saat lagi.', 'danger');
+        });
     }
 
     map.on('click', function (event) {
@@ -316,7 +366,22 @@
       });
     });
 
-    if (!hasInitialPoint && window.matchMedia('(pointer: coarse)').matches) {
+    if (searchButton) {
+      searchButton.addEventListener('click', searchLocation);
+    }
+    if (searchInput) {
+      searchInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          searchLocation();
+        }
+      });
+    }
+    if (currentButton) {
+      currentButton.addEventListener('click', useDeviceLocation);
+    }
+
+    if (!hasInitialPoint) {
       useDeviceLocation();
     }
 
@@ -335,3 +400,80 @@
 })();
 </script>
 {% endif %}
+<script>
+(function () {
+  const scope = document.currentScript.closest('.modal-content') || document;
+  const sptField = scope.querySelector('[data-spj-availability-url]');
+  if (!sptField || sptField.dataset.availabilityReady) {
+    return;
+  }
+  sptField.dataset.availabilityReady = '1';
+
+  const pelaksanaField = scope.querySelector('[data-spj-pelaksana-field="1"]');
+  const jenisSpjField = scope.querySelector('[data-spj-jenis-spj-field="1"]');
+  const jenisTransportField = scope.querySelector('[data-spj-jenis-transportasi-field="1"]');
+
+  function setDisabledOptions(field, disabledIds) {
+    if (!field) {
+      return;
+    }
+    const selectedValue = field.value;
+    const disabledSet = new Set((disabledIds || []).map(String));
+
+    Array.prototype.forEach.call(field.options, function (option) {
+      if (!option.value) {
+        return;
+      }
+      const disabled = disabledSet.has(option.value);
+      option.disabled = disabled;
+      option.hidden = disabled;
+    });
+
+    if (field.value && disabledSet.has(field.value)) {
+      field.value = '';
+    } else if (selectedValue && field.value !== selectedValue) {
+      field.value = selectedValue;
+    }
+
+    if (window.jQuery && window.jQuery.fn.select2) {
+      window.jQuery(field).trigger('change.select2');
+    }
+  }
+
+  function refreshAvailability() {
+    const url = sptField.dataset.spjAvailabilityUrl;
+    if (!url) {
+      return;
+    }
+
+    const params = new URLSearchParams({
+      model: sptField.dataset.spjAvailabilityModel || '',
+      spt: sptField.value || '',
+      pelaksana: pelaksanaField ? pelaksanaField.value || '' : '',
+      jenis_spj: jenisSpjField ? jenisSpjField.value || '' : '',
+      instance: sptField.dataset.spjAvailabilityInstance || '',
+    });
+
+    fetch(url + '?' + params.toString(), {
+      headers: { 'Accept': 'application/json' },
+    })
+      .then(function (response) { return response.ok ? response.json() : {}; })
+      .then(function (data) {
+        setDisabledOptions(jenisSpjField, data.unavailable_jenis_spj);
+        setDisabledOptions(jenisTransportField, data.unavailable_jenis_transportasi);
+      });
+  }
+
+  [sptField, pelaksanaField, jenisSpjField].forEach(function (field) {
+    if (!field) {
+      return;
+    }
+    field.addEventListener('change', refreshAvailability);
+    if (window.jQuery && window.jQuery.fn.select2) {
+      window.jQuery(field).on('select2:select select2:clear', refreshAvailability);
+    }
+  });
+
+  refreshAvailability();
+})();
+</script>

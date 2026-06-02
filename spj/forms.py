@@ -454,6 +454,74 @@ class TransportForm(SPJModelForm):
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        instance_id = getattr(self.instance, "pk", "") or ""
+
+        if "spt" in self.fields:
+            self.fields["spt"].widget.attrs.update({
+                "data-spj-availability-url": str(
+                    reverse_lazy("spj_available_options")
+                ),
+                "data-spj-availability-model": "transport",
+                "data-spj-availability-instance": str(instance_id),
+            })
+        if "jenis_spj" in self.fields:
+            self.fields["jenis_spj"].widget.attrs.update({
+                "data-spj-jenis-spj-field": "1",
+            })
+        if "jenis_transportasi" in self.fields:
+            self.fields["jenis_transportasi"].widget.attrs.update({
+                "data-spj-jenis-transportasi-field": "1",
+            })
+
+        self._filter_available_transport_options()
+
+    def _filter_available_transport_options(self):
+        spt_id = self.data.get(self.add_prefix("spt")) if self.is_bound else self.initial.get("spt")
+        pelaksana_id = self.data.get(self.add_prefix("pelaksana")) if self.is_bound else self.initial.get("pelaksana")
+        jenis_spj_id = self.data.get(self.add_prefix("jenis_spj")) if self.is_bound else self.initial.get("jenis_spj")
+
+        if not spt_id and getattr(self.instance, "spt_id", None):
+            spt_id = self.instance.spt_id
+        if not pelaksana_id and getattr(self.instance, "pelaksana_id", None):
+            pelaksana_id = self.instance.pelaksana_id
+        if not jenis_spj_id and getattr(self.instance, "jenis_spj_id", None):
+            jenis_spj_id = self.instance.jenis_spj_id
+
+        if not (spt_id and pelaksana_id and jenis_spj_id):
+            return
+
+        used = Transport.objects.filter(
+            spt_id=spt_id,
+            pelaksana_id=pelaksana_id,
+            jenis_spj_id=jenis_spj_id,
+        )
+        if getattr(self.instance, "pk", None):
+            used = used.exclude(pk=self.instance.pk)
+
+        used_transport_ids = list(
+            used.values_list("jenis_transportasi_id", flat=True)
+        )
+        selected_transport_id = (
+            self.data.get(self.add_prefix("jenis_transportasi"))
+            if self.is_bound else self.initial.get("jenis_transportasi")
+        )
+        if not selected_transport_id and getattr(self.instance, "jenis_transportasi_id", None):
+            selected_transport_id = self.instance.jenis_transportasi_id
+        if selected_transport_id:
+            used_transport_ids = [
+                item_id for item_id in used_transport_ids
+                if str(item_id) != str(selected_transport_id)
+            ]
+
+        if used_transport_ids and "jenis_transportasi" in self.fields:
+            self.fields["jenis_transportasi"].queryset = (
+                self.fields["jenis_transportasi"].queryset.exclude(
+                    pk__in=used_transport_ids,
+                )
+            )
+
 
 class UangRepresentasiForm(SPJModelForm):
     field_layout = {

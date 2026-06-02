@@ -8,6 +8,7 @@ from types import SimpleNamespace
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.db.models import Count
 from django.utils import timezone
 from django.views import View
 from openpyxl import Workbook
@@ -112,6 +113,64 @@ class SPJCalculationView(LoginRequiredMixin, View):
             data["eligible"] = nilai is not None
 
         return JsonResponse(data)
+
+
+class SPJAvailableOptionsView(LoginRequiredMixin, View):
+    def get(self, request):
+        model = request.GET.get("model")
+        if model != "transport":
+            return JsonResponse({
+                "unavailable_jenis_spj": [],
+                "unavailable_jenis_transportasi": [],
+            })
+
+        spt_id = request.GET.get("spt")
+        pelaksana_id = request.GET.get("pelaksana")
+        jenis_spj_id = request.GET.get("jenis_spj")
+        instance_id = request.GET.get("instance")
+
+        queryset = filter_spj_queryset_for_user(
+            Transport.objects.all(),
+            request,
+            "pelaksana__nama__nip",
+        )
+        if instance_id:
+            queryset = queryset.exclude(pk=instance_id)
+
+        unavailable_transport = []
+        unavailable_jenis_spj = []
+
+        if spt_id and pelaksana_id and jenis_spj_id:
+            unavailable_transport = list(
+                queryset.filter(
+                    spt_id=spt_id,
+                    pelaksana_id=pelaksana_id,
+                    jenis_spj_id=jenis_spj_id,
+                ).values_list("jenis_transportasi_id", flat=True)
+            )
+
+        if spt_id and pelaksana_id:
+            total_transport_types = (
+                Transport._meta.get_field("jenis_transportasi")
+                .remote_field.model.objects.count()
+            )
+            if total_transport_types:
+                used_by_jenis = (
+                    queryset.filter(spt_id=spt_id, pelaksana_id=pelaksana_id)
+                    .values("jenis_spj_id")
+                    .annotate(
+                        used_count=Count("jenis_transportasi_id", distinct=True)
+                    )
+                    .filter(used_count__gte=total_transport_types)
+                )
+                unavailable_jenis_spj = [
+                    item["jenis_spj_id"] for item in used_by_jenis
+                ]
+
+        return JsonResponse({
+            "unavailable_jenis_spj": unavailable_jenis_spj,
+            "unavailable_jenis_transportasi": unavailable_transport,
+        })
 
 
 def _date_param(request, name):
