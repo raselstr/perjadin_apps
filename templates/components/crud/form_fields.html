@@ -90,15 +90,19 @@
         data-spj-geo-current-button="1">
         Lokasi Saat Ini
       </button>
+      <button
+        type="button"
+        class="btn btn-outline-warning"
+        data-spj-geo-clear-button="1">
+        Hapus Marker
+      </button>
     </div>
     <div class="small text-muted mb-2" data-spj-geo-status="1"></div>
-    <iframe
+    <div
       data-spj-geo-map="1"
       class="border rounded w-100"
       style="height: 360px; min-height: 360px;"
-      title="Peta titik lokasi"
-      loading="lazy"
-      referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
+      title="Peta titik lokasi - Klik untuk menambah marker">
+    </div>
   </div>
 {% endif %}

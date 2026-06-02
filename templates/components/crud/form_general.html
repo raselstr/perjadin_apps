@@ -240,14 +240,16 @@
     }
     geoForm.dataset.geoReady = '1';
 
-    const mapFrame = geoForm.querySelector('[data-spj-geo-map="1"]');
+    const mapContainer = geoForm.querySelector('[data-spj-geo-map="1"]');
     const searchInput = geoForm.querySelector('[data-spj-geo-search="1"]');
     const searchButton = geoForm.querySelector('[data-spj-geo-search-button="1"]');
     const currentButton = geoForm.querySelector('[data-spj-geo-current-button="1"]');
+    const clearButton = geoForm.querySelector('[data-spj-geo-clear-button="1"]');
     const statusElement = geoForm.querySelector('[data-spj-geo-status="1"]');
     const latitudeField = document.getElementById(geoForm.dataset.latField);
     const longitudeField = document.getElementById(geoForm.dataset.lngField);
-    if (!mapFrame || !latitudeField || !longitudeField) {
+    
+    if (!mapContainer || !latitudeField || !longitudeField) {
       return;
     }
 
@@ -256,6 +258,10 @@
     const initialLongitude = parseFloat(longitudeField.value);
     const hasInitialPoint = !Number.isNaN(initialLatitude) && !Number.isNaN(initialLongitude);
     const startPoint = hasInitialPoint ? [initialLatitude, initialLongitude] : defaultPoint;
+    const startZoom = hasInitialPoint ? 17 : 5;
+
+    let map = null;
+    let currentMarker = null;
 
     function setStatus(message, tone) {
       if (!statusElement) {
@@ -267,42 +273,63 @@
       statusElement.classList.toggle('text-muted', !tone);
     }
 
-    function buildMapUrl(latitude, longitude, zoom) {
-      const lat = Number(latitude);
-      const lng = Number(longitude);
-      const level = Number(zoom || 16);
-      const span = Math.max(0.002, 0.18 / Math.max(level, 1));
-      const params = new URLSearchParams({
-        bbox: [
-          (lng - span).toFixed(7),
-          (lat - span).toFixed(7),
-          (lng + span).toFixed(7),
-          (lat + span).toFixed(7),
-        ].join(','),
-        layer: 'mapnik',
-        marker: [lat.toFixed(7), lng.toFixed(7)].join(','),
-      });
-      return 'https://www.openstreetmap.org/export/embed.html?' + params.toString();
+    if (!window.L) {
+      setStatus('Leaflet library tidak tersedia.', 'danger');
+      return;
     }
 
-    function refreshMap(latitude, longitude, zoom) {
+    function setLocation(latitude, longitude, zoom, addStatus) {
       const lat = Number(latitude);
       const lng = Number(longitude);
       if (Number.isNaN(lat) || Number.isNaN(lng)) {
         return;
       }
-      mapFrame.src = buildMapUrl(lat, lng, zoom);
-    }
 
-    function setLocation(latitude, longitude, zoom) {
-      const lat = Number(latitude);
-      const lng = Number(longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lng)) {
-        return;
-      }
       latitudeField.value = lat.toFixed(7);
       longitudeField.value = lng.toFixed(7);
-      refreshMap(lat, lng, zoom || 16);
+
+      if (map) {
+        if (currentMarker) {
+          map.removeLayer(currentMarker);
+        }
+        currentMarker = window.L.marker([lat, lng]).addTo(map);
+        map.setView([lat, lng], zoom || 17);
+      }
+
+      if (addStatus) {
+        setStatus('Titik lokasi berhasil ditambahkan.', 'success');
+      }
+    }
+
+    function clearMarker() {
+      if (currentMarker && map) {
+        map.removeLayer(currentMarker);
+        currentMarker = null;
+      }
+      latitudeField.value = '';
+      longitudeField.value = '';
+      setStatus('Marker dihapus.', 'success');
+    }
+
+    function initializeMap() {
+      if (map) {
+        map.remove();
+      }
+
+      map = window.L.map(mapContainer).setView(startPoint, startZoom);
+
+      window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19,
+      }).addTo(map);
+
+      map.on('click', function (e) {
+        setLocation(e.latlng.lat, e.latlng.lng, map.getZoom(), true);
+      });
+
+      if (hasInitialPoint) {
+        setLocation(initialLatitude, initialLongitude, startZoom, false);
+      }
     }
 
     function useDeviceLocation() {
@@ -316,8 +343,7 @@
       }
       setStatus('Mengambil lokasi saat ini...');
       navigator.geolocation.getCurrentPosition(function (position) {
-        setLocation(position.coords.latitude, position.coords.longitude, 17);
-        setStatus('Lokasi saat ini berhasil ditampilkan.', 'success');
+        setLocation(position.coords.latitude, position.coords.longitude, 17, true);
       }, function () {
         setStatus('Tidak dapat mengambil lokasi saat ini. Pastikan izin lokasi aktif.', 'danger');
       }, {
@@ -350,7 +376,7 @@
             setStatus('Lokasi tidak ditemukan di Indonesia.', 'danger');
             return;
           }
-          setLocation(results[0].lat, results[0].lon, 16);
+          setLocation(results[0].lat, results[0].lon, 16, true);
           setStatus(results[0].display_name || 'Lokasi ditemukan.', 'success');
         })
         .catch(function () {
@@ -380,13 +406,11 @@
     if (currentButton) {
       currentButton.addEventListener('click', useDeviceLocation);
     }
-
-    if (!hasInitialPoint) {
-      useDeviceLocation();
-      refreshMap(startPoint[0], startPoint[1], 5);
-    } else {
-      refreshMap(startPoint[0], startPoint[1], 16);
+    if (clearButton) {
+      clearButton.addEventListener('click', clearMarker);
     }
+
+    initializeMap();
   }
 
   initializeGeoMap();
