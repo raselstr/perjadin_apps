@@ -3,6 +3,8 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
 
+from core.utils.image_compression import compress_if_image, is_uploaded_image
+
 class Pangkat(models.Model):
     pangkat = models.CharField(max_length=100)
     golongan = models.CharField(max_length=10)
@@ -129,6 +131,11 @@ class Pegawai(models.Model):
 
     def __str__(self):
         return f"{self.nama} ({self.jabatan})"
+
+    def save(self, *args, **kwargs):
+        if is_uploaded_image(self.foto):
+            self.foto = compress_if_image(self.foto)
+        super().save(*args, **kwargs)
     
 
 
@@ -246,6 +253,11 @@ class Pemda(models.Model):
 
     def __str__(self):
         return self.nama_pemda
+
+    def save(self, *args, **kwargs):
+        if is_uploaded_image(self.logo):
+            self.logo = compress_if_image(self.logo, max_edge=1200, quality=90)
+        super().save(*args, **kwargs)
 
 
 class KopSurat(models.Model):

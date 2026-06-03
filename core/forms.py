@@ -1,7 +1,10 @@
 import os
 
 from django import forms
+from django.core.files.uploadedfile import UploadedFile
 from django.db import models
+
+from core.utils.image_compression import compress_if_image, is_uploaded_image
 
 
 def append_widget_class(widget, *class_names):
@@ -51,6 +54,8 @@ class BaseAppModelForm(forms.ModelForm):
                 model_field = self._get_model_field(name)
                 if isinstance(model_field, models.ImageField):
                     widget.attrs.setdefault("accept", "image/*")
+                    if "foto" in name.lower():
+                        widget.attrs.setdefault("capture", "environment")
                 continue
 
             if isinstance(widget, forms.SelectMultiple):
@@ -87,6 +92,17 @@ class BaseAppModelForm(forms.ModelForm):
             return self._meta.model._meta.get_field(name)
         except Exception:
             return None
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        for name, value in list(cleaned_data.items()):
+            if not isinstance(value, UploadedFile) or not is_uploaded_image(value):
+                continue
+
+            cleaned_data[name] = compress_if_image(value)
+
+        return cleaned_data
 
     def get_field_column_class(self, field_name):
         configured = self.field_layout.get(field_name)

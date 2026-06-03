@@ -7,6 +7,8 @@ from django.db import models
 from django.utils.dateformat import format as date_format
 from django.utils import timezone
 
+from core.utils.image_compression import compress_if_image, is_uploaded_image
+
 
 BUKTI_VALIDATOR = FileExtensionValidator(
     allowed_extensions=["pdf", "jpg", "jpeg", "png", "webp"],
@@ -237,6 +239,13 @@ class Penginapan(BaseSPJModel):
     def __str__(self):
         return f"{self.pelaksana} - {self.nama_hotel}"
 
+    def save(self, *args, **kwargs):
+        if is_uploaded_image(self.foto_hotel):
+            self.foto_hotel = compress_if_image(self.foto_hotel)
+        if is_uploaded_image(self.bukti):
+            self.bukti = compress_if_image(self.bukti)
+        super().save(*args, **kwargs)
+
 
 class Pesawat(BaseSPJModel):
     jenis_spj = models.ForeignKey(
@@ -331,6 +340,11 @@ class Pesawat(BaseSPJModel):
 
     def __str__(self):
         return f"{self.pelaksana} - {self.jenis_spj}"
+
+    def save(self, *args, **kwargs):
+        if is_uploaded_image(self.bukti):
+            self.bukti = compress_if_image(self.bukti)
+        super().save(*args, **kwargs)
 
 
 class UangHarian(BaseSPJModel):
@@ -497,6 +511,11 @@ class Transport(BaseSPJModel):
 
     def __str__(self):
         return f"{self.pelaksana} - {self.jenis_transportasi}"
+
+    def save(self, *args, **kwargs):
+        if is_uploaded_image(self.bukti):
+            self.bukti = compress_if_image(self.bukti)
+        super().save(*args, **kwargs)
 
 
 class UangRepresentasi(BaseSPJModel):
@@ -687,4 +706,8 @@ class LaporanPerjalanan(BaseSPJModel):
                 self.penutup,
             ] if part
         )
+        for field_name in ("foto_1", "foto_2", "foto_3", "foto_4"):
+            uploaded = getattr(self, field_name, None)
+            if is_uploaded_image(uploaded):
+                setattr(self, field_name, compress_if_image(uploaded))
         super().save(*args, **kwargs)
