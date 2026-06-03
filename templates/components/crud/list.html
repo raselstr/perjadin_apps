@@ -159,9 +159,8 @@
                 return;
             }
 
-            const modal = document.getElementById('modal');
-            if (modal) {
-                bootstrap.Modal.getOrCreateInstance(modal).hide();
+            if (window.closeCrudModal) {
+                window.closeCrudModal();
             }
 
             setTimeout(function () {
