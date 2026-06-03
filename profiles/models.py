@@ -1,5 +1,11 @@
+import logging
+
 from django.contrib.auth.models import User
 from django.db import models
+
+from core.utils.image_compression import compress_image_file, ImageCompressionError
+
+logger = logging.getLogger(__name__)
 
 class OPD(models.Model):
     nama = models.CharField(max_length=255, unique=True)
@@ -23,3 +29,11 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return self.user.username
+
+    def save(self, *args, **kwargs):
+        if self.foto:
+            try:
+                self.foto = compress_image_file(self.foto)
+            except ImageCompressionError as e:
+                logger.warning(f"Image compression failed for user profile: {e}")
+        super().save(*args, **kwargs)

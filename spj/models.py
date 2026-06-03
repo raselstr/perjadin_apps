@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
@@ -6,6 +7,10 @@ from django.core.validators import FileExtensionValidator, MaxValueValidator, Mi
 from django.db import models
 from django.utils.dateformat import format as date_format
 from django.utils import timezone
+
+from core.utils.image_compression import compress_image_file, ImageCompressionError
+
+logger = logging.getLogger(__name__)
 
 
 BUKTI_VALIDATOR = FileExtensionValidator(
@@ -236,6 +241,14 @@ class Penginapan(BaseSPJModel):
 
     def __str__(self):
         return f"{self.pelaksana} - {self.nama_hotel}"
+
+    def save(self, *args, **kwargs):
+        if self.foto_hotel:
+            try:
+                self.foto_hotel = compress_image_file(self.foto_hotel)
+            except ImageCompressionError as e:
+                logger.warning(f"Image compression failed for Penginapan foto_hotel: {e}")
+        super().save(*args, **kwargs)
 
 
 class Pesawat(BaseSPJModel):
@@ -687,4 +700,15 @@ class LaporanPerjalanan(BaseSPJModel):
                 self.penutup,
             ] if part
         )
+
+        # Compress image fields
+        for field_name in ['foto_1', 'foto_2', 'foto_3', 'foto_4']:
+            image_field = getattr(self, field_name, None)
+            if image_field:
+                try:
+                    compressed = compress_image_file(image_field)
+                    setattr(self, field_name, compressed)
+                except ImageCompressionError as e:
+                    logger.warning(f"Image compression failed for LaporanPerjalanan {field_name}: {e}")
+
         super().save(*args, **kwargs)

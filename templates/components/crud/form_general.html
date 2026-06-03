@@ -233,163 +233,146 @@
 <script>
 (function () {
   const scope = document.currentScript.closest('.modal-content') || document;
-  function initializeGeoMap() {
-    const geoForm = scope.querySelector('[data-spj-geo-form="1"]');
-    if (!geoForm || geoForm.dataset.geoReady) {
+  
+  scope.querySelectorAll('.spj-geo-maplibre-widget').forEach(function(widget) {
+    const mapContainer = widget.querySelector('.spj-geo-maplibre-map');
+    const latInput = widget.querySelector('input[data-role="latitude"]');
+    const lngInput = widget.querySelector('input[data-role="longitude"]');
+    
+    if (!mapContainer || !latInput || !lngInput) {
       return;
     }
-    geoForm.dataset.geoReady = '1';
-
-    const mapFrame = geoForm.querySelector('[data-spj-geo-map="1"]');
-    const searchInput = geoForm.querySelector('[data-spj-geo-search="1"]');
-    const searchButton = geoForm.querySelector('[data-spj-geo-search-button="1"]');
-    const currentButton = geoForm.querySelector('[data-spj-geo-current-button="1"]');
-    const statusElement = geoForm.querySelector('[data-spj-geo-status="1"]');
-    const latitudeField = document.getElementById(geoForm.dataset.latField);
-    const longitudeField = document.getElementById(geoForm.dataset.lngField);
-    if (!mapFrame || !latitudeField || !longitudeField) {
+    
+    if (widget.dataset.geoReady) {
       return;
     }
-
-    const defaultPoint = [-2.548926, 118.0148634];
-    const initialLatitude = parseFloat(latitudeField.value);
-    const initialLongitude = parseFloat(longitudeField.value);
-    const hasInitialPoint = !Number.isNaN(initialLatitude) && !Number.isNaN(initialLongitude);
-    const startPoint = hasInitialPoint ? [initialLatitude, initialLongitude] : defaultPoint;
-
-    function setStatus(message, tone) {
-      if (!statusElement) {
-        return;
-      }
-      statusElement.textContent = message || '';
-      statusElement.classList.toggle('text-danger', tone === 'danger');
-      statusElement.classList.toggle('text-success', tone === 'success');
-      statusElement.classList.toggle('text-muted', !tone);
+    widget.dataset.geoReady = '1';
+    
+    if (typeof maplibregl === 'undefined') {
+      console.warn('MapLibre GL JS not loaded');
+      return;
     }
-
-    function buildMapUrl(latitude, longitude, zoom) {
-      const lat = Number(latitude);
-      const lng = Number(longitude);
-      const level = Number(zoom || 16);
-      const span = Math.max(0.002, 0.18 / Math.max(level, 1));
-      const params = new URLSearchParams({
-        bbox: [
-          (lng - span).toFixed(7),
-          (lat - span).toFixed(7),
-          (lng + span).toFixed(7),
-          (lat + span).toFixed(7),
-        ].join(','),
-        layer: 'mapnik',
-        marker: [lat.toFixed(7), lng.toFixed(7)].join(','),
-      });
-      return 'https://www.openstreetmap.org/export/embed.html?' + params.toString();
-    }
-
-    function refreshMap(latitude, longitude, zoom) {
-      const lat = Number(latitude);
-      const lng = Number(longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lng)) {
-        return;
-      }
-      mapFrame.src = buildMapUrl(lat, lng, zoom);
-    }
-
-    function setLocation(latitude, longitude, zoom) {
-      const lat = Number(latitude);
-      const lng = Number(longitude);
-      if (Number.isNaN(lat) || Number.isNaN(lng)) {
-        return;
-      }
-      latitudeField.value = lat.toFixed(7);
-      longitudeField.value = lng.toFixed(7);
-      refreshMap(lat, lng, zoom || 16);
-    }
-
-    function useDeviceLocation() {
-      if (!navigator.geolocation) {
-        setStatus('Browser tidak mendukung lokasi saat ini.', 'danger');
-        return;
-      }
-      if (!window.isSecureContext) {
-        setStatus('Lokasi saat ini membutuhkan akses HTTPS atau localhost.', 'danger');
-        return;
-      }
-      setStatus('Mengambil lokasi saat ini...');
-      navigator.geolocation.getCurrentPosition(function (position) {
-        setLocation(position.coords.latitude, position.coords.longitude, 17);
-        setStatus('Lokasi saat ini berhasil ditampilkan.', 'success');
-      }, function () {
-        setStatus('Tidak dapat mengambil lokasi saat ini. Pastikan izin lokasi aktif.', 'danger');
-      }, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
-      });
-    }
-
-    function searchLocation() {
-      const query = searchInput ? searchInput.value.trim() : '';
-      if (!query) {
-        setStatus('Masukkan nama tempat yang ingin dicari.', 'danger');
-        return;
-      }
-
-      setStatus('Mencari lokasi...');
-      const url = new URL('https://nominatim.openstreetmap.org/search');
-      url.searchParams.set('format', 'json');
-      url.searchParams.set('limit', '1');
-      url.searchParams.set('countrycodes', 'id');
-      url.searchParams.set('q', query);
-
-      fetch(url.toString(), {
-        headers: { 'Accept': 'application/json' },
-      })
-        .then(function (response) { return response.ok ? response.json() : []; })
-        .then(function (results) {
-          if (!results.length) {
-            setStatus('Lokasi tidak ditemukan di Indonesia.', 'danger');
-            return;
-          }
-          setLocation(results[0].lat, results[0].lon, 16);
-          setStatus(results[0].display_name || 'Lokasi ditemukan.', 'success');
-        })
-        .catch(function () {
-          setStatus('Pencarian lokasi gagal. Coba beberapa saat lagi.', 'danger');
-        });
-    }
-
-    scope.querySelectorAll('[data-spj-geotag-upload="1"]').forEach(function (input) {
-      input.addEventListener('change', function () {
-        if (input.files && input.files.length) {
-          useDeviceLocation();
-        }
-      });
+    
+    const initialLat = parseFloat(latInput.value) || -2.548926;
+    const initialLng = parseFloat(lngInput.value) || 118.0148634;
+    
+    const map = new maplibregl.Map({
+      container: mapContainer,
+      style: 'https://demotiles.maplibre.org/style.json',
+      center: [initialLng, initialLat],
+      zoom: parseFloat(lngInput.value) ? 16 : 5
     });
-
-    if (searchButton) {
-      searchButton.addEventListener('click', searchLocation);
+    
+    const marker = new maplibregl.Marker({ draggable: true })
+      .setLngLat([initialLng, initialLat])
+      .addTo(map);
+    
+    function updateFields() {
+      const lngLat = marker.getLngLat();
+      latInput.value = lngLat.lat.toFixed(7);
+      lngInput.value = lngLat.lng.toFixed(7);
     }
-    if (searchInput) {
-      searchInput.addEventListener('keydown', function (event) {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          searchLocation();
+    
+    marker.on('dragend', updateFields);
+    
+    map.on('click', function(e) {
+      marker.setLngLat(e.lngLat);
+      map.flyTo({ center: e.lngLat, zoom: 16 });
+      updateFields();
+    });
+    
+    const searchBox = widget.querySelector('input[data-role="search"]');
+    const searchBtn = widget.querySelector('button[data-role="search-btn"]');
+    const currentBtn = widget.querySelector('button[data-role="current-btn"]');
+    const clearBtn = widget.querySelector('button[data-role="clear-btn"]');
+    const statusEl = widget.querySelector('[data-role="status"]');
+    
+    function setStatus(msg, type) {
+      if (statusEl) {
+        statusEl.textContent = msg;
+        statusEl.className = 'small mt-1 ' + (type ? 'text-' + type : 'text-muted');
+      }
+    }
+    
+    if (searchBtn && searchBox) {
+      function doSearch() {
+        const query = searchBox.value.trim();
+        if (!query) {
+          setStatus('Masukkan nama tempat.', 'danger');
+          return;
+        }
+        
+        setStatus('Mencari lokasi...', '');
+        const url = new URL('https://nominatim.openstreetmap.org/search');
+        url.searchParams.set('format', 'json');
+        url.searchParams.set('limit', '1');
+        url.searchParams.set('countrycodes', 'id');
+        url.searchParams.set('q', query);
+        
+        fetch(url.toString(), { headers: { 'Accept': 'application/json' } })
+          .then(r => r.ok ? r.json() : [])
+          .then(results => {
+            if (!results.length) {
+              setStatus('Lokasi tidak ditemukan.', 'danger');
+              return;
+            }
+            const lat = parseFloat(results[0].lat);
+            const lng = parseFloat(results[0].lon);
+            marker.setLngLat([lng, lat]);
+            map.flyTo({ center: [lng, lat], zoom: 16 });
+            latInput.value = lat.toFixed(7);
+            lngInput.value = lng.toFixed(7);
+            setStatus(results[0].display_name || 'Lokasi ditemukan.', 'success');
+          })
+          .catch(() => setStatus('Pencarian gagal.', 'danger'));
+      }
+      
+      searchBtn.addEventListener('click', doSearch);
+      searchBox.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          doSearch();
         }
       });
     }
-    if (currentButton) {
-      currentButton.addEventListener('click', useDeviceLocation);
+    
+    if (currentBtn) {
+      currentBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          setStatus('Browser tidak mendukung geolocation.', 'danger');
+          return;
+        }
+        if (!window.isSecureContext) {
+          setStatus('Geolocation memerlukan HTTPS.', 'danger');
+          return;
+        }
+        setStatus('Mengambil lokasi saat ini...', '');
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            marker.setLngLat([lng, lat]);
+            map.flyTo({ center: [lng, lat], zoom: 17 });
+            latInput.value = lat.toFixed(7);
+            lngInput.value = lng.toFixed(7);
+            setStatus('Lokasi berhasil ditampilkan.', 'success');
+          },
+          () => setStatus('Tidak dapat mengakses lokasi.', 'danger'),
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+        );
+      });
     }
-
-    if (!hasInitialPoint) {
-      useDeviceLocation();
-      refreshMap(startPoint[0], startPoint[1], 5);
-    } else {
-      refreshMap(startPoint[0], startPoint[1], 16);
+    
+    if (clearBtn) {
+      clearBtn.addEventListener('click', () => {
+        marker.setLngLat([118.0148634, -2.548926]);
+        latInput.value = '';
+        lngInput.value = '';
+        map.flyTo({ center: [118.0148634, -2.548926], zoom: 5 });
+        setStatus('', '');
+      });
     }
-  }
-
-  initializeGeoMap();
+  });
 })();
 </script>
 {% endif %}

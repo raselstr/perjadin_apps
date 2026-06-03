@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse_lazy
 
 from core.forms import BaseAppModelForm
+from core.widgets import GeoMapLibreWidget
 from perintah.models import Pelaksana
 from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
 from .access import is_spj_admin_user, is_spj_pengguna_user, is_spj_verifikator_user
@@ -225,9 +226,20 @@ class SPJModelForm(BaseAppModelForm):
         self.has_geo_map = True
         self.geo_latitude_field_id = self["latitude"].id_for_label
         self.geo_longitude_field_id = self["longitude"].id_for_label
-        for name in ("latitude", "longitude"):
-            self.fields[name].required = True
-            self.fields[name].widget.attrs.update({
+        
+        latitude_field = self.fields["latitude"]
+        # Only update attrs if not using GeoMapLibreWidget
+        if not isinstance(latitude_field.widget, GeoMapLibreWidget):
+            latitude_field.required = True
+            latitude_field.widget.attrs.update({
+                "class": "form-control",
+                "step": "0.0000001",
+            })
+        
+        longitude_field = self.fields["longitude"]
+        if not isinstance(longitude_field.widget, (GeoMapLibreWidget, forms.HiddenInput)):
+            longitude_field.required = True
+            longitude_field.widget.attrs.update({
                 "class": "form-control",
                 "step": "0.0000001",
             })
@@ -332,8 +344,8 @@ class PenginapanForm(SPJModelForm):
                 "class": "form-control",
             }),
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
-            "latitude": forms.NumberInput(attrs={"class": "form-control"}),
-            "longitude": forms.NumberInput(attrs={"class": "form-control"}),
+            "latitude": GeoMapLibreWidget(),
+            "longitude": forms.HiddenInput(),
         }
 
 
@@ -683,8 +695,8 @@ class LaporanPerjalananForm(SPJModelForm):
             "pembukaan": RichTextarea(),
             "isi_pertemuan": RichTextarea(),
             "penutup": RichTextarea(),
-            "latitude": forms.NumberInput(attrs={"class": "form-control"}),
-            "longitude": forms.NumberInput(attrs={"class": "form-control"}),
+            "latitude": GeoMapLibreWidget(),
+            "longitude": forms.HiddenInput(),
         }
 
     def __init__(self, *args, **kwargs):
