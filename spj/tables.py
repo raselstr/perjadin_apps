@@ -92,18 +92,23 @@ class PenginapanTable(SPJBaseTable):
     aksi = action_column("penginapan_action_pk", "penginapan_delete")
     bukti_link = BuktiColumn(verbose_name="Bukti")
     lokasi_hotel = tables.TemplateColumn(
-        verbose_name="Lokasi",
-        orderable=False,
-        template_code="""
-        {% if record.latitude and record.longitude %}
-          <a href="https://www.openstreetmap.org/?mlat={{ record.latitude }}&mlon={{ record.longitude }}#map=17/{{ record.latitude }}/{{ record.longitude }}" target="_blank" class="btn btn-sm btn-outline-primary">
-            <i class="ti ti-map-pin"></i> Titik
-          </a>
-        {% else %}
-          -
-        {% endif %}
-        """,
-    )
+    verbose_name="Lokasi",
+    orderable=False,
+    template_code="""
+    {% load l10n %}
+    {% if record.latitude and record.longitude %}
+      {% localize off %}
+      <a href="https://www.openstreetmap.org/?mlat={{ record.latitude }}&mlon={{ record.longitude }}#map=17/{{ record.latitude }}/{{ record.longitude }}"
+         target="_blank"
+         class="btn btn-sm btn-outline-primary">
+        <i class="ti ti-map-pin"></i> Titik
+      </a>
+      {% endlocalize %}
+    {% else %}
+      -
+    {% endif %}
+    """,
+)
 
     class Meta(BaseTable.Meta):
         model = Penginapan
