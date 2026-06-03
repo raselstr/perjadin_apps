@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import UploadedFile
 from django.db import models
 
 from core.utils.image_compression import compress_image_file, ImageCompressionError
@@ -31,7 +32,7 @@ class UserProfile(models.Model):
         return self.user.username
 
     def save(self, *args, **kwargs):
-        if self.foto:
+        if self.foto and isinstance(self.foto, UploadedFile):
             try:
                 self.foto = compress_image_file(self.foto)
             except ImageCompressionError as e:

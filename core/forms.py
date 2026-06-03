@@ -51,6 +51,8 @@ class BaseAppModelForm(forms.ModelForm):
                 model_field = self._get_model_field(name)
                 if isinstance(model_field, models.ImageField):
                     widget.attrs.setdefault("accept", "image/*")
+                    if "foto" in name.lower():
+                        widget.attrs.setdefault("capture", "environment")
                 continue
 
             if isinstance(widget, forms.SelectMultiple):

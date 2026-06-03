@@ -1,7 +1,14 @@
+import logging
+
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
+from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Q
+
+from core.utils.image_compression import compress_image_file, ImageCompressionError
+
+logger = logging.getLogger(__name__)
 
 class Pangkat(models.Model):
     pangkat = models.CharField(max_length=100)
@@ -129,6 +136,14 @@ class Pegawai(models.Model):
 
     def __str__(self):
         return f"{self.nama} ({self.jabatan})"
+
+    def save(self, *args, **kwargs):
+        if self.foto and isinstance(self.foto, UploadedFile):
+            try:
+                self.foto = compress_image_file(self.foto)
+            except ImageCompressionError as e:
+                logger.warning(f"Image compression failed for Pegawai foto: {e}")
+        super().save(*args, **kwargs)
     
 
 
@@ -246,6 +261,19 @@ class Pemda(models.Model):
 
     def __str__(self):
         return self.nama_pemda
+
+    def save(self, *args, **kwargs):
+        if self.logo and isinstance(self.logo, UploadedFile):
+            try:
+                self.logo = compress_image_file(
+                    self.logo,
+                    max_width=1200,
+                    max_height=1200,
+                    quality=90,
+                )
+            except ImageCompressionError as e:
+                logger.warning(f"Image compression failed for Pemda logo: {e}")
+        super().save(*args, **kwargs)
 
 
 class KopSurat(models.Model):

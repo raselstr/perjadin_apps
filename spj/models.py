@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.core.files.uploadedfile import UploadedFile
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.dateformat import format as date_format
@@ -243,7 +244,7 @@ class Penginapan(BaseSPJModel):
         return f"{self.pelaksana} - {self.nama_hotel}"
 
     def save(self, *args, **kwargs):
-        if self.foto_hotel:
+        if self.foto_hotel and isinstance(self.foto_hotel, UploadedFile):
             try:
                 self.foto_hotel = compress_image_file(self.foto_hotel)
             except ImageCompressionError as e:
@@ -704,7 +705,7 @@ class LaporanPerjalanan(BaseSPJModel):
         # Compress image fields
         for field_name in ['foto_1', 'foto_2', 'foto_3', 'foto_4']:
             image_field = getattr(self, field_name, None)
-            if image_field:
+            if image_field and isinstance(image_field, UploadedFile):
                 try:
                     compressed = compress_image_file(image_field)
                     setattr(self, field_name, compressed)
