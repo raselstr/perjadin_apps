@@ -26,7 +26,7 @@
   }
   window.__imageUploadCompressorReady = true;
 
-  const MAX_EDGE = 1600;
+  const MAX_EDGE = 1024;
   const JPEG_QUALITY = 0.82;
   const MIN_SIZE_TO_COMPRESS = 700 * 1024;
   const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
@@ -59,6 +59,12 @@
   }
 
   function canvasToBlob(canvas) {
+    const isMobile =
+        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    if (isMobile) {
+        return file;
+    }
     return new Promise(function (resolve) {
       canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY);
     });
