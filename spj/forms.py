@@ -205,8 +205,6 @@ class SPJModelForm(BaseAppModelForm):
                 continue
 
             if name.startswith("foto_") or name == "foto_hotel":
-                if name == "foto_hotel":
-                    field.required = True
                 widget.attrs.update({
                     "accept": "image/*",
                     "capture": "environment",
