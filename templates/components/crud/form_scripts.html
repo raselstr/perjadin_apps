@@ -204,17 +204,26 @@
     const searchButton = geoForm.querySelector('[data-spj-geo-search-button="1"]');
     const currentButton = geoForm.querySelector('[data-spj-geo-current-button="1"]');
     const statusElement = geoForm.querySelector('[data-spj-geo-status="1"]');
+    const mapButton = geoForm.querySelector('[data-spj-geo-map-button="1"]');
     const latitudeField = document.getElementById(geoForm.dataset.latField);
     const longitudeField = document.getElementById(geoForm.dataset.lngField);
     if (!mapFrame || !latitudeField || !longitudeField) {
       return;
     }
 
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
     const defaultPoint = [-2.548926, 118.0148634];
     const initialLatitude = parseFloat(latitudeField.value);
     const initialLongitude = parseFloat(longitudeField.value);
     const hasInitialPoint = !Number.isNaN(initialLatitude) && !Number.isNaN(initialLongitude);
     const startPoint = hasInitialPoint ? [initialLatitude, initialLongitude] : defaultPoint;
+
+    if (isMobile) {
+      mapFrame.classList.add('d-none');
+      if (mapButton) {
+        mapButton.classList.remove('d-none');
+      }
+    }
 
     function setStatus(message, tone) {
       if (!statusElement) {
@@ -250,7 +259,22 @@
       if (Number.isNaN(lat) || Number.isNaN(lng)) {
         return;
       }
+      if (isMobile && geoForm.dataset.mapVisible !== '1') {
+        return;
+      }
       mapFrame.src = buildMapUrl(lat, lng, zoom);
+    }
+
+    function showMap() {
+      geoForm.dataset.mapVisible = '1';
+      mapFrame.classList.remove('d-none');
+      const lat = parseFloat(latitudeField.value);
+      const lng = parseFloat(longitudeField.value);
+      if (!Number.isNaN(lat) && !Number.isNaN(lng)) {
+        refreshMap(lat, lng, 16);
+      } else {
+        refreshMap(defaultPoint[0], defaultPoint[1], 5);
+      }
     }
 
     function setLocation(latitude, longitude, zoom) {
@@ -280,8 +304,8 @@
       }, function () {
         setStatus('Tidak dapat mengambil lokasi saat ini. Pastikan izin lokasi aktif.', 'danger');
       }, {
-        enableHighAccuracy: true,
-        timeout: 15000,
+        enableHighAccuracy: !isMobile,
+        timeout: isMobile ? 10000 : 15000,
         maximumAge: 0,
       });
     }
@@ -319,8 +343,10 @@
 
     scope.querySelectorAll('[data-spj-geotag-upload="1"]').forEach(function (input) {
       input.addEventListener('change', function () {
-        if (input.files && input.files.length) {
+        if (input.files && input.files.length && !isMobile) {
           useDeviceLocation();
+        } else if (input.files && input.files.length) {
+          setStatus('Foto dipilih. Tekan Lokasi Saat Ini jika ingin mengisi titik lokasi.');
         }
       });
     });
@@ -339,8 +365,15 @@
     if (currentButton) {
       currentButton.addEventListener('click', useDeviceLocation);
     }
+    if (mapButton) {
+      mapButton.addEventListener('click', showMap);
+    }
 
-    if (!hasInitialPoint) {
+    if (isMobile && !hasInitialPoint) {
+      setStatus('Peta tidak dimuat otomatis di HP agar halaman lebih ringan.');
+    } else if (isMobile) {
+      setStatus('Titik lokasi sudah ada. Tekan Tampilkan Peta jika perlu melihat peta.');
+    } else if (!hasInitialPoint) {
       useDeviceLocation();
       refreshMap(startPoint[0], startPoint[1], 5);
     } else {
@@ -355,13 +388,10 @@
 <script>
 (function () {
   const scope = document.currentScript.closest('.modal-content') || document;
-  const mobilePattern = /Android|iPhone|iPad|iPod/i;
-  const isMobile = mobilePattern.test(navigator.userAgent || '');
-
-  if (!isMobile || scope.dataset.spjMobilePhotoReady) {
+  if (scope.dataset.spjPhotoFieldReady) {
     return;
   }
-  scope.dataset.spjMobilePhotoReady = '1';
+  scope.dataset.spjPhotoFieldReady = '1';
 
   function setStatus(wrapper, message, tone) {
     const status = wrapper.querySelector('[data-spj-photo-status]');
@@ -374,147 +404,24 @@
     status.classList.toggle('text-muted', !tone);
   }
 
-  function setInputFile(input, blob) {
-    if (typeof DataTransfer === 'undefined') {
-      return false;
-    }
+  scope.querySelectorAll('[data-spj-photo-field="1"]').forEach(function (wrapper) {
+    const inputs = Array.prototype.slice.call(wrapper.querySelectorAll('input[type="file"]'));
+    inputs.forEach(function (input) {
+      input.addEventListener('change', function () {
+        if (input.files && input.files.length) {
+          inputs.forEach(function (otherInput) {
+            if (otherInput !== input) {
+              otherInput.value = '';
+            }
+          });
+        }
 
-    const fileName = (input.name || 'foto').replace(/[^a-z0-9_-]+/gi, '_') + '.jpg';
-    const file = new File([blob], fileName, {
-      type: 'image/jpeg',
-      lastModified: Date.now(),
-    });
-    const transfer = new DataTransfer();
-    transfer.items.add(file);
-    input.files = transfer.files;
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-    return true;
-  }
-
-  function canvasToJpeg(canvas) {
-    return new Promise(function (resolve) {
-      canvas.toBlob(resolve, 'image/jpeg', 0.82);
-    });
-  }
-
-  function stopStream(stream) {
-    stream?.getTracks?.().forEach(function (track) {
-      track.stop();
-    });
-  }
-
-  async function openBrowserCamera(input, wrapper) {
-    if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
-      input.setAttribute('capture', 'environment');
-      input.click();
-      return;
-    }
-
-    let stream = null;
-    const overlay = document.createElement('div');
-    overlay.className = 'position-fixed top-0 start-0 w-100 h-100 bg-dark';
-    overlay.style.zIndex = '2050';
-    overlay.innerHTML = [
-      '<div class="d-flex flex-column h-100">',
-      '  <video autoplay playsinline muted class="w-100 flex-grow-1" style="object-fit:cover;min-height:0;"></video>',
-      '  <div class="bg-white p-3 d-flex gap-2 justify-content-center">',
-      '    <button type="button" class="btn btn-outline-secondary" data-spj-camera-cancel>Batal</button>',
-      '    <button type="button" class="btn btn-success" data-spj-camera-capture>Ambil Foto</button>',
-      '  </div>',
-      '</div>',
-    ].join('');
-    document.body.appendChild(overlay);
-
-    const video = overlay.querySelector('video');
-    const cancelButton = overlay.querySelector('[data-spj-camera-cancel]');
-    const captureButton = overlay.querySelector('[data-spj-camera-capture]');
-
-    function closeCamera() {
-      stopStream(stream);
-      overlay.remove();
-    }
-
-    cancelButton.addEventListener('click', function () {
-      closeCamera();
-      setStatus(wrapper, 'Pengambilan foto dibatalkan.');
-    });
-
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280, max: 1280 },
-          height: { ideal: 720, max: 960 },
-        },
-        audio: false,
+        if (input.files && input.files.length) {
+          const file = input.files[0];
+          const source = input.hasAttribute('data-spj-camera-source') ? 'kamera' : 'galeri';
+          setStatus(wrapper, (file.name || 'Foto') + ' siap dari ' + source + '.', 'success');
+        }
       });
-      video.srcObject = stream;
-      await video.play();
-      setStatus(wrapper, 'Kamera siap. Ambil foto dari tombol hijau.');
-    } catch (error) {
-      closeCamera();
-      setStatus(wrapper, 'Kamera browser tidak tersedia, membuka kamera bawaan HP.', 'danger');
-      input.setAttribute('capture', 'environment');
-      input.click();
-      return;
-    }
-
-    captureButton.addEventListener('click', async function () {
-      const sourceWidth = video.videoWidth || 1280;
-      const sourceHeight = video.videoHeight || 720;
-      const scale = Math.min(1, 1024 / Math.max(sourceWidth, sourceHeight));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
-      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
-      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const blob = await canvasToJpeg(canvas);
-      closeCamera();
-
-      if (!blob || !setInputFile(input, blob)) {
-        setStatus(wrapper, 'Foto kamera gagal diproses. Coba ulangi.', 'danger');
-        return;
-      }
-
-      setStatus(wrapper, 'Foto kamera siap diunggah.', 'success');
-    }, { once: true });
-  }
-
-  scope.querySelectorAll('[data-spj-camera-upload="1"]').forEach(function (input) {
-    if (input.dataset.spjMobilePhotoControlReady) {
-      return;
-    }
-    input.dataset.spjMobilePhotoControlReady = '1';
-    input.removeAttribute('capture');
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'spj-mobile-photo mt-2';
-    wrapper.innerHTML = [
-      '<div class="d-flex gap-2 flex-wrap">',
-      '  <button type="button" class="btn btn-outline-primary btn-sm" data-spj-gallery-button>Galeri HP</button>',
-      '  <button type="button" class="btn btn-primary btn-sm" data-spj-camera-button>Kamera</button>',
-      '</div>',
-      '<div class="small text-muted mt-1" data-spj-photo-status>Pilih foto dari galeri atau ambil langsung dari kamera.</div>',
-    ].join('');
-
-    input.classList.add('d-none');
-    input.parentNode.insertBefore(wrapper, input.nextSibling);
-
-    wrapper.querySelector('[data-spj-gallery-button]').addEventListener('click', function () {
-      input.removeAttribute('capture');
-      input.click();
-    });
-
-    wrapper.querySelector('[data-spj-camera-button]').addEventListener('click', function () {
-      openBrowserCamera(input, wrapper);
-    });
-
-    input.addEventListener('change', function () {
-      if (input.files && input.files.length) {
-        const file = input.files[0];
-        setStatus(wrapper, file.name || 'Foto siap diunggah.', 'success');
-      }
-      input.removeAttribute('capture');
     });
   });
 })();
