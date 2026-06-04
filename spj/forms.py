@@ -207,7 +207,7 @@ class SPJModelForm(BaseAppModelForm):
             if name.startswith("foto_") or name == "foto_hotel":
                 widget.attrs.update({
                     "accept": "image/*",
-                    "capture": "environment",
+                    "data-spj-camera-upload": "1",
                     "data-spj-geotag-upload": "1",
                 })
             elif name == "bukti":
