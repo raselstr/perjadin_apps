@@ -72,7 +72,7 @@
         <!-- 🔥 parent aktif jika salah satu submenu aktif -->
         <li class="pc-item pc-hasmenu 
           {% for sub in item.submenus %}
-            {% if current_page == sub.url %}active{% endif %}
+            {% if active_submenu == sub.url %}active{% endif %}
           {% endfor %}">
 
           <a href="#!" class="pc-link">
@@ -91,7 +91,7 @@
               {% safe_url sub.url as url %}
               <li class="pc-item">
                 <a class="pc-link 
-                  {% if request.resolver_match.url_name == sub.url %}active{% endif %}
+                  {% if active_submenu == sub.url %}active{% endif %}
                   {% if url == '#' %}disabled{% endif %}"
                   href="{{ url }}">
                   {{ sub.nama }}

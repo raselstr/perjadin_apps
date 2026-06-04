@@ -1,5 +1,35 @@
 from menus.models import RolePermission, Menu
 
+
+SPJ_ACTIVE_SUBMENU_MAP = {
+    "penginapan_action": "penginapan_list",
+    "penginapan_action_pk": "penginapan_list",
+    "penginapan_delete": "penginapan_list",
+    "pesawat_action": "pesawat_list",
+    "pesawat_action_pk": "pesawat_list",
+    "pesawat_delete": "pesawat_list",
+    "uang_harian_action": "uang_harian_list",
+    "uang_harian_action_pk": "uang_harian_list",
+    "uang_harian_delete": "uang_harian_list",
+    "transport_action": "transport_list",
+    "transport_action_pk": "transport_list",
+    "transport_delete": "transport_list",
+    "uang_representasi_action": "uang_representasi_list",
+    "uang_representasi_action_pk": "uang_representasi_list",
+    "uang_representasi_delete": "uang_representasi_list",
+    "laporan_perjalanan_action": "laporan_perjalanan_list",
+    "laporan_perjalanan_action_pk": "laporan_perjalanan_list",
+    "laporan_perjalanan_delete": "laporan_perjalanan_list",
+    "laporan_perjalanan_preview": "laporan_perjalanan_list",
+    "laporan_perjalanan_print": "laporan_perjalanan_list",
+}
+
+
+def _active_submenu_name(request):
+    resolver_match = getattr(request, "resolver_match", None)
+    url_name = getattr(resolver_match, "url_name", "") or ""
+    return SPJ_ACTIVE_SUBMENU_MAP.get(url_name, url_name)
+
 def menu_context(request):
     # Jika belum login → tidak tampilkan menu
     if not request.user.is_authenticated:
@@ -21,7 +51,8 @@ def menu_context(request):
             })
 
         return {
-            'menu_data': menu_data
+            'menu_data': menu_data,
+            'active_submenu': _active_submenu_name(request),
         }
 
     # ==============================
@@ -59,5 +90,6 @@ def menu_context(request):
     menu_data = list(menu_dict.values())
 
     return {
-        'menu_data': menu_data
+        'menu_data': menu_data,
+        'active_submenu': _active_submenu_name(request),
     }
