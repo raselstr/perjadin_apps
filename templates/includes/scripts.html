@@ -59,12 +59,6 @@
   }
 
   function canvasToBlob(canvas) {
-    const isMobile =
-        /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    if (isMobile) {
-        return file;
-    }
     return new Promise(function (resolve) {
       canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY);
     });
@@ -134,5 +128,35 @@
       compressInputFiles(event.target);
     }
   });
+
+  document.addEventListener('submit', async function (event) {
+    const form = event.target;
+
+    if (!form || form.dataset.imageCompressionSubmitReady === '1') {
+      return;
+    }
+
+    const inputs = Array.from(form.querySelectorAll('input[type="file"]'))
+      .filter(shouldHandleInput);
+
+    if (!inputs.length) {
+      return;
+    }
+
+    event.preventDefault();
+    form.dataset.imageCompressionSubmitReady = '1';
+
+    try {
+      await Promise.all(inputs.map(compressInputFiles));
+    } finally {
+      if (window.htmx && form.hasAttribute('hx-post')) {
+        window.htmx.trigger(form, 'submit');
+      } else if (form.requestSubmit) {
+        form.requestSubmit();
+      } else {
+        form.submit();
+      }
+    }
+  }, true);
 })();
 </script>

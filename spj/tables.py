@@ -14,6 +14,19 @@ from .models import (
 )
 
 
+def spj_action_column(url_pk, url_delete):
+    return tables.TemplateColumn(
+        template_name="spj/action_page_links.html",
+        extra_context={
+            "update_action": "update",
+            "delete_action": "delete",
+            "url_pk": url_pk,
+            "url_delete": url_delete,
+        },
+        orderable=False,
+    )
+
+
 class BuktiColumn(tables.TemplateColumn):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("orderable", False)
@@ -89,7 +102,7 @@ class JenisSPJTable(BaseTable):
 
 
 class PenginapanTable(SPJBaseTable):
-    aksi = action_column("penginapan_action_pk", "penginapan_delete")
+    aksi = spj_action_column("penginapan_action_pk", "penginapan_delete")
     bukti_link = BuktiColumn(verbose_name="Bukti")
     lokasi_hotel = tables.TemplateColumn(
     verbose_name="Lokasi",
@@ -129,7 +142,7 @@ class PenginapanTable(SPJBaseTable):
 
 
 class PesawatTable(SPJBaseTable):
-    aksi = action_column("pesawat_action_pk", "pesawat_delete")
+    aksi = spj_action_column("pesawat_action_pk", "pesawat_delete")
     bukti_link = BuktiColumn(verbose_name="Bukti")
 
     class Meta(BaseTable.Meta):
@@ -152,7 +165,7 @@ class PesawatTable(SPJBaseTable):
 
 
 class UangHarianTable(SPJBaseTable):
-    aksi = action_column("uang_harian_action_pk", "uang_harian_delete")
+    aksi = spj_action_column("uang_harian_action_pk", "uang_harian_delete")
 
     class Meta(BaseTable.Meta):
         model = UangHarian
@@ -169,7 +182,7 @@ class UangHarianTable(SPJBaseTable):
 
 
 class TransportTable(SPJBaseTable):
-    aksi = action_column("transport_action_pk", "transport_delete")
+    aksi = spj_action_column("transport_action_pk", "transport_delete")
     bukti_link = BuktiColumn(verbose_name="Bukti")
 
     class Meta(BaseTable.Meta):
@@ -192,7 +205,7 @@ class TransportTable(SPJBaseTable):
 
 
 class UangRepresentasiTable(SPJBaseTable):
-    aksi = action_column(
+    aksi = spj_action_column(
         "uang_representasi_action_pk",
         "uang_representasi_delete",
     )
@@ -213,7 +226,7 @@ class UangRepresentasiTable(SPJBaseTable):
 class LaporanPerjalananTable(SPJBaseTable):
     standar_maksimal = None
     total_biaya = None
-    aksi = action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
+    aksi = spj_action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
     dokumen = tables.TemplateColumn(
         verbose_name="Cetak",
         orderable=False,

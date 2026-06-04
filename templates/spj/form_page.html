@@ -1,0 +1,103 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="col-md-12">
+            <div class="page-header-title">
+              <h5 class="m-b-10">{{ title }}</h5>
+            </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item"><a href="{% url url_list %}">{{ title }}</a></li>
+              <li class="breadcrumb-item" aria-current="page">Form</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+              <div>
+                <h3 class="mb-0">{{ title }}</h3>
+                <div class="text-muted small">Lengkapi data berikut lalu simpan perubahan.</div>
+              </div>
+              <a class="btn btn-outline-secondary" href="{% url url_list %}">
+                Batal
+              </a>
+            </div>
+          </div>
+          <div class="card-body">
+            <form
+              method="post"
+              action="{{ request.path }}"
+              {% if is_multipart_form %}enctype="multipart/form-data"{% endif %}>
+              {% csrf_token %}
+
+              {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                  {{ form.non_field_errors }}
+                </div>
+              {% endif %}
+
+              {% include "components/crud/form_fields.html" with form=form %}
+
+              <div class="d-flex justify-content-end gap-2 mt-4">
+                <a class="btn btn-outline-secondary" href="{% url url_list %}">
+                  Batal
+                </a>
+                <button type="submit" class="btn btn-success">
+                  Simpan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+  {{ block.super }}
+  <script>
+    (function () {
+      function initSpjSelect2() {
+        if (!window.jQuery || !window.jQuery.fn.select2) {
+          return;
+        }
+
+        window.jQuery('.select2, .select2-ajax').each(function () {
+          const $field = window.jQuery(this);
+
+          if ($field.hasClass('select2-hidden-accessible')) {
+            $field.select2('destroy');
+          }
+
+          $field.select2({
+            width: '100%',
+            dropdownParent: window.jQuery(document.body),
+            theme: 'bootstrap-5'
+          });
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSpjSelect2);
+      } else {
+        initSpjSelect2();
+      }
+    })();
+  </script>
+  {% include "components/crud/form_scripts.html" %}
+{% endblock extra_js %}

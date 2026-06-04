@@ -250,6 +250,10 @@ def _first_or_none(queryset):
 
 
 class SPJQuerysetMixin:
+    template_name = "spj/page.html"
+    template_form = "spj/form_page.html"
+    template_delete = "spj/delete_page.html"
+
     def get_base_queryset(self):
         queryset = self.model.objects.select_related(
             "spt",
@@ -313,6 +317,7 @@ class SPJQuerysetMixin:
             "form": form,
             "title": self.title,
             "permission": perm,
+            "url_list": self.url_list,
             "is_multipart_form": form.is_multipart(),
         }
 
@@ -322,6 +327,10 @@ class SPJQuerysetMixin:
         return render(request, self.template_form, context)
 
     def delete_view(self, request, pk):
+        perm = self.get_permission()
+        if not perm or not perm.can_delete:
+            return self._forbidden(request)
+
         instance = get_object_or_404(self.get_object_queryset(), pk=pk)
         if self._is_locked_for_user(instance):
             messages.error(
@@ -331,7 +340,24 @@ class SPJQuerysetMixin:
             if request.headers.get("HX-Request"):
                 return self._forbidden(request)
             return redirect(self.url_list)
-        return super().delete_view(request, pk)
+
+        if request.method == "POST":
+            instance.delete()
+
+            if request.headers.get("HX-Request"):
+                return self._build_htmx_success_response("delete")
+
+            self._add_success_message(request, "delete")
+            return redirect(self.url_list)
+
+        if request.headers.get("HX-Request"):
+            return super().delete_view(request, pk)
+
+        return render(request, self.template_delete, {
+            "object": instance,
+            "url_list": self.url_list,
+            "title": self.title,
+        })
 
 class JenisSPJView(BaseCRUDView):
     model = JenisSPJ

@@ -43,12 +43,14 @@
                   </button>
                   {% endif %}
 
-                  <button class="btn btn-primary"
-                          hx-get="{% url url_action %}"
-                          hx-target="#modal-body"
-                          hx-trigger="click">
-                    + Tambah
-                  </button>
+                  {% block add_button %}
+                    <button class="btn btn-primary"
+                            hx-get="{% url url_action %}"
+                            hx-target="#modal-body"
+                            hx-trigger="click">
+                      + Tambah
+                    </button>
+                  {% endblock add_button %}
                   
                   {% include "components/excel/buttons.html" %}
                   
@@ -72,7 +74,9 @@
   </div>
   <!-- [ Main Content ] end -->
 
-  {% include 'components/crud/modal.html' %}
+  {% block crud_modal %}
+    {% include 'components/crud/modal.html' %}
+  {% endblock crud_modal %}
 
   <div class="modal fade print-preview-modal" id="printPreviewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
