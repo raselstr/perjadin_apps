@@ -352,13 +352,14 @@ def is_single_eselon_two_pelaksana(pelaksana_list):
 def _get_pangkat_rank(pegawai):
     pangkat = getattr(pegawai, "pangkat", None)
     if not pangkat:
-        return (0, 0)
+        return (0, 0, 0)
 
-    golongan_rank = extract_rank_level(getattr(pangkat, "golongan", ""))
+    golongan_rank = (extract_rank_level(getattr(pangkat, "golongan", "") or "") or 0)
     ruang = (getattr(pangkat, "ruang", "") or "").strip().lower()
+    has_ruang = 1 if ruang else 0
     ruang_rank = ord(ruang[0]) - 96 if ruang else 0
 
-    return (golongan_rank or 0, ruang_rank)
+    return (has_ruang, golongan_rank, ruang_rank)
 
 
 def _get_birthdate_sort_value(pegawai):
@@ -371,10 +372,11 @@ def _get_name_sort_value(pegawai):
 
 def _sort_key_for_eselon_priority(pelaksana):
     pegawai = pelaksana.nama
-    golongan_rank, ruang_rank = _get_pangkat_rank(pegawai)
+    has_ruang, golongan_rank, ruang_rank = _get_pangkat_rank(pegawai)
 
     return (
         get_eselon_level(pegawai) or 999,
+        -has_ruang,
         -golongan_rank,
         -ruang_rank,
         _get_birthdate_sort_value(pegawai),
