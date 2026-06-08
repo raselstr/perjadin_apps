@@ -20,6 +20,12 @@ from umum.models import (
 )
 
 class CreateSptFromWAApiView(View):
+    
+    def post(self, request):
+        return JsonResponse({
+            "success": True,
+            "message": "POST aktif"
+        })
 
     def post(self, request):
 

@@ -19,7 +19,7 @@ urlpatterns = [
     path('spd/', include('spd.urls')),
     path('perintah/', include('perintah.urls')),
     path('spj/', include('spj.urls')),
-    path('api/',include('spd.api_urls')),
+    path('api/',include('perintah.api_urls')),
 ]
 
 # Media selalu dilayani

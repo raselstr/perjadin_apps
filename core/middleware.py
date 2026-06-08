@@ -39,6 +39,9 @@ class SessionSecurityMiddleware:
             reverse("logout"),
             reverse("timeout_logout"),
         }
+        
+        if path.startswith("/api/"):
+            return True
 
         if path in public_paths or path == "/favicon.ico":
             return True
