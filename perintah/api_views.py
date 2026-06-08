@@ -10,7 +10,7 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Prefetch
 from django.test import RequestFactory
-
+from .utils.pdf import render_pdf
 from perintah.models import (
     Spt,
     Pelaksana,
@@ -605,10 +605,11 @@ class PrintSptWAApiView(View):
             "auto_print": False,
         }
 
-        return render(
+        return render_pdf(
             request,
             self.template_name,
             context,
+            f"SPT-{pemberi_tugas.pk}.pdf",
         )
 @method_decorator(csrf_exempt, name="dispatch")
 class PrintSpdWAApiView(View):
@@ -845,10 +846,11 @@ class PrintSpdWAApiView(View):
             "show_followers": len(followers) > 0,
         })
 
-        response = render(
+        response = render_pdf(
             request,
             self.template_name,
             context,
+            f"SPD-{pemberi_tugas.pk}.pdf",
         )
 
         response["X-Frame-Options"] = "SAMEORIGIN"
@@ -891,8 +893,9 @@ class PrintSpdBelakangWAApiView(View):
             "auto_print": False,
         }
 
-        return render(
+        return render_pdf(
             request,
             self.template_name,
             context,
+            f"SPDBack-{pemberi_tugas.pk}.pdf",
         )
