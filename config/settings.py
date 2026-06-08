@@ -207,7 +207,7 @@ DATE_INPUT_FORMATS = [
     "%Y-%m-%d",
     "%d/%m/%Y",
 ]
-
+N8N_API_KEY = env('N8N_API_KEY', default=None)
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
