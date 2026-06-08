@@ -578,3 +578,18 @@ def generate_default_document_number(
     result = result.strip("/")
 
     return result
+
+
+def get_print_opd_id(pemberi_tugas):
+    """
+    Menentukan OPD yang digunakan untuk filtering dokumen
+    ketika tidak ada request.user atau session aktif.
+    """
+
+    if getattr(pemberi_tugas, "opd_id", None):
+        return pemberi_tugas.opd_id
+
+    if getattr(pemberi_tugas.penandatangan, "opd_id", None):
+        return pemberi_tugas.penandatangan.opd_id
+
+    return None

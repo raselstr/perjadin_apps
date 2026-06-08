@@ -1,14 +1,15 @@
 import json
-
+from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from django.db.models import Q
+from django.db.models import Q, Prefetch
+from django.test import RequestFactory
 
 from perintah.models import (
     Spt,
@@ -24,6 +25,29 @@ from spd.models import (
 from umum.models import (
     Pegawai,
     Penandatangan,
+)
+from perintah.views import (
+    _get_default_signature_location,
+    _get_primary_instansi_name,
+    _build_number_from_format,
+)
+
+from perintah.document_utils import (
+    get_matching_pemda,
+    build_contact_line,
+    build_penandatangan_title,
+    build_spt_signature_title_parts,
+    get_letterhead_office_name,
+    get_signature_location,
+    should_hide_signatory_identity_details,
+    format_spt_date_range,
+    filter_spt_pelaksana,
+    generate_default_document_number,
+    get_kop_surat_config,
+    is_regional_head_task,
+    find_ppk_penandatangan,
+    filter_spd_pelaksana,
+    select_spd_primary_pelaksana,
 )
 
 
@@ -434,3 +458,441 @@ class CreateSptFromWAApiView(View):
                 },
                 status=500,
             )
+
+
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class PrintSptWAApiView(View):
+
+    template_name = "components/pdf/spt.html"
+
+    def get_queryset(self):
+
+        return (
+            PemberiTugas.objects
+            .select_related(
+                "spt",
+                "spt__kota_tujuan",
+                "spt__jenis_kegiatan",
+                "penandatangan",
+                "penandatangan__pangkat",
+                "penandatangan__jenis_jabatan",
+                "penandatangan__opd",
+            )
+            .prefetch_related(
+                "spt__pelaksana",
+                "spt__pelaksana__nama",
+            )
+        )
+
+    def get(self, request, pk):
+
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
+
+        pemberi_tugas = get_object_or_404(
+            self.get_queryset(),
+            pk=pk,
+        )
+
+        spt = pemberi_tugas.spt
+
+        pemda = get_matching_pemda(
+            pemberi_tugas.penandatangan.opd
+        )
+
+        opd_id = getattr(
+            pemberi_tugas.penandatangan,
+            "opd_id",
+            None,
+        )
+
+        pelaksana_list = filter_spt_pelaksana(
+            spt.pelaksana.all(),
+            pemberi_tugas.penandatangan.tugas,
+            opd_id=opd_id,
+            signatory_opd_id=opd_id,
+        )
+
+        kop_surat = get_kop_surat_config(
+            pemda
+        )
+
+        nomor_spt = generate_default_document_number(
+            pemberi_tugas.nomor_urut,
+            pemberi_tugas.tanggal_spt,
+            kop_surat.default_spt_number_format,
+        )
+
+        signature_parts = (
+            build_spt_signature_title_parts(
+                pemberi_tugas.penandatangan,
+                pemda,
+            )
+        )
+
+        context = {
+            "pemda": pemda,
+            "pemberi_tugas": pemberi_tugas,
+            "spt": spt,
+            "pelaksana_list": pelaksana_list,
+
+            "kop_office_name":
+                get_letterhead_office_name(
+                    pemberi_tugas.penandatangan,
+                    pemda,
+                ),
+
+            "kop_contact_line":
+                build_contact_line(
+                    pemda,
+                ),
+
+            "kop_surat":
+                kop_surat,
+
+            "signature_title":
+                build_penandatangan_title(
+                    pemberi_tugas.penandatangan,
+                ),
+
+            "spt_signature_title_prefix":
+                signature_parts["prefix"],
+
+            "spt_signature_title_lines":
+                signature_parts["lines"],
+
+            "show_signature_identity_details":
+                not should_hide_signatory_identity_details(
+                    pemberi_tugas.penandatangan
+                ),
+
+            "signature_location":
+                get_signature_location(
+                    pemda,
+                    default_location=(
+                        spt.kota_tujuan.kota
+                        if spt.kota_tujuan
+                        else ""
+                    ),
+                ),
+
+            "nomor_spt":
+                nomor_spt,
+
+            "kota_tujuan_text":
+                spt.kota_tujuan_display,
+
+            "tempat_tujuan_text":
+                spt.tempat_tujuan_display,
+
+            "tujuan_perjalanan_text":
+                spt.tujuan_perjalanan_display,
+
+            "tanggal_perjalanan_spt":
+                format_spt_date_range(
+                    spt.tgl_berangkat,
+                    spt.tgl_kembali,
+                ),
+
+            "auto_print": False,
+        }
+
+        return render(
+            request,
+            self.template_name,
+            context,
+        )
+@method_decorator(csrf_exempt, name="dispatch")
+class PrintSpdWAApiView(View):
+
+    template_name = "components/pdf/spd.html"
+
+    def get_queryset(self):
+        return (
+            PemberiTugas.objects
+            .select_related(
+                "spt",
+                "spt__kota_tujuan",
+                "spt__jenis_kegiatan",
+                "penandatangan",
+                "penandatangan__pangkat",
+                "penandatangan__jenis_jabatan",
+                "penandatangan__opd",
+            )
+            .prefetch_related(
+                Prefetch(
+                    "spt__pelaksana",
+                    queryset=Pelaksana.objects.select_related(
+                        "nama",
+                        "nama__eselon",
+                        "nama__pangkat",
+                        "nama__tingkat",
+                        "nama__opd",
+                    ).order_by("id"),
+                )
+            )
+        )
+
+    def build_document_context(
+        self,
+        pemberi_tugas,
+        pemda,
+        penandatangan,
+    ):
+
+        spt = pemberi_tugas.spt
+
+        default_signature_location = (
+            _get_default_signature_location(spt)
+        )
+
+        asal_instansi = _get_primary_instansi_name(
+            pemda,
+            penandatangan=penandatangan,
+            fallback=pemberi_tugas.opd,
+        )
+
+        kop_surat = get_kop_surat_config(pemda)
+
+        tanggal_spt = pemberi_tugas.tanggal_spt
+
+        nomor_spt = _build_number_from_format(
+            pemberi_tugas.nomor_spt,
+            pemberi_tugas.nomor_urut,
+            tanggal_spt,
+            kop_surat.default_spt_number_format,
+        )
+
+        nomor_spd = _build_number_from_format(
+            pemberi_tugas.nomor_spd,
+            pemberi_tugas.nomor_urut,
+            tanggal_spt,
+            kop_surat.default_spd_number_format,
+        )
+
+        spt_signature_title_parts = (
+            build_spt_signature_title_parts(
+                penandatangan,
+                pemda=pemda,
+            )
+        )
+
+        return {
+            "pemda": pemda,
+            "pemberi_tugas": pemberi_tugas,
+            "penandatangan_dokumen": penandatangan,
+            "spt": spt,
+            "tanggal_dokumen": tanggal_spt,
+            "asal_instansi": asal_instansi,
+
+            # pengganti _get_active_opd_name()
+            "active_opd_name": asal_instansi,
+
+            "kop_office_name": get_letterhead_office_name(
+                penandatangan,
+                pemda=pemda,
+            ),
+
+            "kop_contact_line": build_contact_line(
+                pemda
+            ),
+
+            "kop_surat": kop_surat,
+
+            "kop_is_regional_head": (
+                is_regional_head_task(
+                    getattr(
+                        penandatangan,
+                        "tugas",
+                        "",
+                    )
+                )
+            ),
+
+            "signature_title": (
+                build_penandatangan_title(
+                    penandatangan
+                )
+            ),
+
+            "spt_signature_title_prefix":
+                spt_signature_title_parts["prefix"],
+
+            "spt_signature_title_lines":
+                spt_signature_title_parts["lines"],
+
+            "show_signature_identity_details":
+                not should_hide_signatory_identity_details(
+                    penandatangan
+                ),
+
+            "signature_location":
+                get_signature_location(
+                    pemda,
+                    default_location=
+                    default_signature_location,
+                ),
+
+            "auto_print": False,
+
+            "nomor_spt": nomor_spt,
+            "nomor_spd": nomor_spd,
+
+            "kota_tujuan_text":
+                spt.kota_tujuan_display,
+
+            "tempat_tujuan_text":
+                spt.tempat_tujuan_display,
+
+            "tujuan_perjalanan_text":
+                spt.tujuan_perjalanan_display,
+
+            "tanggal_perjalanan_spt":
+                format_spt_date_range(
+                    spt.tgl_berangkat,
+                    spt.tgl_kembali,
+                ),
+        }
+
+    def get(self, request, pk):
+
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
+
+        pemberi_tugas = get_object_or_404(
+            self.get_queryset(),
+            pk=pk,
+        )
+
+        if is_regional_head_task(
+            pemberi_tugas.penandatangan.tugas
+        ):
+            raise Http404(
+                "SPD tidak tersedia untuk "
+                "penandatangan Bupati/Wakil Bupati."
+            )
+
+        #
+        # pengganti get_active_opd_id(request)
+        #
+        active_opd_id = (
+            getattr(
+                pemberi_tugas,
+                "opd_id",
+                None,
+            )
+            or getattr(
+                pemberi_tugas.penandatangan,
+                "opd_id",
+                None,
+            )
+        )
+
+        ppk = find_ppk_penandatangan(
+            opd=pemberi_tugas.penandatangan.opd,
+            fallback_opd_id=active_opd_id,
+        ) or pemberi_tugas.penandatangan
+
+        pemda = get_matching_pemda(
+            getattr(
+                ppk,
+                "opd",
+                None,
+            )
+        )
+
+        pelaksana_list = filter_spd_pelaksana(
+            pemberi_tugas.spt.pelaksana.all(),
+            opd_id=(
+                getattr(
+                    ppk,
+                    "opd_id",
+                    None,
+                )
+                or active_opd_id
+            ),
+        )
+
+        primary_pelaksana, followers = (
+            select_spd_primary_pelaksana(
+                pelaksana_list
+            )
+        )
+
+        context = self.build_document_context(
+            pemberi_tugas,
+            pemda,
+            ppk,
+        )
+
+        context.update({
+            "primary_pelaksana": primary_pelaksana,
+            "followers": followers,
+            "show_followers": len(followers) > 0,
+        })
+
+        response = render(
+            request,
+            self.template_name,
+            context,
+        )
+
+        response["X-Frame-Options"] = "SAMEORIGIN"
+
+        return response
+    
+@method_decorator(csrf_exempt, name="dispatch")
+class PrintSpdBelakangWAApiView(View):
+
+    template_name = "components/pdf/belakang.html"
+
+    def get(self, request, pk):
+
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
+
+        pemberi_tugas = get_object_or_404(
+            PemberiTugas.objects.select_related(
+                "spt",
+                "penandatangan",
+                "penandatangan__opd",
+            ),
+            pk=pk,
+        )
+
+        pemda = get_matching_pemda(
+            pemberi_tugas.penandatangan.opd
+        )
+
+        context = {
+            "pemda": pemda,
+            "pemberi_tugas": pemberi_tugas,
+            "spt": pemberi_tugas.spt,
+            "auto_print": False,
+        }
+
+        return render(
+            request,
+            self.template_name,
+            context,
+        )

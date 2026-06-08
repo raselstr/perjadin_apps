@@ -2,6 +2,10 @@ from django.urls import path
 
 from .api_views import (
     MasterDataWAApiView,
+    PrintSpdBelakangWAApiView,
+    PrintSpdWAApiView,
+    PrintSptWAApiView,
+    PrintSptWAApiView,
     SearchPegawaiWAApiView,
     SearchPenandatanganWAApiView,
     CreateSptFromWAApiView,
@@ -38,5 +42,19 @@ urlpatterns = [
         "wa/search-lokasi/",
         SearchLokasiWAApiView.as_view(),
         name="wa_search_lokasi",
+    ),
+    path(
+        "wa/cetak/spt/<int:pk>/",
+        PrintSptWAApiView.as_view(),
+    ),
+    
+    path(
+        "wa/cetak/spd/<int:pk>/",
+        PrintSpdWAApiView.as_view(),
+    ),
+
+    path(
+        "wa/cetak/spd-belakang/<int:pk>/",
+        PrintSpdBelakangWAApiView.as_view(),
     ),
 ]
