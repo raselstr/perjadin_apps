@@ -263,12 +263,12 @@ class Pemda(models.Model):
 class KopSurat(models.Model):
     FONT_FAMILY_CHOICES = [
         ("Arial, sans-serif", "Arial"),
-        # ('"Times New Roman", Times, serif', "Times New Roman"),
-        # ("Calibri, Arial, sans-serif", "Calibri"),
-        # ("Cambria, Georgia, serif", "Cambria"),
-        # ('Garamond, "Times New Roman", serif', "Garamond"),
-        # ("Tahoma, Geneva, sans-serif", "Tahoma"),
-        # ("Verdana, Geneva, sans-serif", "Verdana"),
+        ('"Times New Roman", Times, serif', "Times New Roman"),
+        ("Calibri, Arial, sans-serif", "Calibri"),
+        ("Cambria, Georgia, serif", "Cambria"),
+        ('Garamond, "Times New Roman", serif', "Garamond"),
+        ("Tahoma, Geneva, sans-serif", "Tahoma"),
+        ("Verdana, Geneva, sans-serif", "Verdana"),
     ]
 
     ALIGNMENT_CHOICES = [
