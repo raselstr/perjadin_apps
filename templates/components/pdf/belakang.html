@@ -11,10 +11,37 @@
     @page {
       size: A4;
     }
+    @font-face {
+      font-family: "Arial";
+      src: url("{% static 'fonts/Arial.ttf' %}") format("truetype");
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    @font-face {
+        font-family: "Arial";
+        src: url("{% static 'fonts/Arial-Bold.ttf' %}") format("truetype");
+        font-weight: bold;
+        font-style: normal;
+    }
+
+    @font-face {
+        font-family: "Arial";
+        src: url("{% static 'fonts/Arial-Italic.ttf' %}") format("truetype");
+        font-weight: normal;
+        font-style: italic;
+    }
+
+    @font-face {
+        font-family: "Arial";
+        src: url("{% static 'fonts/Arial-BoldItalic.ttf' %}") format("truetype");
+        font-weight: bold;
+        font-style: italic;
+    }
 
     :root {
       --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
-      --document-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
+      --document-font-family: {{ kop_surat.font_family_css }};
       --document-margin-top: 10mm;
       --document-margin-right: 10mm;
       --document-margin-bottom: 10mm;
