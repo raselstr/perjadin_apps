@@ -11,10 +11,40 @@
     size: A4;
 }
 
+@font-face {
+    font-family: "Arial";
+    src: url("{% static 'fonts/Arial.ttf' %}") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Arial";
+    src: url("{% static 'fonts/Arial-Bold.ttf' %}") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "Arial";
+    src: url("{% static 'fonts/Arial-Italic.ttf' %}") format("truetype");
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: "Arial";
+    src: url("{% static 'fonts/Arial-BoldItalic.ttf' %}") format("truetype");
+    font-weight: bold;
+    font-style: italic;
+}
+
 html,
 body {
     margin: 0;
     padding: 0;
+    color: #111;
+    background: #eef2f7;
 }
 
 html {
@@ -22,22 +52,31 @@ html {
     text-size-adjust: 100%;
 }
 
-body {
+body,
+table,
+tr,
+td,
+th,
+div,
+span,
+p,
+ol,
+ul,
+li {
     font-family: var(--document-font-family);
     font-size: 11pt;
-    color: #111;
-    background: #eef2f7;
+    
 }
 
 :root {
     --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
-    --document-font-family: {{ kop_surat.font_family_css|default:"Arial, sans-serif" }};
+    --document-font-family: {{ kop_surat.font_family_css }};
     --letterhead-top-padding: 1mm;
     --letterhead-side-padding: 1mm;
-    --document-margin-top: {{ kop_surat.margin_top_mm|default:18 }}mm;
-    --document-margin-right: {{ kop_surat.margin_right_mm|default:18 }}mm;
-    --document-margin-bottom: {{ kop_surat.margin_bottom_mm|default:20 }}mm;
-    --document-margin-left: {{ kop_surat.margin_left_mm|default:18 }}mm;
+    --document-margin-top: {{ kop_surat.margin_top_mm|default:1 }}mm;
+    --document-margin-right: {{ kop_surat.margin_right_mm|default:1 }}mm;
+    --document-margin-bottom: {{ kop_surat.margin_bottom_mm|default:1 }}mm;
+    --document-margin-left: {{ kop_surat.margin_left_mm|default:1 }}mm;
 }
 
 {% include "components/pdf/kop_surat_styles.html" %}

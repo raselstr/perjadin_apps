@@ -263,12 +263,12 @@ class Pemda(models.Model):
 class KopSurat(models.Model):
     FONT_FAMILY_CHOICES = [
         ("Arial, sans-serif", "Arial"),
-        ('"Times New Roman", Times, serif', "Times New Roman"),
-        ("Calibri, Arial, sans-serif", "Calibri"),
-        ("Cambria, Georgia, serif", "Cambria"),
-        ('Garamond, "Times New Roman", serif', "Garamond"),
-        ("Tahoma, Geneva, sans-serif", "Tahoma"),
-        ("Verdana, Geneva, sans-serif", "Verdana"),
+        # ('"Times New Roman", Times, serif', "Times New Roman"),
+        # ("Calibri, Arial, sans-serif", "Calibri"),
+        # ("Cambria, Georgia, serif", "Cambria"),
+        # ('Garamond, "Times New Roman", serif', "Garamond"),
+        # ("Tahoma, Geneva, sans-serif", "Tahoma"),
+        # ("Verdana, Geneva, sans-serif", "Verdana"),
     ]
 
     ALIGNMENT_CHOICES = [
@@ -285,7 +285,7 @@ class KopSurat(models.Model):
     font_family = models.CharField(
         max_length=120,
         choices=FONT_FAMILY_CHOICES,
-        default="Arial, sans-serif",
+        default="Arial",
         verbose_name="Jenis Font",
     )
     region_font_size_pt = models.PositiveSmallIntegerField(
@@ -369,7 +369,7 @@ class KopSurat(models.Model):
 
     @property
     def font_family_css(self):
-        return self.font_family or "Arial, sans-serif"
+        return self.font_family or "Arial"
 
     @property
     def print_scale_decimal(self):

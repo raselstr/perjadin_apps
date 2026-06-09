@@ -3,3 +3,7 @@ email   : pengenbaralangit29@gmail.com
 website : bkadasahan.ddns.net
 user    : qmfrg7h@ddnskey.com
 Pass    : stozWcyCR4qX
+
+docker compose down
+docker compose build --no-cache
+docker compose up -d
