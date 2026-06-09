@@ -1,8 +1,7 @@
-# utils/pdf.py
-
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
+from weasyprint import HTML, CSS
+from weasyprint.text.fonts import FontConfiguration
 
 
 def render_pdf(request, template_name, context, filename):
@@ -13,10 +12,14 @@ def render_pdf(request, template_name, context, filename):
         request=request,
     )
 
+    font_config = FontConfiguration()
+
     pdf = HTML(
         string=html,
         base_url=request.build_absolute_uri("/"),
-    ).write_pdf()
+    ).write_pdf(
+        font_config=font_config
+    )
 
     response = HttpResponse(
         pdf,
