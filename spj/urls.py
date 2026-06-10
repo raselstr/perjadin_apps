@@ -49,6 +49,11 @@ urlpatterns = [
         name="penginapan_action_pk",
     ),
     path(
+        "penginapan/media/<int:pk>/",
+        PenginapanView.as_view(),
+        name="penginapan_media",
+    ),
+    path(
         "penginapan/delete/<int:pk>/<str:action>/",
         PenginapanView.as_view(),
         name="penginapan_delete",
@@ -132,6 +137,11 @@ urlpatterns = [
         "laporan-perjalanan/form/<int:pk>/<str:action>/",
         LaporanPerjalananView.as_view(),
         name="laporan_perjalanan_action_pk",
+    ),
+    path(
+        "laporan-perjalanan/media/<int:pk>/",
+        LaporanPerjalananView.as_view(),
+        name="laporan_perjalanan_media",
     ),
     path(
         "laporan-perjalanan/delete/<int:pk>/<str:action>/",

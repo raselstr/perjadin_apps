@@ -285,9 +285,6 @@ class PenginapanForm(SPJModelForm):
         "pelaksana": 6,
         "nama_hotel": 6,
         "alamat_hotel": 6,
-        "foto_hotel": 4,
-        "latitude": 4,
-        "longitude": 4,
         "tipe_kamar": 3,
         "nomor_kamar": 3,
         "tanggal_checkin": 3,
@@ -305,9 +302,6 @@ class PenginapanForm(SPJModelForm):
             "pelaksana",
             "nama_hotel",
             "alamat_hotel",
-            "foto_hotel",
-            "latitude",
-            "longitude",
             "tipe_kamar",
             "nomor_kamar",
             "tanggal_checkin",
@@ -330,9 +324,33 @@ class PenginapanForm(SPJModelForm):
                 "class": "form-control",
             }),
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
+        }
+
+
+class PenginapanMediaForm(SPJModelForm):
+    field_layout = {
+        "foto_hotel": 12,
+        "latitude": 6,
+        "longitude": 6,
+    }
+
+    class Meta:
+        model = Penginapan
+        fields = [
+            "foto_hotel",
+            "latitude",
+            "longitude",
+        ]
+        widgets = {
+            "foto_hotel": forms.ClearableFileInput(attrs={"class": "form-control"}),
             "latitude": forms.NumberInput(attrs={"class": "form-control"}),
             "longitude": forms.NumberInput(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in ("latitude", "longitude"):
+            self.fields[name].required = False
 
 
 class PesawatForm(SPJModelForm):
@@ -654,6 +672,35 @@ class LaporanPerjalananForm(SPJModelForm):
         "pembukaan": 12,
         "isi_pertemuan": 12,
         "penutup": 12,
+    }
+
+    class Meta:
+        model = LaporanPerjalanan
+        fields = [
+            "spt",
+            "pelaksana",
+            "pembukaan",
+            "isi_pertemuan",
+            "penutup",
+        ]
+        widgets = {
+            "pembukaan": RichTextarea(),
+            "isi_pertemuan": RichTextarea(),
+            "penutup": RichTextarea(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.is_bound and not getattr(self.instance, "pk", None):
+            self.fields["pembukaan"].initial = ""
+            self.fields["isi_pertemuan"].initial = ""
+            self.fields["penutup"].initial = (
+                "Demikian Laporan Perjalanan Dinas ini dibuat, sebagai bahan Laporan."
+            )
+
+
+class LaporanPerjalananMediaForm(SPJModelForm):
+    field_layout = {
         "foto_1": 3,
         "foto_2": 3,
         "foto_3": 3,
@@ -665,11 +712,6 @@ class LaporanPerjalananForm(SPJModelForm):
     class Meta:
         model = LaporanPerjalanan
         fields = [
-            "spt",
-            "pelaksana",
-            "pembukaan",
-            "isi_pertemuan",
-            "penutup",
             "foto_1",
             "foto_2",
             "foto_3",
@@ -678,21 +720,11 @@ class LaporanPerjalananForm(SPJModelForm):
             "longitude",
         ]
         widgets = {
-            "pembukaan": RichTextarea(),
-            "isi_pertemuan": RichTextarea(),
-            "penutup": RichTextarea(),
             "latitude": forms.NumberInput(attrs={"class": "form-control"}),
             "longitude": forms.NumberInput(attrs={"class": "form-control"}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for name in ("foto_1", "latitude", "longitude"):
-            if name in self.fields:
-                self.fields[name].required = False
-        if not self.is_bound and not getattr(self.instance, "pk", None):
-            self.fields["pembukaan"].initial = ""
-            self.fields["isi_pertemuan"].initial = ""
-            self.fields["penutup"].initial = (
-                "Demikian Laporan Perjalanan Dinas ini dibuat, sebagai bahan Laporan."
-            )
+        for name in ("foto_1", "foto_2", "foto_3", "foto_4", "latitude", "longitude"):
+            self.fields[name].required = False

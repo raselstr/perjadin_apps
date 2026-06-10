@@ -4,12 +4,14 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.http import JsonResponse, Http404
+from django.urls import reverse
 from django.utils.dateparse import parse_date
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q, Prefetch
 from django.test import RequestFactory
+from urllib.parse import quote
 from .utils.pdf import render_pdf
 from perintah.models import (
     Spt,
@@ -59,6 +61,53 @@ def validate_api_key(request):
     )
 
     return api_key == settings.N8N_API_KEY
+
+
+def build_absolute_named_url(request, url_name, *args):
+    return request.build_absolute_uri(reverse(url_name, args=args))
+
+
+def build_document_links(request, pemberi_tugas_id):
+    links = {
+        "spt": build_absolute_named_url(
+            request,
+            "pemberi_tugas_preview_spt",
+            pemberi_tugas_id,
+        ),
+        "spd": build_absolute_named_url(
+            request,
+            "pemberi_tugas_preview_spd",
+            pemberi_tugas_id,
+        ),
+        "spd_belakang": build_absolute_named_url(
+            request,
+            "pemberi_tugas_preview_spd_belakang",
+            pemberi_tugas_id,
+        ),
+    }
+    links["whatsapp_text"] = "\n".join([
+        "Link cetak dokumen perjalanan dinas:",
+        f"SPT: {links['spt']}",
+        f"SPD: {links['spd']}",
+        f"SPD Belakang: {links['spd_belakang']}",
+    ])
+    links["whatsapp_url"] = (
+        "https://wa.me/?text=" + quote(links["whatsapp_text"])
+    )
+    return links
+
+
+def document_link_response(request, pemberi_tugas, document_key):
+    links = build_document_links(request, pemberi_tugas.pk)
+    return JsonResponse({
+        "success": True,
+        "data": {
+            "pemberi_tugas_id": pemberi_tugas.pk,
+            "document": document_key,
+            "url": links[document_key],
+            "links": links,
+        },
+    })
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -387,6 +436,10 @@ class CreateSptFromWAApiView(View):
                             "spt_id": spt.id,
                             "pemberi_tugas_id":
                                 pemberi_tugas.id,
+                            "document_links": build_document_links(
+                                request,
+                                pemberi_tugas.id,
+                            ),
                             "jumlah_pelaksana":
                                 jumlah_pelaksana,
                             "tgl_berangkat":
@@ -501,6 +554,9 @@ class PrintSptWAApiView(View):
             self.get_queryset(),
             pk=pk,
         )
+
+        if request.GET.get("download") != "1":
+            return document_link_response(request, pemberi_tugas, "spt")
 
         spt = pemberi_tugas.spt
 
@@ -787,6 +843,9 @@ class PrintSpdWAApiView(View):
                 "penandatangan Bupati/Wakil Bupati."
             )
 
+        if request.GET.get("download") != "1":
+            return document_link_response(request, pemberi_tugas, "spd")
+
         #
         # pengganti get_active_opd_id(request)
         #
@@ -881,6 +940,9 @@ class PrintSpdBelakangWAApiView(View):
             ),
             pk=pk,
         )
+
+        if request.GET.get("download") != "1":
+            return document_link_response(request, pemberi_tugas, "spd_belakang")
 
         pemda = get_matching_pemda(
             pemberi_tugas.penandatangan.opd

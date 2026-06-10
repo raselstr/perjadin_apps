@@ -40,6 +40,67 @@ class BuktiColumn(tables.TemplateColumn):
         super().__init__(*args, **kwargs)
 
 
+class PenginapanMediaColumn(tables.TemplateColumn):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("verbose_name", "Foto & Lokasi")
+        kwargs.setdefault("orderable", False)
+        kwargs.setdefault("template_code", """
+            {% load l10n %}
+            <div class="d-flex gap-1 flex-wrap">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'penginapan_media' record.id %}" hx-boost="false">
+                Upload
+              </a>
+              {% if record.foto_hotel %}
+                <a class="btn btn-sm btn-outline-secondary" href="{{ record.foto_hotel.url }}" target="_blank" rel="noopener">
+                  Foto
+                </a>
+              {% endif %}
+              {% if record.latitude and record.longitude %}
+                {% localize off %}
+                <a
+                  class="btn btn-sm btn-outline-secondary"
+                  href="https://www.openstreetmap.org/?mlat={{ record.latitude }}&mlon={{ record.longitude }}#map=17/{{ record.latitude }}/{{ record.longitude }}"
+                  target="_blank"
+                  rel="noopener">
+                  Lokasi
+                </a>
+                {% endlocalize %}
+              {% endif %}
+            </div>
+            """)
+        super().__init__(*args, **kwargs)
+
+
+class LaporanMediaColumn(tables.TemplateColumn):
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("verbose_name", "Foto & Lokasi")
+        kwargs.setdefault("orderable", False)
+        kwargs.setdefault("template_code", """
+            {% load l10n %}
+            <div class="d-flex gap-1 flex-wrap">
+              <a class="btn btn-sm btn-outline-primary" href="{% url 'laporan_perjalanan_media' record.id %}" hx-boost="false">
+                Upload
+              </a>
+              {% if record.foto_1 %}<a class="btn btn-sm btn-outline-secondary" href="{{ record.foto_1.url }}" target="_blank" rel="noopener">F1</a>{% endif %}
+              {% if record.foto_2 %}<a class="btn btn-sm btn-outline-secondary" href="{{ record.foto_2.url }}" target="_blank" rel="noopener">F2</a>{% endif %}
+              {% if record.foto_3 %}<a class="btn btn-sm btn-outline-secondary" href="{{ record.foto_3.url }}" target="_blank" rel="noopener">F3</a>{% endif %}
+              {% if record.foto_4 %}<a class="btn btn-sm btn-outline-secondary" href="{{ record.foto_4.url }}" target="_blank" rel="noopener">F4</a>{% endif %}
+              {% if record.latitude and record.longitude %}
+                {% localize off %}
+                <a
+                  class="btn btn-sm btn-outline-secondary"
+                  href="https://www.openstreetmap.org/?mlat={{ record.latitude }}&mlon={{ record.longitude }}#map=17/{{ record.latitude }}/{{ record.longitude }}"
+                  target="_blank"
+                  rel="noopener">
+                  Lokasi
+                </a>
+                {% endlocalize %}
+              {% endif %}
+            </div>
+            """)
+        super().__init__(*args, **kwargs)
+
+
 class SPJBaseTable(BaseTable):
     spt_info = tables.TemplateColumn(
         verbose_name="SPT",
@@ -104,24 +165,7 @@ class JenisSPJTable(BaseTable):
 class PenginapanTable(SPJBaseTable):
     aksi = spj_action_column("penginapan_action_pk", "penginapan_delete")
     bukti_link = BuktiColumn(verbose_name="Bukti")
-    lokasi_hotel = tables.TemplateColumn(
-    verbose_name="Lokasi",
-    orderable=False,
-    template_code="""
-    {% load l10n %}
-    {% if record.latitude and record.longitude %}
-      {% localize off %}
-      <a href="https://www.openstreetmap.org/?mlat={{ record.latitude }}&mlon={{ record.longitude }}#map=17/{{ record.latitude }}/{{ record.longitude }}"
-         target="_blank"
-         class="btn btn-sm btn-outline-primary">
-        <i class="ti ti-map-pin"></i> Titik
-      </a>
-      {% endlocalize %}
-    {% else %}
-      -
-    {% endif %}
-    """,
-)
+    media = PenginapanMediaColumn()
 
     class Meta(BaseTable.Meta):
         model = Penginapan
@@ -134,7 +178,7 @@ class PenginapanTable(SPJBaseTable):
             "harga_per_malam",
             "standar_maksimal",
             "total_biaya",
-            "lokasi_hotel",
+            "media",
             "verifikasi",
             "bukti_link",
             "aksi",
@@ -227,6 +271,7 @@ class LaporanPerjalananTable(SPJBaseTable):
     standar_maksimal = None
     total_biaya = None
     aksi = spj_action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
+    media = LaporanMediaColumn()
     dokumen = tables.TemplateColumn(
         verbose_name="Cetak",
         orderable=False,
@@ -241,19 +286,6 @@ class LaporanPerjalananTable(SPJBaseTable):
         </a>
         """,
     )
-    foto = tables.TemplateColumn(
-        verbose_name="Foto",
-        orderable=False,
-        template_code="""
-        {% with total=0 %}
-          {% if record.foto_1 %} <a href="{{ record.foto_1.url }}" target="_blank">1</a>{% endif %}
-          {% if record.foto_2 %} <a href="{{ record.foto_2.url }}" target="_blank">2</a>{% endif %}
-          {% if record.foto_3 %} <a href="{{ record.foto_3.url }}" target="_blank">3</a>{% endif %}
-          {% if record.foto_4 %} <a href="{{ record.foto_4.url }}" target="_blank">4</a>{% endif %}
-        {% endwith %}
-        """,
-    )
-
     class Meta(BaseTable.Meta):
         model = LaporanPerjalanan
         fields = (
@@ -261,7 +293,7 @@ class LaporanPerjalananTable(SPJBaseTable):
             "spt_info",
             "pelaksana_info",
             "judul",
-            "foto",
+            "media",
             "verifikasi",
             "dokumen",
             "aksi",

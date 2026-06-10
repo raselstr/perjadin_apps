@@ -28,7 +28,9 @@ from .access import (
 from .forms import (
     JenisSPJForm,
     LaporanPerjalananForm,
+    LaporanPerjalananMediaForm,
     PenginapanForm,
+    PenginapanMediaForm,
     PesawatForm,
     TransportForm,
     UangHarianForm,
@@ -253,6 +255,12 @@ class SPJQuerysetMixin:
     template_name = "spj/page.html"
     template_form = "spj/form_page.html"
     template_delete = "spj/delete_page.html"
+    media_form_class = None
+
+    def dispatch(self, request, *args, **kwargs):
+        if "media" in request.path:
+            return self.media_view(request, kwargs.get("pk"))
+        return super().dispatch(request, *args, **kwargs)
 
     def get_base_queryset(self):
         queryset = self.model.objects.select_related(
@@ -359,6 +367,40 @@ class SPJQuerysetMixin:
             "title": self.title,
         })
 
+    def media_view(self, request, pk):
+        perm = self.get_permission()
+        if not self.media_form_class:
+            return self._forbidden(request)
+        if not perm or not perm.can_edit:
+            return self._forbidden(request)
+
+        instance = get_object_or_404(self.get_object_queryset(), pk=pk)
+        if self._is_locked_for_user(instance):
+            messages.error(
+                request,
+                "Berkas SPJ sudah diverifikasi dan foto/lokasi tidak dapat diubah.",
+            )
+            return redirect(self.url_list)
+
+        form = self.media_form_class(
+            **self.get_form_kwargs(request, instance=instance)
+        )
+
+        if request.method == "POST" and form.is_valid():
+            obj = form.save(commit=False)
+            obj.save()
+            form.save_m2m()
+            messages.success(request, "Foto dan lokasi berhasil diperbarui.")
+            return redirect(self.url_list)
+
+        return render(request, self.template_form, {
+            "form": form,
+            "title": f"Foto & Lokasi {self.title}",
+            "permission": perm,
+            "url_list": self.url_list,
+            "is_multipart_form": form.is_multipart(),
+        })
+
 class JenisSPJView(BaseCRUDView):
     model = JenisSPJ
     form_class = JenisSPJForm
@@ -374,6 +416,7 @@ class JenisSPJView(BaseCRUDView):
 class PenginapanView(SPJQuerysetMixin, BaseCRUDView):
     model = Penginapan
     form_class = PenginapanForm
+    media_form_class = PenginapanMediaForm
     table_class = PenginapanTable
     enable_excel = False
 
@@ -451,6 +494,7 @@ class UangRepresentasiView(SPJQuerysetMixin, BaseCRUDView):
 class LaporanPerjalananView(SPJQuerysetMixin, BaseCRUDView):
     model = LaporanPerjalanan
     form_class = LaporanPerjalananForm
+    media_form_class = LaporanPerjalananMediaForm
     table_class = LaporanPerjalananTable
     enable_excel = False
 

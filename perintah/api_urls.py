@@ -5,7 +5,6 @@ from .api_views import (
     PrintSpdBelakangWAApiView,
     PrintSpdWAApiView,
     PrintSptWAApiView,
-    PrintSptWAApiView,
     SearchPegawaiWAApiView,
     SearchPenandatanganWAApiView,
     CreateSptFromWAApiView,
