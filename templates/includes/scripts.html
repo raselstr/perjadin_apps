@@ -30,6 +30,7 @@
   const JPEG_QUALITY = 0.78;
   const MIN_SIZE_TO_COMPRESS = 250 * 1024;
   const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+  const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
 
   function shouldHandleInput(input) {
     if (!input || input.type !== 'file' || !input.files || !input.files.length) {
@@ -40,6 +41,79 @@
     return accept.includes('image') || Array.from(input.files).some(function (file) {
       return file.type && file.type.startsWith('image/');
     });
+  }
+
+  function getPhotoWrapper(input) {
+    return input.closest('[data-spj-photo-field="1"]');
+  }
+
+  function setPhotoStatus(input, message, tone) {
+    const wrapper = getPhotoWrapper(input);
+    const status = wrapper ? wrapper.querySelector('[data-spj-photo-status]') : null;
+    if (!status) {
+      return;
+    }
+
+    status.textContent = message || '';
+    status.classList.toggle('text-danger', tone === 'danger');
+    status.classList.toggle('text-success', tone === 'success');
+    status.classList.toggle('text-muted', !tone);
+  }
+
+  function getFileExtension(file) {
+    const name = (file && file.name ? file.name : '').toLowerCase();
+    const parts = name.split('.');
+    return parts.length > 1 ? parts.pop() : '';
+  }
+
+  function validatePhotoInput(input) {
+    if (!input || input.type !== 'file' || !input.files || !input.files.length) {
+      return true;
+    }
+
+    const file = input.files[0];
+    const extension = getFileExtension(file);
+    const contentType = (file.type || '').toLowerCase();
+    const source = input.hasAttribute('data-spj-camera-source') ? 'kamera' : 'galeri';
+
+    if (!file.size) {
+      setPhotoStatus(
+        input,
+        'Foto tidak terbaca. Aktifkan izin Kamera dan Foto/File untuk browser, lalu pilih atau ambil foto lagi.',
+        'danger'
+      );
+      input.value = '';
+      return false;
+    }
+
+    if (extension === 'heic' || extension === 'heif' || contentType === 'image/heic' || contentType === 'image/heif') {
+      setPhotoStatus(
+        input,
+        'Foto kamera memakai HEIC/HEIF. Di Redmi/Xiaomi buka Kamera > Setelan, nonaktifkan HEIF/High efficiency atau pilih format JPG/JPEG, lalu ambil foto ulang.',
+        'danger'
+      );
+      input.value = '';
+      return false;
+    }
+
+    if (extension && !ALLOWED_PHOTO_EXTENSIONS.includes(extension)) {
+      setPhotoStatus(
+        input,
+        'Format foto belum didukung. Gunakan JPG, JPEG, PNG, atau WEBP.',
+        'danger'
+      );
+      input.value = '';
+      return false;
+    }
+
+    if (contentType && !contentType.startsWith('image/')) {
+      setPhotoStatus(input, 'File yang dipilih bukan foto. Pilih file gambar.', 'danger');
+      input.value = '';
+      return false;
+    }
+
+    setPhotoStatus(input, (file.name || 'Foto') + ' siap dari ' + source + '.', 'success');
+    return true;
   }
 
   function loadImage(file) {
@@ -125,7 +199,9 @@
 
   document.addEventListener('change', function (event) {
     if (event.target && event.target.type === 'file') {
-      compressInputFiles(event.target);
+      if (validatePhotoInput(event.target)) {
+        compressInputFiles(event.target);
+      }
     }
   });
 
@@ -140,6 +216,11 @@
       .filter(shouldHandleInput);
 
     if (!inputs.length) {
+      return;
+    }
+
+    if (!inputs.every(validatePhotoInput)) {
+      event.preventDefault();
       return;
     }
 
@@ -158,5 +239,55 @@
       }
     }
   }, true);
+
+  function initializePhotoChoiceFields(scope) {
+    const root = scope || document;
+    root.querySelectorAll('[data-spj-photo-field="1"]').forEach(function (wrapper) {
+      if (wrapper.dataset.photoChoiceReady === '1') {
+        return;
+      }
+      wrapper.dataset.photoChoiceReady = '1';
+
+      const inputs = Array.from(wrapper.querySelectorAll('input[type="file"]'));
+      inputs.forEach(function (input) {
+        input.addEventListener('change', function () {
+          if (input.files && input.files.length) {
+            inputs.forEach(function (otherInput) {
+              if (otherInput !== input) {
+                otherInput.value = '';
+              }
+            });
+          }
+          validatePhotoInput(input);
+        });
+      });
+
+      wrapper.querySelectorAll('label[for]').forEach(function (label) {
+        label.addEventListener('click', function () {
+          const target = document.getElementById(label.getAttribute('for'));
+          const usingCamera = target && target.hasAttribute('data-spj-camera-source');
+          setPhotoStatus(
+            target || inputs[0],
+            usingCamera
+              ? 'Membuka kamera HP. Jika tidak muncul, aktifkan izin Kamera untuk browser.'
+              : 'Membuka galeri HP. Jika tidak muncul, aktifkan izin Foto/File untuk browser.',
+            null
+          );
+        });
+      });
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () {
+      initializePhotoChoiceFields(document);
+    });
+  } else {
+    initializePhotoChoiceFields(document);
+  }
+
+  document.body.addEventListener('htmx:afterSwap', function (event) {
+    initializePhotoChoiceFields(event.detail && event.detail.target ? event.detail.target : document);
+  });
 })();
 </script>

@@ -33,20 +33,31 @@ class UserProfileForm(forms.ModelForm):
             'foto': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
                 'accept': 'image/*',
-                'capture': 'environment',
+                'data-spj-camera-upload': '1',
             }),
         }
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get("foto")
+        if not foto:
+            return foto
+        if getattr(foto, "content_type", "") in ("image/heic", "image/heif"):
+            raise forms.ValidationError(
+                "Foto memakai format HEIC/HEIF. Ubah pengaturan kamera HP ke "
+                "JPG/JPEG atau nonaktifkan HEIF/High efficiency."
+            )
+        return foto
 
 
 class AccountSettingsForm(forms.Form):
     first_name = forms.CharField(label="Nama Depan", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     last_name = forms.CharField(label="Nama Belakang", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     email = forms.EmailField(label="Email", required=False, widget=forms.EmailInput(attrs={"class": "form-control"}))
-    foto_user = forms.ImageField(label="Foto User", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*", "capture": "environment"}))
+    foto_user = forms.ImageField(label="Foto User", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*", "data-spj-camera-upload": "1"}))
     nama = forms.CharField(label="Nama Pegawai", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     jabatan = forms.CharField(label="Jabatan", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     tgl_lahir = forms.DateField(label="Tanggal Lahir", required=False, widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
-    foto_pegawai = forms.ImageField(label="Foto Pegawai", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*", "capture": "environment"}))
+    foto_pegawai = forms.ImageField(label="Foto Pegawai", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*", "data-spj-camera-upload": "1"}))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
@@ -60,6 +71,24 @@ class AccountSettingsForm(forms.Form):
                 self.fields["nama"].initial = self.pegawai.nama
                 self.fields["jabatan"].initial = self.pegawai.jabatan
                 self.fields["tgl_lahir"].initial = self.pegawai.tgl_lahir
+
+    def _clean_photo(self, field_name):
+        foto = self.cleaned_data.get(field_name)
+        if not foto:
+            return foto
+        if getattr(foto, "content_type", "") in ("image/heic", "image/heif"):
+            raise forms.ValidationError(
+                "Foto memakai format HEIC/HEIF. Buka Pengaturan Kamera HP, "
+                "ubah format foto ke JPG/JPEG atau nonaktifkan HEIF/High efficiency, "
+                "lalu ambil foto ulang."
+            )
+        return foto
+
+    def clean_foto_user(self):
+        return self._clean_photo("foto_user")
+
+    def clean_foto_pegawai(self):
+        return self._clean_photo("foto_pegawai")
 
     def save(self):
         user = self.user

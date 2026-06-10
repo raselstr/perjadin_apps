@@ -123,7 +123,11 @@ class PegawaiForm(BaseAppModelForm):
                 'class': 'form-control',
                 'type': 'date'
             }, format="%Y-%m-%d"),
-            'foto': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+            'foto': forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
+                'data-spj-camera-upload': '1',
+            }),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
             'tingkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tingkat'}),
         }
@@ -152,6 +156,21 @@ class PegawaiForm(BaseAppModelForm):
             self.fields["opd"].initial = (
                 self.instance.opd_id or active_opd_id
             )
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get("foto")
+        if not foto:
+            return foto
+
+        content_type = getattr(foto, "content_type", "") or ""
+        if content_type in ("image/heic", "image/heif"):
+            raise forms.ValidationError(
+                "Foto dari kamera HP memakai format HEIC/HEIF. "
+                "Buka Pengaturan Kamera HP lalu ubah format foto ke JPG/JPEG "
+                "atau nonaktifkan HEIF/High efficiency, kemudian ambil foto ulang."
+            )
+
+        return foto
 
     def clean(self):
         cleaned_data = super().clean()
