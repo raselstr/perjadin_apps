@@ -31,6 +31,7 @@
   const MIN_SIZE_TO_COMPRESS = 250 * 1024;
   const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
   const ALLOWED_PHOTO_EXTENSIONS = ['jpg', 'jpeg', 'png', 'webp'];
+  const MOBILE_USER_AGENT = /Android|iPhone|iPad|iPod/i;
 
   function shouldHandleInput(input) {
     if (!input || input.type !== 'file' || !input.files || !input.files.length) {
@@ -41,6 +42,26 @@
     return accept.includes('image') || Array.from(input.files).some(function (file) {
       return file.type && file.type.startsWith('image/');
     });
+  }
+
+  function isMobileBrowser() {
+    return MOBILE_USER_AGENT.test(navigator.userAgent || '');
+  }
+
+  function isCameraInput(input) {
+    return input && input.hasAttribute('data-spj-camera-source');
+  }
+
+  function shouldCompressInBrowser(input) {
+    if (!shouldHandleInput(input)) {
+      return false;
+    }
+
+    if (isMobileBrowser() || isCameraInput(input)) {
+      return false;
+    }
+
+    return true;
   }
 
   function getPhotoWrapper(input) {
@@ -169,7 +190,7 @@
   }
 
   async function compressInputFiles(input) {
-    if (!shouldHandleInput(input) || input.dataset.compressingImage === '1') {
+    if (!shouldCompressInBrowser(input) || input.dataset.compressingImage === '1') {
       return;
     }
 

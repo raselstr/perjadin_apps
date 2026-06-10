@@ -125,7 +125,7 @@ class PegawaiForm(BaseAppModelForm):
             }, format="%Y-%m-%d"),
             'foto': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
-                'accept': 'image/*',
+                'accept': 'image/jpeg,image/png,image/webp',
                 'data-spj-camera-upload': '1',
             }),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),

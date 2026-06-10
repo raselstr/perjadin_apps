@@ -32,7 +32,7 @@ class UserProfileForm(forms.ModelForm):
             'role': forms.Select(attrs={'class': 'form-select select2', 'data-placeholder': 'Pilih Role'}),
             'foto': forms.ClearableFileInput(attrs={
                 'class': 'form-control',
-                'accept': 'image/*',
+                'accept': 'image/jpeg,image/png,image/webp',
                 'data-spj-camera-upload': '1',
             }),
         }
@@ -53,11 +53,11 @@ class AccountSettingsForm(forms.Form):
     first_name = forms.CharField(label="Nama Depan", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     last_name = forms.CharField(label="Nama Belakang", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     email = forms.EmailField(label="Email", required=False, widget=forms.EmailInput(attrs={"class": "form-control"}))
-    foto_user = forms.ImageField(label="Foto User", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*", "data-spj-camera-upload": "1"}))
+    foto_user = forms.ImageField(label="Foto User", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/jpeg,image/png,image/webp", "data-spj-camera-upload": "1"}))
     nama = forms.CharField(label="Nama Pegawai", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     jabatan = forms.CharField(label="Jabatan", required=False, widget=forms.TextInput(attrs={"class": "form-control"}))
     tgl_lahir = forms.DateField(label="Tanggal Lahir", required=False, widget=forms.DateInput(attrs={"class": "form-control", "type": "date"}))
-    foto_pegawai = forms.ImageField(label="Foto Pegawai", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/*", "data-spj-camera-upload": "1"}))
+    foto_pegawai = forms.ImageField(label="Foto Pegawai", required=False, widget=forms.ClearableFileInput(attrs={"class": "form-control", "accept": "image/jpeg,image/png,image/webp", "data-spj-camera-upload": "1"}))
 
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user")
