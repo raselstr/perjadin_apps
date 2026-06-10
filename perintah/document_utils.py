@@ -8,7 +8,7 @@ from django.utils.formats import date_format
 from umum.models import KopSurat, Pemda, Penandatangan
 
 
-GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati", "Sekretaris Daerah")
+GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
 TUGAS_DISPLAY_MAP = dict(Penandatangan.TUGAS_CHOICES)
 ROMAN_MAP = {
     "I": 1,
@@ -166,11 +166,11 @@ def build_spt_signature_title_parts(penandatangan, pemda=None):
             "lines": [get_letterhead_office_name(penandatangan, pemda=pemda)],
         }
 
-    # if tugas == "Sekretaris Daerah":
-    #     return {
-    #         "prefix": "",
-    #         "lines": [tugas],
-    #     }
+    if tugas == "Sekretaris Daerah":
+        return {
+            "prefix": "",
+            "lines": [tugas],
+        }
 
     if tugas != "Kepala":
         return {
