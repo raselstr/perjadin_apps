@@ -9,9 +9,15 @@ from .api_views import (
     SearchPenandatanganWAApiView,
     CreateSptFromWAApiView,
     SearchLokasiWAApiView,
+    WaSessionApiView,
 )
 
 urlpatterns = [
+    path(
+        "wa/session/",
+        WaSessionApiView.as_view(),
+        name="wa_session",
+    ),
 
     path(
         "wa/master-data/",

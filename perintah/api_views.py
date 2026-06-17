@@ -51,7 +51,116 @@ from perintah.document_utils import (
     filter_spd_pelaksana,
     select_spd_primary_pelaksana,
 )
+from .api_models import WaSession
 
+class WaSessionApiView(View):
+
+    def get(self, request):
+
+        nomor = request.GET.get("nomor")
+
+        if not nomor:
+            return JsonResponse({
+                "success": False,
+                "message": "nomor wajib diisi"
+            }, status=400)
+
+        try:
+
+            session = WaSession.objects.get(
+                nomor=nomor
+            )
+
+            return JsonResponse({
+                "success": True,
+                "exists": True,
+                "data": {
+                    "id": session.id,
+                    "nomor": session.nomor,
+                    "step": session.step,
+                    "payload": session.payload,
+                }
+            })
+
+        except WaSession.DoesNotExist:
+
+            return JsonResponse({
+                "success": True,
+                "exists": False,
+            })
+    
+    def post(self, request):
+        try:
+            body = json.loads(
+                request.body.decode("utf-8")
+            )
+
+        except Exception:
+            return JsonResponse({
+                "success": False,
+                "message": "JSON tidak valid"
+            }, status=400)
+
+        nomor = body.get("nomor")
+
+        if not nomor:
+            return JsonResponse({
+                "success": False,
+                "message": "nomor wajib diisi"
+            }, status=400)
+
+        session, created = (
+            WaSession.objects.get_or_create(
+                nomor=nomor
+            )
+        )
+
+        if "step" in body:
+            session.step = body["step"]
+
+        payload = session.payload or {}
+
+        incoming_payload = body.get(
+            "payload",
+            {}
+        )
+
+        payload.update(
+            incoming_payload
+        )
+
+        session.payload = payload
+
+        session.save()
+
+        return JsonResponse({
+            "success": True,
+            "created": created,
+            "data": {
+                "nomor": session.nomor,
+                "step": session.step,
+                "payload": session.payload,
+            }
+        })
+
+    def delete(self, request):
+        nomor = request.GET.get("nomor")
+        if not nomor:
+            return JsonResponse({
+                "success": False,
+                "message": "nomor wajib diisi"
+            }, status=400)
+
+        deleted, _ = (
+            WaSession.objects.filter(
+                nomor=nomor
+            ).delete()
+        )
+
+        return JsonResponse({
+            "success": True,
+            "deleted": deleted > 0,
+        })
 
 def validate_api_key(request):
 

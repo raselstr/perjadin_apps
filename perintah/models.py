@@ -3,7 +3,7 @@ from datetime import timedelta
 from django.core.exceptions import NON_FIELD_ERRORS, ValidationError
 from django.db import models
 from django.db.models import Q
-
+from perintah.api_models import WaSession
 
 class Spt(models.Model):
     KENDARAAN_CHOICES = [
