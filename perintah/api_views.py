@@ -126,6 +126,17 @@ class WaSessionApiView(View):
             {}
         )
 
+        if isinstance(incoming_payload, str):
+            try:
+                incoming_payload = json.loads(
+                    incoming_payload
+                )
+            except Exception:
+                return JsonResponse({
+                    "success": False,
+                    "message": "payload tidak valid"
+                }, status=400)
+
         payload.update(
             incoming_payload
         )
