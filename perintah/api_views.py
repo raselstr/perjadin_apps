@@ -53,6 +53,7 @@ from perintah.document_utils import (
 )
 from .api_models import WaSession
 
+@method_decorator(csrf_exempt, name="dispatch")
 class WaSessionApiView(View):
 
     def get(self, request):
