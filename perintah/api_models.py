@@ -23,12 +23,13 @@ class WaSession(models.Model):
     ("INPUT_JENIS_KEGIATAN", "Input Jenis Kegiatan"),
     ("PILIH_JENIS_KEGIATAN", "Pilih Jenis Kegiatan"),
 
-    ("INPUT_PENANDATANGAN", "Input Penandatangan"),
-    ("PILIH_PENANDATANGAN", "Pilih Penandatangan"),
-
     ("INPUT_LAMA_PERJALANAN", "Input Lama Perjalanan"),
     ("INPUT_TANGGAL", "Input Tanggal"),
     ("INPUT_KENDARAAN", "Input Kendaraan"),
+    ("PILIH_JENIS_KENDARAAN", "Pilih Jenis Kendaraan"),
+
+    ("INPUT_PENANDATANGAN", "Input Penandatangan"),
+    ("PILIH_PENANDATANGAN", "Pilih Penandatangan"),
 
     ("KONFIRMASI", "Konfirmasi"),
     ("SELESAI", "Selesai"),
