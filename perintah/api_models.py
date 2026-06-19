@@ -4,21 +4,35 @@ from django.db import models
 class WaSession(models.Model):
 
     STEP_CHOICES = [
-        ("DASAR_SPT", "Input Dasar SPT"),
-        ("BERITA_SPT", "Input Berita SPT"),
-        ("KOTA_TUJUAN", "Input Kota Tujuan"),
-        ("KOTA_TUJUAN_TAMBAHAN", "Input Kota Tujuan Tambahan"),
-        ("TEMPAT_TUJUAN", "Input Tempat Tujuan"),
-        ("INPUT_PELAKSANA", "Input Pelaksana"),
-        ("TAMBAH_PELAKSANA", "Tambah Pelaksana"),
-        ("INPUT_JENIS_KEGIATAN", "Input Jenis Kegiatan"),
-        ("INPUT_LAMA_PERJALANAN", "Input Lama Perjalanan"),
-        ("INPUT_TANGGAL", "Input Tanggal"),
-        ("INPUT_KENDARAAN", "Input Kendaraan"),
-        ("INPUT_PENANDATANGAN", "Input Penandatangan"),
-        ("KONFIRMASI", "Konfirmasi"),
-        ("SELESAI", "Selesai"),
-    ]
+    ("DASAR_SPT", "Input Dasar SPT"),
+    ("BERITA_SPT", "Input Berita SPT"),
+
+    ("KOTA_TUJUAN", "Input Kota Tujuan"),
+    ("PILIH_KOTA_TUJUAN", "Pilih Kota Tujuan"),
+
+    ("KOTA_TUJUAN_TAMBAHAN", "Input Kota Tujuan Tambahan"),
+    ("PILIH_KOTA_TUJUAN_TAMBAHAN", "Pilih Kota Tujuan Tambahan"),
+
+    ("TEMPAT_TUJUAN", "Input Tempat Tujuan"),
+
+    ("INPUT_PELAKSANA", "Input Pelaksana"),
+    ("PILIH_PELAKSANA", "Pilih Pelaksana"),
+
+    ("TAMBAH_PELAKSANA", "Tambah Pelaksana"),
+
+    ("INPUT_JENIS_KEGIATAN", "Input Jenis Kegiatan"),
+    ("PILIH_JENIS_KEGIATAN", "Pilih Jenis Kegiatan"),
+
+    ("INPUT_PENANDATANGAN", "Input Penandatangan"),
+    ("PILIH_PENANDATANGAN", "Pilih Penandatangan"),
+
+    ("INPUT_LAMA_PERJALANAN", "Input Lama Perjalanan"),
+    ("INPUT_TANGGAL", "Input Tanggal"),
+    ("INPUT_KENDARAAN", "Input Kendaraan"),
+
+    ("KONFIRMASI", "Konfirmasi"),
+    ("SELESAI", "Selesai"),
+]
 
     nomor = models.CharField(
         max_length=30,
