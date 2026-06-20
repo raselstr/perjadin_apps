@@ -403,6 +403,41 @@ class SearchPenandatanganWAApiView(View):
             }
         )
 
+@method_decorator(csrf_exempt, name="dispatch")
+class SearchJenisKegiatanWAApiView(View):
+
+    def get(self, request):
+
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
+
+        q = request.GET.get("q", "").strip()
+
+        data = list(
+            JenisKegiatan.objects.filter(
+                nama__icontains=q
+            )
+            .order_by("nama")
+            .values(
+                "id",
+                "nama",
+            )
+        )
+
+        return JsonResponse(
+            {
+                "success": True,
+                "count": len(data),
+                "data": data,
+            }
+        )
+
 
 @method_decorator(csrf_exempt, name="dispatch")
 class CreateSptFromWAApiView(View):

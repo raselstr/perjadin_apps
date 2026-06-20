@@ -7,6 +7,7 @@ from .api_views import (
     PrintSptWAApiView,
     SearchPegawaiWAApiView,
     SearchPenandatanganWAApiView,
+    SearchJenisKegiatanWAApiView,
     CreateSptFromWAApiView,
     SearchLokasiWAApiView,
     WaSessionApiView,
@@ -35,6 +36,12 @@ urlpatterns = [
         "wa/search-penandatangan/",
         SearchPenandatanganWAApiView.as_view(),
         name="wa_search_penandatangan",
+    ),
+
+    path(
+        "wa/search-jenis-kegiatan/",
+        SearchJenisKegiatanWAApiView.as_view(),
+        name="wa_search_jenis_kegiatan",
     ),
 
     path(
