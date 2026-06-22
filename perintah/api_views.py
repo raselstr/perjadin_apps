@@ -246,7 +246,7 @@ class MasterDataWAApiView(View):
             )
 
         lokasi = list(
-            Lokasi.objects.order_by("lokasi")
+            Lokasi.objects.order_by("id")
             .values(
                 "id",
                 "lokasi",
@@ -254,7 +254,7 @@ class MasterDataWAApiView(View):
         )
 
         jenis_kegiatan = list(
-            JenisKegiatan.objects.order_by("nama")
+            JenisKegiatan.objects.order_by("id")
             .values(
                 "id",
                 "nama",
@@ -262,7 +262,7 @@ class MasterDataWAApiView(View):
         )
 
         penandatangan = list(
-            Penandatangan.objects.order_by("nama")
+            Penandatangan.objects.order_by("id")
             .values(
                 "id",
                 "nama",

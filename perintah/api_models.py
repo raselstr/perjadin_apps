@@ -25,7 +25,7 @@ class WaSession(models.Model):
 
     ("INPUT_LAMA_PERJALANAN", "Input Lama Perjalanan"),
     ("INPUT_TANGGAL", "Input Tanggal"),
-    ("INPUT_KENDARAAN", "Input Kendaraan"),
+    ("INPUT_KENDERAAN", "Input Kendaraan"),
     ("PILIH_JENIS_KENDARAAN", "Pilih Jenis Kendaraan"),
 
     ("INPUT_PENANDATANGAN", "Input Penandatangan"),

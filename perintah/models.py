@@ -7,7 +7,7 @@ from perintah.api_models import WaSession
 
 class Spt(models.Model):
     KENDARAAN_CHOICES = [
-        ('transport_umum', 'Transport Umum'),
+        ('transport_umum', 'Transportasi Umum'),
         ('kendaraan_dinas', 'Kenderaan Dinas'),
     ]
 
