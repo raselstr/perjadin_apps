@@ -12,6 +12,7 @@ class WaSession(models.Model):
 
     ("KOTA_TUJUAN_TAMBAHAN", "Input Kota Tujuan Tambahan"),
     ("PILIH_KOTA_TUJUAN_TAMBAHAN", "Pilih Kota Tujuan Tambahan"),
+    ("KONFIRMASI_KOTA_TUJUAN_TAMBAHAN", "Konfirmasi Kota Tujuan Tambahan"),
 
     ("TEMPAT_TUJUAN", "Input Tempat Tujuan"),
 
