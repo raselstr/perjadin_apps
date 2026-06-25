@@ -1,6 +1,10 @@
 from django import template
 
-from core.utils.formatting import number_to_words as _number_to_words, format_nip as _format_nip
+from core.utils.formatting import (
+    format_indonesian_number as _format_indonesian_number,
+    format_nip as _format_nip,
+    number_to_words as _number_to_words,
+)
 
 register = template.Library()
 
@@ -33,3 +37,10 @@ def format_nip(value):
     if value is None:
         return ""
     return _format_nip(value)
+
+
+@register.filter
+def format_indonesian_number(value):
+    if value is None:
+        return ""
+    return _format_indonesian_number(value)

@@ -2,6 +2,8 @@ from django.urls import path
 
 from .views import (
     JenisSPJView,
+    KwitansiPrintView,
+    KwitansiView,
     LaporanPerjalananPreviewView,
     LaporanPerjalananPrintView,
     LaporanPerjalananView,
@@ -160,4 +162,10 @@ urlpatterns = [
     ),
 
     path("laporan/", SPJReportView.as_view(), name="spj_report"),
+    path("kwitansi/", KwitansiView.as_view(), name="kwitansi_list"),
+    path(
+        "kwitansi/cetak/<int:pk>/",
+        KwitansiPrintView.as_view(),
+        name="kwitansi_print",
+    ),
 ]

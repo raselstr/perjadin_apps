@@ -1,0 +1,258 @@
+{% load formatting %}
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Kwitansi</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 22mm 18mm 20mm 18mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: #111;
+      font-family: "Times New Roman", Times, serif;
+      font-size: 14px;
+      line-height: 1.15;
+      background: #fff;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 180mm;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 12px 0 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      width: 100%;
+      margin-bottom: 14px;
+      border-collapse: collapse;
+    }
+
+    .meta td {
+      padding: 0 6px 2px 0;
+      vertical-align: top;
+    }
+
+    .meta .label {
+      width: 170px;
+    }
+
+    .meta .colon {
+      width: 12px;
+      text-align: center;
+    }
+
+    .rincian {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .rincian th,
+    .rincian td {
+      border: 1px solid #777;
+      padding: 5px 6px;
+      vertical-align: top;
+    }
+
+    .rincian th {
+      text-align: center;
+      font-weight: 400;
+    }
+
+    .col-no {
+      width: 32px;
+      text-align: center;
+    }
+
+    .col-rincian {
+      width: 44%;
+    }
+
+    .col-jumlah {
+      width: 27%;
+    }
+
+    .col-keterangan {
+      width: 23%;
+    }
+
+    .amount {
+      white-space: nowrap;
+    }
+
+    .empty-row td {
+      height: 23px;
+    }
+
+    .summary-label {
+      font-weight: 400;
+    }
+
+    .terbilang-cell {
+      height: 28px;
+    }
+
+    .signatures {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 22px;
+      padding: 0 36px;
+    }
+
+    .signature-block {
+      min-height: 150px;
+    }
+
+    .signature-date {
+      min-height: 18px;
+      margin-bottom: 2px;
+    }
+
+    .signature-title {
+      margin-bottom: 58px;
+    }
+
+    .signature-name {
+      min-height: 18px;
+    }
+
+    .print-controls {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      gap: 8px;
+      font-family: Arial, sans-serif;
+    }
+
+    .print-controls button {
+      border: 1px solid #2563eb;
+      border-radius: 4px;
+      background: #2563eb;
+      color: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    @media print {
+      .print-controls {
+        display: none;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-controls">
+    <button type="button" onclick="window.print()">Cetak</button>
+  </div>
+
+  <main class="page">
+    <h1>RINCIAN BIAYA PERJALANAN DINAS</h1>
+
+    <table class="meta">
+      <tr>
+        <td class="label">Lampiran SPD Nomor</td>
+        <td class="colon">:</td>
+        <td>{{ pemberi.nomor_spd|default:"" }}</td>
+      </tr>
+      <tr>
+        <td>Tanggal</td>
+        <td class="colon">:</td>
+        <td>{{ pemberi.tanggal_spt|date:"d F Y"|default:"" }}</td>
+      </tr>
+    </table>
+
+    <table class="rincian">
+      <thead>
+        <tr>
+          <th class="col-no">NO</th>
+          <th class="col-rincian">RINCIAN</th>
+          <th class="col-jumlah">JUMLAH</th>
+          <th class="col-keterangan">KETERANGAN</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in details %}
+          <tr>
+            <td class="col-no">{{ forloop.counter }}.</td>
+            <td>{{ item.label }}</td>
+            <td class="amount">Rp. {{ item.amount|format_indonesian_number }}</td>
+            <td>{{ item.keterangan }}</td>
+          </tr>
+        {% endfor %}
+        {% for _ in empty_rows %}
+          <tr class="empty-row">
+            <td class="col-no"></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <td></td>
+          <td class="summary-label">JUMLAH...............................</td>
+          <td class="amount">Rp. {{ total|format_indonesian_number }}</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>TERBILANG.</td>
+          <td colspan="2" class="terbilang-cell">{{ terbilang|upper }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <section class="signatures">
+      <div class="signature-block">
+        <div class="signature-date">&nbsp;</div>
+        <div>Telah dibayar sejumlah</div>
+        <div>Rp.{{ total|format_indonesian_number }}</div>
+        <div class="signature-title" style="margin-top:14px;">Bendahara Pengeluaran</div>
+        <div class="signature-name">(................................)</div>
+        <div>NIP.</div>
+      </div>
+
+      <div class="signature-block">
+        <div class="signature-date">
+          {{ tempat_tanggal }}, {{ tanggal_cetak|date:"d F Y" }}
+        </div>
+        <div>Telah menerima jumlah uang sebesar</div>
+        <div>Rp.{{ total|format_indonesian_number }}</div>
+        <div class="signature-title" style="margin-top:14px;">Yang Menerima</div>
+        <div class="signature-name">({{ pelaksana.nama.nama }})</div>
+        <div>NIP. {{ pelaksana.nama.nip|format_nip }}</div>
+      </div>
+    </section>
+  </main>
+
+  {% if auto_print %}
+    <script>
+      window.addEventListener('load', function () {
+        window.print();
+      });
+    </script>
+  {% endif %}
+</body>
+</html>

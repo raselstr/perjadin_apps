@@ -16,8 +16,10 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from core.crud.base import BaseCRUDView
+from core.utils.formatting import number_to_words
 from perintah.models import Pelaksana, PemberiTugas
 from profiles.utils import get_active_opd_id
+from umum.models import Pemda
 
 from .access import (
     filter_spj_queryset_for_user,
@@ -249,6 +251,87 @@ def _date_param(request, name):
 
 def _first_or_none(queryset):
     return queryset.first()
+
+
+def _decimal_or_zero(value):
+    return value or Decimal("0")
+
+
+def _append_kwitansi_item(items, label, amount, keterangan=""):
+    amount = _decimal_or_zero(amount)
+    if amount <= 0:
+        return
+    items.append({
+        "label": label,
+        "amount": amount,
+        "keterangan": keterangan,
+    })
+
+
+def _build_kwitansi_items(pelaksana):
+    spt = pelaksana.spt
+    items = []
+
+    uang_harian = UangHarian.objects.filter(
+        spt=spt,
+        pelaksana=pelaksana,
+    ).first()
+    if uang_harian:
+        _append_kwitansi_item(
+            items,
+            "Uang harian perjalanan dinas",
+            uang_harian.total_biaya,
+            f"{spt.lama_perjalanan} hari",
+        )
+
+    representasi = UangRepresentasi.objects.filter(
+        spt=spt,
+        pelaksana=pelaksana,
+    ).first()
+    if representasi:
+        _append_kwitansi_item(
+            items,
+            "Uang representasi",
+            representasi.total_biaya,
+        )
+
+    for pesawat in Pesawat.objects.filter(
+        spt=spt,
+        pelaksana=pelaksana,
+    ).select_related("jenis_spj", "lokasi_bandara", "tujuan_bandara"):
+        tujuan = f"{pesawat.lokasi_bandara} - {pesawat.tujuan_bandara}"
+        _append_kwitansi_item(
+            items,
+            f"Tiket pesawat {pesawat.jenis_spj}",
+            pesawat.total_biaya,
+            tujuan,
+        )
+
+    penginapan = Penginapan.objects.filter(
+        spt=spt,
+        pelaksana=pelaksana,
+    ).first()
+    if penginapan:
+        _append_kwitansi_item(
+            items,
+            f"Penginapan {penginapan.nama_hotel}",
+            penginapan.total_biaya,
+            f"{penginapan.lama_menginap} malam",
+        )
+
+    for transport in Transport.objects.filter(
+        spt=spt,
+        pelaksana=pelaksana,
+    ).select_related("jenis_spj", "jenis_transportasi", "tujuan"):
+        _append_kwitansi_item(
+            items,
+            f"Transport {transport.jenis_spj} - {transport.jenis_transportasi}",
+            transport.total_biaya,
+            str(transport.tujuan or ""),
+        )
+
+    total = sum((item["amount"] for item in items), Decimal("0"))
+    return items, total
 
 
 class SPJQuerysetMixin:
@@ -747,6 +830,120 @@ class SPJReportView(LoginRequiredMixin, View):
             "end_date": end_date,
             "nama_pelaksana": nama_pelaksana,
         })
+
+
+class KwitansiView(LoginRequiredMixin, View):
+    template_name = "spj/kwitansi.html"
+
+    def _pelaksana_queryset(self, request):
+        queryset = Pelaksana.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "spt__jenis_kegiatan",
+            "nama",
+            "nama__pangkat",
+            "nama__tingkat",
+            "nama__opd",
+        ).order_by("-spt__tgl_berangkat", "-spt_id", "nama__nama")
+        return filter_spj_queryset_for_user(
+            queryset,
+            request,
+            "nama__nip",
+        ).distinct()
+
+    def _build_rows(self, request):
+        start_date = _date_param(request, "tgl1")
+        end_date = _date_param(request, "tgl2")
+        keyword = (request.GET.get("search") or "").strip()
+        pelaksana = self._pelaksana_queryset(request)
+
+        if start_date:
+            pelaksana = pelaksana.filter(spt__tgl_berangkat__gte=start_date)
+        if end_date:
+            pelaksana = pelaksana.filter(spt__tgl_berangkat__lte=end_date)
+        if keyword:
+            pelaksana = pelaksana.filter(nama__nama__icontains=keyword)
+
+        rows_by_spt = {}
+        for item in pelaksana:
+            details, total = _build_kwitansi_items(item)
+            spt = item.spt
+            if spt.id not in rows_by_spt:
+                rows_by_spt[spt.id] = {
+                    "spt": spt,
+                    "pemberi": PemberiTugas.objects.filter(spt=spt).first(),
+                    "pelaksana": [],
+                    "total": Decimal("0"),
+                }
+            rows_by_spt[spt.id]["pelaksana"].append({
+                "item": item,
+                "details": details,
+                "total": total,
+            })
+            rows_by_spt[spt.id]["total"] += total
+
+        return list(rows_by_spt.values()), start_date, end_date, keyword
+
+    def get(self, request):
+        rows, start_date, end_date, keyword = self._build_rows(request)
+        grand_total = sum((row["total"] for row in rows), Decimal("0"))
+        return render(request, self.template_name, {
+            "title": "Kwitansi",
+            "rows": rows,
+            "grand_total": grand_total,
+            "start_date": start_date,
+            "end_date": end_date,
+            "keyword": keyword,
+        })
+
+
+class KwitansiPrintView(LoginRequiredMixin, View):
+    template_name = "spj/kwitansi_print.html"
+
+    def get_queryset(self, request):
+        queryset = Pelaksana.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "spt__jenis_kegiatan",
+            "nama",
+            "nama__pangkat",
+            "nama__tingkat",
+            "nama__opd",
+        )
+        return filter_spj_queryset_for_user(
+            queryset,
+            request,
+            "nama__nip",
+        ).distinct()
+
+    def get(self, request, pk):
+        pelaksana = get_object_or_404(self.get_queryset(request), pk=pk)
+        spt = pelaksana.spt
+        pemberi = PemberiTugas.objects.filter(spt=spt).first()
+        details, total = _build_kwitansi_items(pelaksana)
+        pemda = Pemda.objects.order_by("id").first()
+        tempat_tanggal = (
+            getattr(pemda, "ibukota", None)
+            or getattr(spt, "kota_tujuan_display", "")
+            or ""
+        )
+        total_int = int(total)
+        context = {
+            "title": "Kwitansi",
+            "spt": spt,
+            "pemberi": pemberi,
+            "pelaksana": pelaksana,
+            "details": details,
+            "total": total,
+            "terbilang": f"{number_to_words(total_int)} rupiah",
+            "tempat_tanggal": tempat_tanggal,
+            "tanggal_cetak": timezone.localdate(),
+            "auto_print": request.GET.get("autoprint", "1") != "0",
+            "empty_rows": range(max(0, 8 - len(details))),
+        }
+        response = render(request, self.template_name, context)
+        response["X-Frame-Options"] = "SAMEORIGIN"
+        return response
 
 
 class LaporanPerjalananPrintView(LoginRequiredMixin, View):
