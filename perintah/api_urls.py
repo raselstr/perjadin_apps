@@ -58,15 +58,18 @@ urlpatterns = [
     path(
         "wa/cetak/spt/<int:pk>/",
         PrintSptWAApiView.as_view(),
+        name="wa_print_spt",
     ),
     
     path(
         "wa/cetak/spd/<int:pk>/",
         PrintSpdWAApiView.as_view(),
+        name="wa_print_spd",
     ),
 
     path(
         "wa/cetak/spd-belakang/<int:pk>/",
         PrintSpdBelakangWAApiView.as_view(),
+        name="wa_print_spd_belakang",
     ),
 ]

@@ -1,4 +1,5 @@
 import json
+from django.core import signing
 from django.shortcuts import get_object_or_404, render
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -52,6 +53,100 @@ from perintah.document_utils import (
     select_spd_primary_pelaksana,
 )
 from .api_models import WaSession
+
+WA_DOCUMENT_LINK_SALT = "perintah.wa.document-link"
+
+
+def sign_wa_document_link(document_key, pk):
+    return signing.dumps(
+        {
+            "document": document_key,
+            "pk": pk,
+        },
+        salt=WA_DOCUMENT_LINK_SALT,
+    )
+
+
+def validate_wa_document_access(request, document_key, pk):
+    if validate_api_key(request):
+        return True
+
+    token = (request.GET.get("token") or "").strip()
+    if not token:
+        return False
+
+    try:
+        payload = signing.loads(token, salt=WA_DOCUMENT_LINK_SALT)
+    except signing.BadSignature:
+        return False
+
+    return (
+        payload.get("document") == document_key
+        and str(payload.get("pk")) == str(pk)
+    )
+
+
+def wa_document_unauthorized_response(request):
+    if request.GET.get("mode") in {"preview", "html"}:
+        return render(
+            request,
+            "components/pdf/preview_page_error.html",
+            {
+                "title": "Link dokumen tidak valid",
+                "message": "Link dokumen tidak valid atau sudah berubah.",
+            },
+            status=401,
+        )
+
+    return JsonResponse(
+        {
+            "success": False,
+            "message": "API Key atau token dokumen tidak valid",
+        },
+        status=401,
+    )
+
+
+def wa_document_preview_response(
+    request,
+    pemberi_tugas,
+    document_key,
+    title,
+    print_button_label,
+):
+    token = request.GET.get("token") or sign_wa_document_link(
+        document_key,
+        pemberi_tugas.pk,
+    )
+    iframe_src = (
+        request.path
+        + f"?mode=html&token={quote(token)}&autoprint=0"
+    )
+    open_url = (
+        request.path
+        + f"?mode=html&token={quote(token)}&autoprint=0"
+    )
+
+    response = render(
+        request,
+        "components/pdf/preview_page.html",
+        {
+            "title": title,
+            "document_code": document_key,
+            "preview_description": (
+                "Tinjau dokumen terlebih dahulu sebelum dicetak."
+            ),
+            "iframe_src": iframe_src,
+            "open_url": open_url,
+            "frame_id": (
+                f"wa-print-preview-frame-"
+                f"{document_key}-{pemberi_tugas.pk}"
+            ),
+            "print_button_label": print_button_label,
+        },
+    )
+    response["X-Frame-Options"] = "SAMEORIGIN"
+    return response
 
 @method_decorator(csrf_exempt, name="dispatch")
 class WaSessionApiView(View):
@@ -188,21 +283,32 @@ def build_absolute_named_url(request, url_name, *args):
     return request.build_absolute_uri(reverse(url_name, args=args))
 
 
+def build_absolute_wa_document_url(request, url_name, document_key, pk):
+    token = sign_wa_document_link(document_key, pk)
+    url = reverse(url_name, args=[pk])
+    return request.build_absolute_uri(
+        f"{url}?mode=preview&token={quote(token)}"
+    )
+
+
 def build_document_links(request, pemberi_tugas_id):
     links = {
-        "spt": build_absolute_named_url(
+        "spt": build_absolute_wa_document_url(
             request,
-            "pemberi_tugas_preview_spt",
+            "wa_print_spt",
+            "spt",
             pemberi_tugas_id,
         ),
-        "spd": build_absolute_named_url(
+        "spd": build_absolute_wa_document_url(
             request,
-            "pemberi_tugas_preview_spd",
+            "wa_print_spd",
+            "spd",
             pemberi_tugas_id,
         ),
-        "spd_belakang": build_absolute_named_url(
+        "spd_belakang": build_absolute_wa_document_url(
             request,
-            "pemberi_tugas_preview_spd_belakang",
+            "wa_print_spd_belakang",
+            "spd_belakang",
             pemberi_tugas_id,
         ),
     }
@@ -697,21 +803,31 @@ class PrintSptWAApiView(View):
 
     def get(self, request, pk):
 
-        if not validate_api_key(request):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "message": "API Key tidak valid",
-                },
-                status=401,
-            )
+        if not validate_wa_document_access(request, "spt", pk):
+            return wa_document_unauthorized_response(request)
 
         pemberi_tugas = get_object_or_404(
             self.get_queryset(),
             pk=pk,
         )
 
+        if request.GET.get("mode") == "preview":
+            return wa_document_preview_response(
+                request,
+                pemberi_tugas,
+                "spt",
+                "Preview SPT",
+                "Cetak SPT",
+            )
+
         if request.GET.get("download") != "1":
+            if request.GET.get("mode") != "html":
+                return document_link_response(request, pemberi_tugas, "spt")
+
+        if (
+            request.GET.get("download") != "1"
+            and request.GET.get("mode") != "html"
+        ):
             return document_link_response(request, pemberi_tugas, "spt")
 
         spt = pemberi_tugas.spt
@@ -816,6 +932,11 @@ class PrintSptWAApiView(View):
 
             "auto_print": False,
         }
+
+        if request.GET.get("mode") == "html":
+            response = render(request, self.template_name, context)
+            response["X-Frame-Options"] = "SAMEORIGIN"
+            return response
 
         return render_pdf(
             request,
@@ -977,14 +1098,8 @@ class PrintSpdWAApiView(View):
 
     def get(self, request, pk):
 
-        if not validate_api_key(request):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "message": "API Key tidak valid",
-                },
-                status=401,
-            )
+        if not validate_wa_document_access(request, "spd", pk):
+            return wa_document_unauthorized_response(request)
 
         pemberi_tugas = get_object_or_404(
             self.get_queryset(),
@@ -999,7 +1114,23 @@ class PrintSpdWAApiView(View):
                 "penandatangan Bupati/Wakil Bupati."
             )
 
+        if request.GET.get("mode") == "preview":
+            return wa_document_preview_response(
+                request,
+                pemberi_tugas,
+                "spd",
+                "Preview SPD",
+                "Cetak SPD",
+            )
+
         if request.GET.get("download") != "1":
+            if request.GET.get("mode") != "html":
+                return document_link_response(request, pemberi_tugas, "spd")
+
+        if (
+            request.GET.get("download") != "1"
+            and request.GET.get("mode") != "html"
+        ):
             return document_link_response(request, pemberi_tugas, "spd")
 
         #
@@ -1061,12 +1192,15 @@ class PrintSpdWAApiView(View):
             "show_followers": len(followers) > 0,
         })
 
-        response = render_pdf(
-            request,
-            self.template_name,
-            context,
-            f"SPD-{pemberi_tugas.pk}.pdf",
-        )
+        if request.GET.get("mode") == "html":
+            response = render(request, self.template_name, context)
+        else:
+            response = render_pdf(
+                request,
+                self.template_name,
+                context,
+                f"SPD-{pemberi_tugas.pk}.pdf",
+            )
 
         response["X-Frame-Options"] = "SAMEORIGIN"
 
@@ -1079,14 +1213,8 @@ class PrintSpdBelakangWAApiView(View):
 
     def get(self, request, pk):
 
-        if not validate_api_key(request):
-            return JsonResponse(
-                {
-                    "success": False,
-                    "message": "API Key tidak valid",
-                },
-                status=401,
-            )
+        if not validate_wa_document_access(request, "spd_belakang", pk):
+            return wa_document_unauthorized_response(request)
 
         pemberi_tugas = get_object_or_404(
             PemberiTugas.objects.select_related(
@@ -1097,19 +1225,46 @@ class PrintSpdBelakangWAApiView(View):
             pk=pk,
         )
 
+        if request.GET.get("mode") == "preview":
+            return wa_document_preview_response(
+                request,
+                pemberi_tugas,
+                "spd_belakang",
+                "Preview SPD Belakang",
+                "Cetak SPD Belakang",
+            )
+
         if request.GET.get("download") != "1":
+            if request.GET.get("mode") != "html":
+                return document_link_response(
+                    request,
+                    pemberi_tugas,
+                    "spd_belakang",
+                )
+
+        if (
+            request.GET.get("download") != "1"
+            and request.GET.get("mode") != "html"
+        ):
             return document_link_response(request, pemberi_tugas, "spd_belakang")
 
         pemda = get_matching_pemda(
             pemberi_tugas.penandatangan.opd
         )
+        kop_surat = get_kop_surat_config(pemda)
 
         context = {
             "pemda": pemda,
             "pemberi_tugas": pemberi_tugas,
             "spt": pemberi_tugas.spt,
+            "kop_surat": kop_surat,
             "auto_print": False,
         }
+
+        if request.GET.get("mode") == "html":
+            response = render(request, self.template_name, context)
+            response["X-Frame-Options"] = "SAMEORIGIN"
+            return response
 
         return render_pdf(
             request,
