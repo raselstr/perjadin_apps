@@ -1,9 +1,107 @@
 {% extends 'pages/page.html' %}
 
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .pc-content > .page-header {
+      margin-bottom: 16px;
+    }
+
+    .pc-content > .row {
+      margin-top: 16px;
+    }
+
+    .pc-content > .row > .col-sm-12 > .card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      overflow: hidden;
+    }
+
+    .pc-content > .row > .col-sm-12 > .card > .card-header {
+      padding: 18px 20px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .pc-content > .row > .col-sm-12 > .card > .card-body {
+      padding: 20px;
+    }
+
+    #filter-form {
+      align-items: center;
+      gap: 12px !important;
+      flex-wrap: wrap !important;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    #filter-form .form-select,
+    #filter-form .form-control {
+      min-height: 40px;
+    }
+
+    #filter-form .form-control {
+      min-width: min(360px, 100%);
+      flex: 1 1 260px;
+    }
+
+    #table-container > hr {
+      display: none;
+    }
+
+    #table-container .table-responsive {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: auto;
+    }
+
+    #table-container table {
+      margin-bottom: 0;
+    }
+
+    #table-container table thead th {
+      background: #f8fafc;
+      color: #334155;
+      border-bottom: 1px solid #dbe3ef;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      white-space: nowrap;
+    }
+
+    #table-container table tbody td {
+      vertical-align: middle;
+    }
+
+    #table-container .pagination {
+      margin-top: 16px;
+      margin-bottom: 0;
+    }
+
+    @media (max-width: 767.98px) {
+      .pc-content > .row > .col-sm-12 > .card > .card-header,
+      .pc-content > .row > .col-sm-12 > .card > .card-body {
+        padding: 16px;
+      }
+
+      #filter-form .form-select,
+      #filter-form .form-control {
+        width: 100% !important;
+      }
+    }
+  </style>
+{% endblock extrastyle %}
+
 {% block add_button %}
   <a class="btn btn-primary" href="{% url url_action %}">
     + Tambah
   </a>
 {% endblock add_button %}
 
-{% block crud_modal %}{% endblock crud_modal %}
+{% block crud_modal %}
+  {% include 'components/crud/modal.html' %}
+{% endblock crud_modal %}

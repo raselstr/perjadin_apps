@@ -2,14 +2,21 @@
   <a
     href="{% url url_pk record.id update_action %}"
     class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center"
-    style="width:32px;height:32px">
+    style="width:32px;height:32px"
+    hx-boost="false"
+    title="Ubah">
     <i class="ti ti-pencil"></i>
   </a>
 
   <a
     href="{% url url_delete record.id delete_action %}"
     class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
-    style="width:32px;height:32px">
+    style="width:32px;height:32px"
+    hx-get="{% url url_delete record.id delete_action %}"
+    hx-target="#modal-body"
+    hx-swap="innerHTML"
+    hx-boost="false"
+    title="Hapus">
     <i class="ti ti-trash"></i>
   </a>
 </div>

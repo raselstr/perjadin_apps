@@ -2,6 +2,35 @@
 
 {% block title %}Hapus {{ title }}{% endblock title %}
 
+{% block extrastyle %}
+<style>
+  .pc-content > .page-header {
+    margin-bottom: 16px;
+  }
+
+  .pc-content > .row {
+    margin-top: 16px;
+  }
+
+  .pc-content .card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    overflow: hidden;
+  }
+
+  .pc-content .card-header {
+    padding: 18px 20px;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .pc-content .card-body {
+    padding: 20px;
+  }
+</style>
+{% endblock extrastyle %}
+
 {% block content %}
 <div class="pc-container">
   <div class="pc-content">
