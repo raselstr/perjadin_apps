@@ -147,6 +147,7 @@ class Penandatangan(models.Model):
         ('Kepala', 'Kepala'),
         ('Kepala Bidang', 'Kepala Bidang'),
         ('PPK', 'Pejabat Pembuat Komitmen'),
+        ('Bendahara', 'Bendahara Pengeluaran'),
     ]
     nama = models.CharField(max_length=200)
     nip = models.CharField(max_length=30, null=True, blank=True)

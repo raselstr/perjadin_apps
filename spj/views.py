@@ -8,7 +8,7 @@ from types import SimpleNamespace
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 from django.views import View
@@ -19,7 +19,7 @@ from core.crud.base import BaseCRUDView
 from core.utils.formatting import number_to_words
 from perintah.models import Pelaksana, PemberiTugas
 from profiles.utils import get_active_opd_id
-from umum.models import Pemda
+from umum.models import Pemda, Penandatangan
 
 from .access import (
     filter_spj_queryset_for_user,
@@ -835,6 +835,21 @@ class SPJReportView(LoginRequiredMixin, View):
 class KwitansiView(LoginRequiredMixin, View):
     template_name = "spj/kwitansi.html"
 
+    def _bendahara_queryset(self, request):
+        queryset = Penandatangan.objects.select_related(
+            "opd",
+            "pangkat",
+            "jenis_jabatan",
+        ).filter(tugas="Bendahara")
+
+        active_opd_id = get_active_opd_id(request)
+        if active_opd_id:
+            queryset = queryset.filter(
+                Q(opd_id=active_opd_id) | Q(opd__isnull=True)
+            )
+
+        return queryset.order_by("nama")
+
     def _pelaksana_queryset(self, request):
         queryset = Pelaksana.objects.select_related(
             "spt",
@@ -871,7 +886,10 @@ class KwitansiView(LoginRequiredMixin, View):
             if spt.id not in rows_by_spt:
                 rows_by_spt[spt.id] = {
                     "spt": spt,
-                    "pemberi": PemberiTugas.objects.filter(spt=spt).first(),
+                    "pemberi": PemberiTugas.objects.select_related(
+                        "penandatangan",
+                        "penandatangan__opd",
+                    ).filter(spt=spt).first(),
                     "pelaksana": [],
                     "total": Decimal("0"),
                 }
@@ -887,6 +905,8 @@ class KwitansiView(LoginRequiredMixin, View):
     def get(self, request):
         rows, start_date, end_date, keyword = self._build_rows(request)
         grand_total = sum((row["total"] for row in rows), Decimal("0"))
+        bendahara_options = self._bendahara_queryset(request)
+        selected_bendahara_id = request.GET.get("bendahara") or ""
         return render(request, self.template_name, {
             "title": "Kwitansi",
             "rows": rows,
@@ -894,11 +914,44 @@ class KwitansiView(LoginRequiredMixin, View):
             "start_date": start_date,
             "end_date": end_date,
             "keyword": keyword,
+            "bendahara_options": bendahara_options,
+            "selected_bendahara_id": selected_bendahara_id,
         })
 
 
 class KwitansiPrintView(LoginRequiredMixin, View):
     template_name = "spj/kwitansi_print.html"
+
+    def _get_bendahara(self, request, pemberi=None):
+        bendahara_id = request.GET.get("bendahara")
+        queryset = Penandatangan.objects.select_related(
+            "opd",
+            "pangkat",
+            "jenis_jabatan",
+        ).filter(tugas="Bendahara")
+
+        active_opd_id = get_active_opd_id(request)
+        if active_opd_id:
+            queryset = queryset.filter(
+                Q(opd_id=active_opd_id) | Q(opd__isnull=True)
+            )
+
+        if bendahara_id:
+            selected = queryset.filter(pk=bendahara_id).first()
+            if selected:
+                return selected
+
+        pemberi_opd_id = getattr(pemberi, "penandatangan_id", None) and getattr(
+            pemberi.penandatangan,
+            "opd_id",
+            None,
+        )
+        if pemberi_opd_id:
+            selected = queryset.filter(opd_id=pemberi_opd_id).first()
+            if selected:
+                return selected
+
+        return queryset.first()
 
     def get_queryset(self, request):
         queryset = Pelaksana.objects.select_related(
@@ -919,9 +972,13 @@ class KwitansiPrintView(LoginRequiredMixin, View):
     def get(self, request, pk):
         pelaksana = get_object_or_404(self.get_queryset(request), pk=pk)
         spt = pelaksana.spt
-        pemberi = PemberiTugas.objects.filter(spt=spt).first()
+        pemberi = PemberiTugas.objects.select_related(
+            "penandatangan",
+            "penandatangan__opd",
+        ).filter(spt=spt).first()
         details, total = _build_kwitansi_items(pelaksana)
         pemda = Pemda.objects.order_by("id").first()
+        bendahara = self._get_bendahara(request, pemberi)
         tempat_tanggal = (
             getattr(pemda, "ibukota", None)
             or getattr(spt, "kota_tujuan_display", "")
@@ -938,6 +995,7 @@ class KwitansiPrintView(LoginRequiredMixin, View):
             "terbilang": f"{number_to_words(total_int)} rupiah",
             "tempat_tanggal": tempat_tanggal,
             "tanggal_cetak": timezone.localdate(),
+            "bendahara": bendahara,
             "auto_print": request.GET.get("autoprint", "1") != "0",
             "empty_rows": range(max(0, 8 - len(details))),
         }

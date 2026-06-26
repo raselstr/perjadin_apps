@@ -3,6 +3,110 @@
 
 {% block title %}{{ title }}{% endblock title %}
 
+{% block extrastyle %}
+<style>
+  .kwitansi-toolbar {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    margin-top: 16px;
+  }
+
+  .kwitansi-toolbar .card-body {
+    padding: 18px 20px 20px;
+  }
+
+  .kwitansi-filter-form {
+    row-gap: 16px;
+  }
+
+  .kwitansi-filter-form .form-label {
+    margin-bottom: 8px;
+    color: #0f172a;
+    font-weight: 600;
+  }
+
+  .kwitansi-filter-form .form-control,
+  .kwitansi-filter-form .form-select,
+  .kwitansi-filter-form .btn {
+    min-height: 44px;
+  }
+
+  .kwitansi-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-tile {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: #f8fafc;
+  }
+
+  .summary-label {
+    color: #64748b;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .summary-value {
+    margin-top: 4px;
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .kwitansi-table {
+    border-color: #e5e7eb;
+  }
+
+  .kwitansi-table thead th {
+    background: #f8fafc;
+    color: #334155;
+    border-bottom: 1px solid #dbe3ef;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+  }
+
+  .spt-row td {
+    background: #eef4ff;
+    border-top: 1px solid #cbdcfb;
+    border-bottom: 1px solid #cbdcfb;
+  }
+
+  .spt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    padding: 4px 10px;
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .pelaksana-cell {
+    min-width: 260px;
+  }
+
+  .kwitansi-empty {
+    padding: 48px 16px;
+  }
+
+  @media (max-width: 991.98px) {
+    .kwitansi-summary {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock extrastyle %}
+
 {% block content %}
 <div class="pc-container">
   <div class="pc-content">
@@ -22,20 +126,31 @@
       </div>
     </div>
 
-    <div class="card border-0 shadow-sm mb-3">
+    <div class="kwitansi-toolbar mb-3">
       <div class="card-body">
-        <form method="get" class="row g-3 align-items-end">
-          <div class="col-md-3">
+        <form method="get" class="row g-3 align-items-end kwitansi-filter-form">
+          <div class="col-md-2">
             <label class="form-label">Tanggal Mulai</label>
             <input type="date" name="tgl1" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label class="form-label">s.d Tanggal Akhir</label>
             <input type="date" name="tgl2" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <label class="form-label">Nama Pelaksana</label>
             <input type="text" name="search" value="{{ keyword }}" class="form-control" placeholder="Cari nama pelaksana">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Bendahara Pengeluaran</label>
+            <select name="bendahara" id="bendahara-select" class="form-select">
+              <option value="">Pilih bendahara saat cetak</option>
+              {% for bendahara in bendahara_options %}
+                <option value="{{ bendahara.id }}" {% if bendahara.id|stringformat:"s" == selected_bendahara_id %}selected{% endif %}>
+                  {{ bendahara.nama }}{% if bendahara.opd %} - {{ bendahara.opd.nama }}{% endif %}
+                </option>
+              {% endfor %}
+            </select>
           </div>
           <div class="col-md-2">
             <button type="submit" class="btn btn-primary w-100">
@@ -46,26 +161,46 @@
       </div>
     </div>
 
+    <div class="kwitansi-summary mb-3">
+      <div class="summary-tile">
+        <div class="summary-label">Jumlah SPT</div>
+        <div class="summary-value">{{ rows|length }}</div>
+      </div>
+      <div class="summary-tile">
+        <div class="summary-label">Total Kwitansi</div>
+        <div class="summary-value">Rp{{ grand_total|format_indonesian_number }}</div>
+      </div>
+      <div class="summary-tile">
+        <div class="summary-label">Bendahara</div>
+        <div class="summary-value" id="bendahara-summary">
+          {% if selected_bendahara_id %}Dipilih{% else %}Belum dipilih{% endif %}
+        </div>
+      </div>
+    </div>
+
     <div class="card border-0 shadow-sm">
-      <div class="card-body">
+      <div class="card-body p-0">
         <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-            <thead class="table-light">
+          <table class="table table-hover align-middle mb-0 kwitansi-table">
+            <thead>
               <tr>
-                <th style="width:56px;" class="text-center">No</th>
+                <th style="width:64px;" class="text-center">No</th>
                 <th>SPT</th>
                 <th>Pelaksana</th>
                 <th style="width:180px;" class="text-end">Total</th>
-                <th style="width:120px;" class="text-center">Cetak</th>
+                <th style="width:132px;" class="text-center">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {% for row in rows %}
-                <tr class="table-secondary">
+                <tr class="spt-row">
                   <td class="text-center fw-semibold">{{ forloop.counter }}</td>
                   <td colspan="2">
-                    <div class="fw-semibold">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                      <span class="spt-badge"><i class="ti ti-file-text"></i> SPT</span>
+                      <span class="fw-semibold">
                       {{ row.pemberi.nomor_spt|default:"SPT belum bernomor" }}
+                      </span>
                     </div>
                     <div class="text-muted small">
                       {{ row.spt.tujuan_perjalanan_display|default:"-" }} ·
@@ -82,15 +217,18 @@
                       <span class="text-muted small">SPD:</span>
                       {{ row.pemberi.nomor_spd|default:"-" }}
                     </td>
-                    <td>
+                    <td class="pelaksana-cell">
                       <div class="fw-semibold">{{ pelaksana.item.nama.nama }}</div>
-                      <div class="text-muted small">{{ pelaksana.item.nama.jabatan|default:"-" }}</div>
+                      <div class="text-muted small">
+                        {{ pelaksana.item.nama.jabatan|default:"-" }}
+                        {% if pelaksana.item.nama.nip %} · NIP {{ pelaksana.item.nama.nip|format_nip }}{% endif %}
+                      </div>
                     </td>
-                    <td class="text-end">Rp{{ pelaksana.total|format_indonesian_number }}</td>
+                    <td class="text-end fw-semibold">Rp{{ pelaksana.total|format_indonesian_number }}</td>
                     <td class="text-center">
                       <a
-                        class="btn btn-sm btn-outline-primary"
-                        href="{% url 'kwitansi_print' pelaksana.item.id %}"
+                        class="btn btn-sm btn-primary js-print-link"
+                        href="{% url 'kwitansi_print' pelaksana.item.id %}{% if selected_bendahara_id %}?bendahara={{ selected_bendahara_id }}{% endif %}"
                         target="_blank"
                         rel="noopener">
                         <i class="ti ti-printer"></i> Cetak
@@ -100,15 +238,16 @@
                 {% endfor %}
               {% empty %}
                 <tr>
-                  <td colspan="5" class="text-center text-muted py-4">
-                    Belum ada data kwitansi.
+                  <td colspan="5" class="text-center text-muted kwitansi-empty">
+                    <i class="ti ti-receipt fs-2 d-block mb-2"></i>
+                    Belum ada data kwitansi untuk filter ini.
                   </td>
                 </tr>
               {% endfor %}
             </tbody>
             <tfoot>
               <tr>
-                <th colspan="3" class="text-end">Grand Total</th>
+                <th colspan="3" class="text-end py-3">Grand Total</th>
                 <th class="text-end">Rp{{ grand_total|format_indonesian_number }}</th>
                 <th></th>
               </tr>
@@ -120,3 +259,36 @@
   </div>
 </div>
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const bendaharaSelect = document.getElementById('bendahara-select');
+    const bendaharaSummary = document.getElementById('bendahara-summary');
+    const printLinks = document.querySelectorAll('.js-print-link');
+
+    function syncPrintLinks() {
+      const bendaharaId = bendaharaSelect ? bendaharaSelect.value : '';
+
+      printLinks.forEach((link) => {
+        const url = new URL(link.href, window.location.origin);
+        if (bendaharaId) {
+          url.searchParams.set('bendahara', bendaharaId);
+        } else {
+          url.searchParams.delete('bendahara');
+        }
+        link.href = url.toString();
+      });
+
+      if (bendaharaSummary) {
+        bendaharaSummary.textContent = bendaharaId ? 'Dipilih' : 'Belum dipilih';
+      }
+    }
+
+    if (bendaharaSelect) {
+      bendaharaSelect.addEventListener('change', syncPrintLinks);
+      syncPrintLinks();
+    }
+  })();
+</script>
+{% endblock extra_js %}

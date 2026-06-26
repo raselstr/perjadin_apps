@@ -1,10 +1,24 @@
-{% load formatting %}
+{% load formatting static %}
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <title>Kwitansi</title>
   <style>
+    @font-face {
+      font-family: "Arial";
+      src: url("{% static 'fonts/Arial.ttf' %}") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: "Arial";
+      src: url("{% static 'fonts/Arial_Bold.ttf' %}") format("truetype");
+      font-weight: 700;
+      font-style: normal;
+    }
+
     @page {
       size: A4 portrait;
       margin: 22mm 18mm 20mm 18mm;
@@ -17,9 +31,9 @@
     body {
       margin: 0;
       color: #111;
-      font-family: "Times New Roman", Times, serif;
-      font-size: 14px;
-      line-height: 1.15;
+      font-family: "Arial", sans-serif;
+      font-size: 12px;
+      line-height: 1.25;
       background: #fff;
     }
 
@@ -30,11 +44,12 @@
     }
 
     h1 {
-      margin: 12px 0 16px;
+      margin: 8px 0 18px;
       text-align: center;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 0;
+      text-decoration: underline;
     }
 
     .meta {
@@ -65,14 +80,15 @@
 
     .rincian th,
     .rincian td {
-      border: 1px solid #777;
-      padding: 5px 6px;
+      border: 1px solid #444;
+      padding: 6px 7px;
       vertical-align: top;
     }
 
     .rincian th {
       text-align: center;
-      font-weight: 400;
+      font-weight: 700;
+      background: #f3f4f6;
     }
 
     .col-no {
@@ -94,14 +110,16 @@
 
     .amount {
       white-space: nowrap;
+      text-align: right;
     }
 
     .empty-row td {
-      height: 23px;
+      height: 25px;
     }
 
     .summary-label {
-      font-weight: 400;
+      font-weight: 700;
+      text-align: right;
     }
 
     .terbilang-cell {
@@ -126,11 +144,17 @@
     }
 
     .signature-title {
-      margin-bottom: 58px;
+      margin-bottom: 56px;
     }
 
     .signature-name {
       min-height: 18px;
+      font-weight: 700;
+      text-decoration: underline;
+    }
+
+    .signature-nip {
+      margin-top: 1px;
     }
 
     .print-controls {
@@ -212,13 +236,13 @@
         {% endfor %}
         <tr>
           <td></td>
-          <td class="summary-label">JUMLAH...............................</td>
+          <td class="summary-label">JUMLAH</td>
           <td class="amount">Rp. {{ total|format_indonesian_number }}</td>
           <td></td>
         </tr>
         <tr>
           <td></td>
-          <td>TERBILANG.</td>
+          <td class="summary-label">TERBILANG</td>
           <td colspan="2" class="terbilang-cell">{{ terbilang|upper }}</td>
         </tr>
       </tbody>
@@ -230,8 +254,12 @@
         <div>Telah dibayar sejumlah</div>
         <div>Rp.{{ total|format_indonesian_number }}</div>
         <div class="signature-title" style="margin-top:14px;">Bendahara Pengeluaran</div>
-        <div class="signature-name">(................................)</div>
-        <div>NIP.</div>
+        <div class="signature-name">
+          {% if bendahara %}{{ bendahara.nama }}{% else %}(................................){% endif %}
+        </div>
+        <div class="signature-nip">
+          NIP. {% if bendahara and bendahara.nip %}{{ bendahara.nip|format_nip }}{% endif %}
+        </div>
       </div>
 
       <div class="signature-block">
@@ -241,8 +269,8 @@
         <div>Telah menerima jumlah uang sebesar</div>
         <div>Rp.{{ total|format_indonesian_number }}</div>
         <div class="signature-title" style="margin-top:14px;">Yang Menerima</div>
-        <div class="signature-name">({{ pelaksana.nama.nama }})</div>
-        <div>NIP. {{ pelaksana.nama.nip|format_nip }}</div>
+        <div class="signature-name">{{ pelaksana.nama.nama }}</div>
+        <div class="signature-nip">NIP. {{ pelaksana.nama.nip|format_nip }}</div>
       </div>
     </section>
   </main>

@@ -544,7 +544,7 @@ class PemberiTugasForm(BaseAppModelForm):
         penandatangan_queryset = filter_penandatangan_queryset(
             penandatangan_queryset,
             self.request,
-            exclude_tasks=("PPK",),
+            exclude_tasks=("PPK","Bendahara"),
         )
 
         if active_opd_id and self.instance and self.instance.penandatangan_id:
