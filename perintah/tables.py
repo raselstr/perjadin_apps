@@ -8,6 +8,12 @@ from .models import PemberiTugas, Spt, TtdSptSpd
 class SptTable(BaseTable):
     aksi = action_column("spt_action_pk", "spt_delete")
 
+    spt_id = tables.TemplateColumn(
+        verbose_name="ID SPT",
+        orderable=False,
+        template_code="SPT #{{ record.pk }}",
+    )
+
     berita = tables.TemplateColumn(
         verbose_name="Maksud dan Tujuan Perjalanan Dinas",
         orderable=False,
@@ -52,6 +58,7 @@ class SptTable(BaseTable):
         model = Spt
         fields = (
             "no",
+            "spt_id",
             "berita",
             "jenis_kegiatan",
             "lama_perjalanan",
@@ -70,6 +77,12 @@ class SptTable(BaseTable):
 
 
 class PemberiTugasTable(BaseTable):
+
+    spt_id = tables.TemplateColumn(
+        verbose_name="ID SPT",
+        orderable=False,
+        template_code="SPT #{{ record.spt_id }}",
+    )
     
     dokumen = tables.TemplateColumn(
         verbose_name="Cetak",
@@ -141,6 +154,7 @@ class PemberiTugasTable(BaseTable):
         model = PemberiTugas
         fields = (
             "no",
+            "spt_id",
             "spt",
             "penandatangan",
             "nomor_spt",
@@ -151,6 +165,12 @@ class PemberiTugasTable(BaseTable):
         )
 
 class TtdSptSpdTable(BaseTable):
+    spt_id = tables.TemplateColumn(
+        verbose_name="ID SPT",
+        orderable=False,
+        template_code="SPT #{{ record.pemberi_tugas.spt_id }}",
+    )
+
     spt = tables.TemplateColumn(
         verbose_name="Maksud dan Tujuan Perjalanan Dinas",
         orderable=False,
@@ -206,6 +226,7 @@ class TtdSptSpdTable(BaseTable):
         model = TtdSptSpd
         fields = (
             "no",
+            "spt_id",
             "spt",
             "pemberi_tugas",
             "hardcopy_status",

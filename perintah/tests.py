@@ -22,7 +22,7 @@ from .document_utils import (
 )
 from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
 from .models import PemberiTugas, Spt
-from .tables import PemberiTugasTable
+from .tables import PemberiTugasTable, SptTable, TtdSptSpdTable
 
 
 class ModalTemplateTestCase(TestCase):
@@ -31,6 +31,11 @@ class ModalTemplateTestCase(TestCase):
 
         self.assertNotIn('data-bs-backdrop="static"', html)
         self.assertNotIn('data-bs-keyboard="false"', html)
+
+    def test_tables_include_spt_id_column(self):
+        self.assertIn("spt_id", SptTable.base_columns)
+        self.assertIn("spt_id", PemberiTugasTable.base_columns)
+        self.assertIn("spt_id", TtdSptSpdTable.base_columns)
 
 
 def attach_session(request):
