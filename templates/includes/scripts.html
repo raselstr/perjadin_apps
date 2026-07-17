@@ -38,9 +38,15 @@
       return false;
     }
 
-    const accept = input.getAttribute('accept') || '';
-    return accept.includes('image') || Array.from(input.files).some(function (file) {
-      return file.type && file.type.startsWith('image/');
+    const isPhotoField = input.hasAttribute('data-spj-camera-source') || input.closest('[data-spj-photo-field="1"]');
+    if (!isPhotoField) {
+      return Array.from(input.files).some(function (file) {
+        return file && file.type && file.type.startsWith('image/');
+      });
+    }
+
+    return Array.from(input.files).some(function (file) {
+      return file && file.type && file.type.startsWith('image/');
     });
   }
 
@@ -89,6 +95,10 @@
 
   function validatePhotoInput(input) {
     if (!input || input.type !== 'file' || !input.files || !input.files.length) {
+      return true;
+    }
+
+    if (!shouldHandleInput(input)) {
       return true;
     }
 
