@@ -3,6 +3,7 @@ from datetime import date
 from django.contrib.auth.models import User
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.core.exceptions import ValidationError
+from django.template.loader import render_to_string
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -22,6 +23,14 @@ from .document_utils import (
 from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
 from .models import PemberiTugas, Spt
 from .tables import PemberiTugasTable
+
+
+class ModalTemplateTestCase(TestCase):
+    def test_crud_modal_allows_dismissal_without_static_restrictions(self):
+        html = render_to_string("components/crud/modal.html")
+
+        self.assertNotIn('data-bs-backdrop="static"', html)
+        self.assertNotIn('data-bs-keyboard="false"', html)
 
 
 def attach_session(request):
