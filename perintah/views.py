@@ -75,12 +75,15 @@ def _get_active_opd_name(request, fallback=""):
 
 
 def _build_number_from_format(raw_number, fallback_number, tanggal, format_template):
-    nomor_urut = (raw_number or fallback_number or "").strip()
-    if not format_template or not nomor_urut:
-        return (raw_number or fallback_number or "").strip()
+    raw_number = (raw_number or "").strip()
+    if raw_number:
+        return raw_number
+
+    if not format_template:
+        return (fallback_number or "").strip()
 
     return generate_default_document_number(
-        nomor_urut,
+        fallback_number,
         tanggal,
         format_template,
     )

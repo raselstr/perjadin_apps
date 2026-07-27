@@ -3,6 +3,7 @@ from datetime import date
 from functools import lru_cache
 
 from django.db import DatabaseError, ProgrammingError, connection
+from django.utils import timezone
 from django.utils.formats import date_format
 
 from umum.models import KopSurat, Pemda, Penandatangan, Tugas
@@ -10,6 +11,7 @@ from umum.models import KopSurat, Pemda, Penandatangan, Tugas
 
 GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
 SECRETARY_LEVEL_SIGNATORY_TASKS = ("Sekretaris Daerah", "Asisten")
+HANDWRITTEN_NUMBER_SPACE = "\u00a0" * 8
 ROMAN_MAP = {
     "I": 1,
     "V": 5,
@@ -625,27 +627,36 @@ def generate_default_document_number(
     tanggal,
     format_template,
     is_spd=False,
+    nomor_urut_placeholder=HANDWRITTEN_NUMBER_SPACE,
 ):
     """
     Generate default document number based on format template.
 
     Args:
         nomor_urut: The sequential number input from user/model
-        tanggal: The date object (tgl_spt)
+        tanggal: The date object (tgl_spt/print date)
         format_template: The format string from KopSurat
         is_spd: Whether this is for SPD (adds 'SPD' in format)
+        nomor_urut_placeholder: Non-breaking space for handwritten numbers
 
     Returns:
         Formatted document number string
     """
-    if not tanggal:
+    if not format_template:
         return ""
+
+    if not tanggal:
+        tanggal = timezone.localdate()
+
+    nomor_urut_value = str(nomor_urut or "").strip()
+    if not nomor_urut_value:
+        nomor_urut_value = nomor_urut_placeholder
 
     bulan = get_roman_month(tanggal)
     tahun = tanggal.year
 
     # Replace placeholders in format template
-    result = format_template.replace("{nomor_urut}", str(nomor_urut or ""))
+    result = format_template.replace("{nomor_urut}", nomor_urut_value)
     result = result.replace("{bulan}", bulan)
     result = result.replace("{tahun}", str(tahun))
 

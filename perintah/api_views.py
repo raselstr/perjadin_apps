@@ -46,7 +46,6 @@ from perintah.document_utils import (
     should_hide_signatory_identity_details,
     format_spt_date_range,
     filter_spt_pelaksana,
-    generate_default_document_number,
     get_kop_surat_config,
     is_regional_head_task,
     find_ppk_penandatangan,
@@ -854,7 +853,8 @@ class PrintSptWAApiView(View):
             pemda
         )
 
-        nomor_spt = generate_default_document_number(
+        nomor_spt = _build_number_from_format(
+            pemberi_tugas.nomor_spt,
             pemberi_tugas.nomor_urut,
             pemberi_tugas.tanggal_spt,
             kop_surat.default_spt_number_format,

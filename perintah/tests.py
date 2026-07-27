@@ -21,6 +21,7 @@ from umum.models import (
 )
 
 from .document_utils import (
+    HANDWRITTEN_NUMBER_SPACE,
     build_spt_signature_title_parts,
     filter_spt_pelaksana,
     format_spt_kota_tujuan,
@@ -33,6 +34,7 @@ from .document_utils import (
 from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
 from .models import PemberiTugas, Spt
 from .tables import PemberiTugasTable, SptTable, TtdSptSpdTable
+from .views import _build_number_from_format
 
 
 class ModalTemplateTestCase(TestCase):
@@ -747,6 +749,41 @@ class DocumentUtilsTests(PerintahBaseTestCase):
         )
 
         self.assertEqual(result, "800.1.11.1/091/BKAD/V/2026")
+
+    def test_default_document_number_leaves_space_for_handwritten_sequence(self):
+        result = generate_default_document_number(
+            "",
+            date(2026, 5, 1),
+            "800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}",
+        )
+
+        self.assertEqual(
+            result,
+            f"800.1.11.1/{HANDWRITTEN_NUMBER_SPACE}/BKAD/V/2026",
+        )
+
+    def test_document_number_uses_manual_value_before_default_format(self):
+        result = _build_number_from_format(
+            "090/ST/BKAD/2026",
+            "091",
+            date(2026, 5, 1),
+            "800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}",
+        )
+
+        self.assertEqual(result, "090/ST/BKAD/2026")
+
+    def test_empty_document_number_uses_default_format(self):
+        result = _build_number_from_format(
+            "",
+            "",
+            date(2026, 5, 1),
+            "800.1.11.1/{nomor_urut}/BKAD/{bulan}/{tahun}",
+        )
+
+        self.assertEqual(
+            result,
+            f"800.1.11.1/{HANDWRITTEN_NUMBER_SPACE}/BKAD/V/2026",
+        )
 
     def test_format_spt_date_range_same_month(self):
         result = format_spt_date_range(
