@@ -137,18 +137,14 @@ class Pegawai(models.Model):
             self.foto = compress_if_image(self.foto)
         super().save(*args, **kwargs)
     
+class Tugas(models.Model):
+    nama = models.CharField(max_length=200, unique=True)
+    keterangan = models.CharField(max_length=200, null=True, blank=True)
 
+    def __str__(self):
+        return self.nama
 
 class Penandatangan(models.Model):
-    TUGAS_CHOICES = [
-        ('Bupati', 'Bupati'),
-        ('Wakil Bupati', 'Wakil Bupati'),
-        ('Sekretaris Daerah', 'Sekretaris Daerah'),
-        ('Kepala', 'Kepala'),
-        ('Kepala Bidang', 'Kepala Bidang'),
-        ('PPK', 'Pejabat Pembuat Komitmen'),
-        ('Bendahara', 'Bendahara Pengeluaran'),
-    ]
     nama = models.CharField(max_length=200)
     nip = models.CharField(max_length=30, null=True, blank=True)
 
@@ -160,7 +156,14 @@ class Penandatangan(models.Model):
         related_name='penandatangan'
     )
 
-    tugas = models.CharField(max_length=200, choices=TUGAS_CHOICES, null=True, default="")
+    tugas = models.ForeignKey(
+        Tugas,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='penandatangan'
+    )
+    jabatan = models.CharField(max_length=200, null=True, blank=True)
 
     jenis_jabatan = models.ForeignKey(
         JenisJabatan,

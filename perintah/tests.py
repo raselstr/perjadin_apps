@@ -10,15 +10,25 @@ from django.urls import reverse
 from core.utils.formatting import format_nip
 from profiles.models import OPD, Role, UserProfile
 from spd.models import JenisKegiatan, Lokasi
-from umum.models import Eselon, JenisJabatan, Pangkat, Pegawai, Pemda, Penandatangan
+from umum.models import (
+    Eselon,
+    JenisJabatan,
+    Pangkat,
+    Pegawai,
+    Pemda,
+    Penandatangan,
+    Tugas,
+)
 
 from .document_utils import (
     build_spt_signature_title_parts,
+    filter_spt_pelaksana,
     format_spt_kota_tujuan,
     format_spt_tempat_tujuan,
     format_spt_tujuan_perjalanan,
     format_spt_date_range,
     generate_default_document_number,
+    get_spt_letterhead_pemda,
 )
 from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
 from .models import PemberiTugas, Spt
@@ -89,6 +99,34 @@ class PerintahBaseTestCase(TestCase):
         self.jenis_jabatan = JenisJabatan.objects.create(
             nama="Definitif",
         )
+        self.tugas_bupati, _ = Tugas.objects.get_or_create(
+            nama="Bupati",
+            defaults={"keterangan": "Bupati Asahan"},
+        )
+        self.tugas_wakil_bupati, _ = Tugas.objects.get_or_create(
+            nama="Wakil Bupati",
+            defaults={"keterangan": "Wakil Bupati Asahan"},
+        )
+        self.tugas_sekretaris_daerah, _ = Tugas.objects.get_or_create(
+            nama="Sekretaris Daerah",
+            defaults={"keterangan": "Sekretaris Daerah"},
+        )
+        self.tugas_asisten, _ = Tugas.objects.get_or_create(
+            nama="Asisten",
+            defaults={"keterangan": "Asisten Bupati"},
+        )
+        self.tugas_kepala, _ = Tugas.objects.get_or_create(
+            nama="Kepala",
+            defaults={"keterangan": "Kepala OPD"},
+        )
+        self.tugas_kepala_bidang, _ = Tugas.objects.get_or_create(
+            nama="Kepala Bidang",
+            defaults={"keterangan": "Kabid"},
+        )
+        self.tugas_ppk, _ = Tugas.objects.get_or_create(
+            nama="PPK",
+            defaults={"keterangan": "Pejabat Pembuat Komitmen"},
+        )
         self.kegiatan = JenisKegiatan.objects.create(nama="Koordinasi")
         self.lokasi = Lokasi.objects.create(lokasi="Medan", kota="Medan")
 
@@ -96,7 +134,7 @@ class PerintahBaseTestCase(TestCase):
             nama="Bupati Asahan",
             nip="197001011995031001",
             pangkat=self.pangkat_ivc,
-            tugas="Bupati",
+            tugas=self.tugas_bupati,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_setda,
         )
@@ -104,7 +142,7 @@ class PerintahBaseTestCase(TestCase):
             nama="Kepala BKAD",
             nip="197201011996021001",
             pangkat=self.pangkat_iva,
-            tugas="Kepala",
+            tugas=self.tugas_kepala,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_bk,
         )
@@ -112,7 +150,7 @@ class PerintahBaseTestCase(TestCase):
             nama="PPK BKAD",
             nip="197301011997031001",
             pangkat=self.pangkat_iva,
-            tugas="PPK",
+            tugas=self.tugas_ppk,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_bk,
         )
@@ -120,7 +158,7 @@ class PerintahBaseTestCase(TestCase):
             nama="Kepala Setda",
             nip="197401011998041001",
             pangkat=self.pangkat_iva,
-            tugas="Kepala",
+            tugas=self.tugas_kepala,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_setda,
         )
@@ -128,7 +166,7 @@ class PerintahBaseTestCase(TestCase):
             nama="Wakil Bupati Asahan",
             nip="197501011999051001",
             pangkat=self.pangkat_ivc,
-            tugas="Wakil Bupati",
+            tugas=self.tugas_wakil_bupati,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_setda,
         )
@@ -136,7 +174,7 @@ class PerintahBaseTestCase(TestCase):
             nama="Sekretaris Daerah Asahan",
             nip="197601012000061001",
             pangkat=self.pangkat_ivc,
-            tugas="Sekretaris Daerah",
+            tugas=self.tugas_sekretaris_daerah,
             jenis_jabatan=self.jenis_jabatan,
             opd=self.opd_setda,
         )
@@ -762,7 +800,7 @@ class DocumentUtilsTests(PerintahBaseTestCase):
             nama="Plt Kepala BKAD",
             nip="197501011999011001",
             pangkat=self.pangkat_iva,
-            tugas="Kepala",
+            tugas=self.tugas_kepala,
             jenis_jabatan=plt,
             opd=self.opd_bk,
         )
@@ -776,6 +814,78 @@ class DocumentUtilsTests(PerintahBaseTestCase):
         self.assertEqual(
             result["lines"],
             ["Kepala Badan Keuangan", "Daerah Kabupaten Asahan"],
+        )
+
+    def test_asisten_uses_sekda_signature_and_filter_rules(self):
+        asisten = Penandatangan.objects.create(
+            nama="Asisten Administrasi",
+            nip="197701012001011001",
+            pangkat=self.pangkat_ivc,
+            tugas=self.tugas_asisten,
+            jabatan="Asisten Administrasi Umum",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+
+        signature = build_spt_signature_title_parts(
+            asisten,
+            pemda=Pemda.objects.get(nama_dinas=self.opd_setda),
+        )
+        filtered_for_other_opd = filter_spt_pelaksana(
+            self.spt_spd.pelaksana.select_related("nama", "nama__eselon"),
+            asisten.tugas,
+            opd_id=self.opd_bk.id,
+            signatory_opd_id=asisten.opd_id,
+        )
+        filtered_for_setda = filter_spt_pelaksana(
+            self.spt_setda.pelaksana.select_related("nama", "nama__eselon"),
+            asisten.tugas,
+            opd_id=self.opd_setda.id,
+            signatory_opd_id=asisten.opd_id,
+        )
+
+        self.assertEqual(signature["prefix"], "An.")
+        self.assertEqual(
+            signature["lines"],
+            ["Sekretaris Daerah", "Asisten Administrasi Umum"],
+        )
+        self.assertEqual(
+            [item.nama for item in filtered_for_other_opd],
+            [self.pegawai_eselon_ii],
+        )
+        self.assertEqual(
+            [item.nama for item in filtered_for_setda],
+            [self.pegawai_setda],
+        )
+        self.assertEqual(
+            get_spt_letterhead_pemda(asisten).nama_dinas,
+            self.opd_setda,
+        )
+
+    def test_kepala_bidang_signature_uses_head_title_and_current_jabatan(self):
+        kabid = Penandatangan.objects.create(
+            nama="Kabid Perbendaharaan",
+            nip="197801012002011001",
+            pangkat=self.pangkat_iva,
+            tugas=self.tugas_kepala_bidang,
+            jabatan="Kepala Bidang Perbendaharaan",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+        )
+        pemda = Pemda.objects.get(nama_dinas=self.opd_bk)
+        pemda.nama_kabupaten = "Asahan"
+        pemda.save()
+
+        result = build_spt_signature_title_parts(kabid, pemda=pemda)
+
+        self.assertEqual(result["prefix"], "An.")
+        self.assertEqual(
+            result["lines"],
+            [
+                "Kepala Badan Keuangan",
+                "Daerah Kabupaten Asahan",
+                "Kepala Bidang Perbendaharaan",
+            ],
         )
 
 
@@ -923,7 +1033,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             nama="Plt Kepala BKAD",
             nip="197501011999011001",
             pangkat=self.pangkat_iva,
-            tugas="Kepala",
+            tugas=self.tugas_kepala,
             jenis_jabatan=plt,
             opd=self.opd_bk,
         )

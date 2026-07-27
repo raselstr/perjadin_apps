@@ -5,11 +5,11 @@ from functools import lru_cache
 from django.db import DatabaseError, ProgrammingError, connection
 from django.utils.formats import date_format
 
-from umum.models import KopSurat, Pemda, Penandatangan
+from umum.models import KopSurat, Pemda, Penandatangan, Tugas
 
 
 GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
-TUGAS_DISPLAY_MAP = dict(Penandatangan.TUGAS_CHOICES)
+SECRETARY_LEVEL_SIGNATORY_TASKS = ("Sekretaris Daerah", "Asisten")
 ROMAN_MAP = {
     "I": 1,
     "V": 5,
@@ -21,7 +21,38 @@ ROMAN_MAP = {
 }
 
 
+def get_tugas_name(tugas):
+    if hasattr(tugas, "nama"):
+        return tugas.nama or ""
+    return str(tugas or "").strip()
+
+
+def get_tugas_description(tugas):
+    tugas_name = get_tugas_name(tugas)
+    if not tugas_name:
+        return ""
+
+    try:
+        tugas_obj = Tugas.objects.filter(nama=tugas_name).first()
+    except (DatabaseError, ProgrammingError):
+        tugas_obj = None
+
+    return (getattr(tugas_obj, "keterangan", "") or tugas_name).strip()
+
+
+def is_assistant_signatory(penandatangan):
+    tugas = get_tugas_name(getattr(penandatangan, "tugas", ""))
+    jabatan = getattr(penandatangan, "jabatan", "") or ""
+    return "asisten" in f"{tugas} {jabatan}".lower()
+
+
+def is_secretary_level_task(tugas):
+    tugas = get_tugas_name(tugas)
+    return tugas in SECRETARY_LEVEL_SIGNATORY_TASKS
+
+
 def is_regional_head_task(tugas):
+    tugas = get_tugas_name(tugas)
     return tugas in GLOBAL_SIGNATORY_TASKS
 
 
@@ -39,8 +70,22 @@ def get_matching_pemda(opd=None):
     return queryset.first()
 
 
+def get_spt_letterhead_pemda(penandatangan):
+    if is_assistant_signatory(penandatangan):
+        sekretaris_daerah = (
+            Penandatangan.objects.select_related("opd")
+            .filter(tugas__nama="Sekretaris Daerah")
+            .order_by("id")
+            .first()
+        )
+        if sekretaris_daerah and sekretaris_daerah.opd:
+            return get_matching_pemda(sekretaris_daerah.opd)
+
+    return get_matching_pemda(getattr(penandatangan, "opd", None))
+
+
 def get_letterhead_office_name(penandatangan, pemda=None):
-    tugas = getattr(penandatangan, "tugas", "")
+    tugas = get_tugas_name(getattr(penandatangan, "tugas", ""))
 
     if pemda and tugas == "Bupati":
         return penandatangan.opd.nama
@@ -100,10 +145,10 @@ def build_penandatangan_title(penandatangan):
     elif jenis_jabatan_value:
         jenis_jabatan = str(jenis_jabatan_value)
 
-    tugas = getattr(penandatangan, "tugas", "") or ""
+    tugas = get_tugas_name(getattr(penandatangan, "tugas", ""))
 
     if tugas == "PPK":
-        tugas = TUGAS_DISPLAY_MAP.get("PPK", tugas)
+        tugas = get_tugas_description(tugas)
 
     if jenis_jabatan.lower() in ("definitif", "defenitif"):
         jenis_jabatan = ""
@@ -146,6 +191,25 @@ def _format_kabupaten_name(pemda):
     return nama_pemda.title()
 
 
+def _build_kepala_title_lines(opd_name, pemda=None):
+    title_parts = ["Kepala", opd_name]
+    title = " ".join(part for part in title_parts if part).strip()
+    kabupaten = _format_kabupaten_name(pemda)
+
+    if not kabupaten:
+        return [title or "-"]
+
+    daerah_marker = " Daerah"
+    if daerah_marker in title:
+        before_daerah, after_daerah = title.split(daerah_marker, 1)
+        return [
+            before_daerah,
+            f"Daerah {kabupaten}{after_daerah}",
+        ]
+
+    return [f"{title} {kabupaten}".strip()]
+
+
 def build_spt_signature_title_parts(penandatangan, pemda=None):
     if not penandatangan:
         return {
@@ -153,7 +217,7 @@ def build_spt_signature_title_parts(penandatangan, pemda=None):
             "lines": ["-"],
         }
 
-    tugas = getattr(penandatangan, "tugas", "") or ""
+    tugas = get_tugas_name(getattr(penandatangan, "tugas", ""))
     opd_name = ""
     if getattr(penandatangan, "opd", None):
         opd_name = penandatangan.opd.nama
@@ -166,10 +230,35 @@ def build_spt_signature_title_parts(penandatangan, pemda=None):
             "lines": [get_letterhead_office_name(penandatangan, pemda=pemda)],
         }
 
+    if is_assistant_signatory(penandatangan):
+        assistant_title = (
+            (getattr(penandatangan, "jabatan", "") or "").strip()
+            or tugas
+        )
+        lines = ["Sekretaris Daerah"]
+        if assistant_title and assistant_title != "Sekretaris Daerah":
+            lines.append(assistant_title)
+
+        return {
+            "prefix": "An.",
+            "lines": lines,
+        }
+
     if tugas == "Sekretaris Daerah":
         return {
             "prefix": "",
             "lines": [tugas],
+        }
+
+    if tugas == "Kepala Bidang":
+        bidang_title = (getattr(penandatangan, "jabatan", "") or "").strip()
+        lines = _build_kepala_title_lines(opd_name, pemda)
+        if bidang_title:
+            lines.append(bidang_title)
+
+        return {
+            "prefix": "An.",
+            "lines": lines,
         }
 
     if tugas != "Kepala":
@@ -178,26 +267,9 @@ def build_spt_signature_title_parts(penandatangan, pemda=None):
             "lines": [opd_name or build_penandatangan_title(penandatangan)],
         }
 
-    title_parts = ["Kepala", opd_name]
-    title = " ".join(part for part in title_parts if part).strip()
-    kabupaten = _format_kabupaten_name(pemda)
-
-    if not kabupaten:
-        lines = [title or "-"]
-    else:
-        daerah_marker = " Daerah"
-        if daerah_marker in title:
-            before_daerah, after_daerah = title.split(daerah_marker, 1)
-            lines = [
-                before_daerah,
-                f"Daerah {kabupaten}{after_daerah}",
-            ]
-        else:
-            lines = [f"{title} {kabupaten}".strip()]
-
     return {
         "prefix": _get_jabatan_prefix(penandatangan),
-        "lines": lines,
+        "lines": _build_kepala_title_lines(opd_name, pemda),
     }
 
 
@@ -276,8 +348,9 @@ def _filter_pelaksana_by_opd(pelaksana_list, opd_id=None):
 
 def get_spt_pelaksana_scope(pelaksana_list, tugas, opd_id=None):
     pelaksana_list = list(pelaksana_list)
+    tugas = get_tugas_name(tugas)
 
-    if tugas not in ("Bupati", "Wakil Bupati", "Sekretaris Daerah"):
+    if tugas not in ("Bupati", "Wakil Bupati", *SECRETARY_LEVEL_SIGNATORY_TASKS):
         return _filter_pelaksana_by_opd(
             pelaksana_list,
             opd_id=opd_id,
@@ -292,13 +365,14 @@ def filter_spt_pelaksana(
     opd_id=None,
     signatory_opd_id=None,
 ):
+    tugas = get_tugas_name(tugas)
     pelaksana_list = get_spt_pelaksana_scope(
         pelaksana_list,
         tugas,
         opd_id=opd_id,
     )
 
-    if tugas == "Sekretaris Daerah":
+    if is_secretary_level_task(tugas):
         is_active_signatory_opd = (
             opd_id
             and signatory_opd_id
@@ -392,7 +466,7 @@ def sort_pelaksana_by_priority(pelaksana_list):
 
 
 def should_hide_signatory_identity_details(penandatangan):
-    tugas = getattr(penandatangan, "tugas", "") or ""
+    tugas = get_tugas_name(getattr(penandatangan, "tugas", ""))
     return tugas in ("Bupati", "Wakil Bupati", "Sekretaris Daerah")
 
 
@@ -413,6 +487,7 @@ def can_print_spt_document(
     opd_id=None,
     signatory_opd_id=None,
 ):
+    tugas = get_tugas_name(tugas)
     return bool(
         filter_spt_pelaksana(
             pelaksana_list,
@@ -426,9 +501,10 @@ def can_print_spt_document(
 def find_ppk_penandatangan(opd=None, fallback_opd_id=None):
     queryset = Penandatangan.objects.select_related(
         "pangkat",
+        "tugas",
         "jenis_jabatan",
         "opd",
-    ).filter(tugas="PPK")
+    ).filter(tugas__nama="PPK")
 
     if opd:
         ppk = queryset.filter(opd=opd).first()

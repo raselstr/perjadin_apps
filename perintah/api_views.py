@@ -42,6 +42,7 @@ from perintah.document_utils import (
     build_spt_signature_title_parts,
     get_letterhead_office_name,
     get_signature_location,
+    get_spt_letterhead_pemda,
     should_hide_signatory_identity_details,
     format_spt_date_range,
     filter_spt_pelaksana,
@@ -832,8 +833,8 @@ class PrintSptWAApiView(View):
 
         spt = pemberi_tugas.spt
 
-        pemda = get_matching_pemda(
-            pemberi_tugas.penandatangan.opd
+        pemda = get_spt_letterhead_pemda(
+            pemberi_tugas.penandatangan
         )
 
         opd_id = getattr(

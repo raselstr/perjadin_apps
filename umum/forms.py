@@ -194,6 +194,7 @@ class PenandatanganForm(forms.ModelForm):
             'nip': forms.TextInput(attrs={'class': 'form-control'}),
             'pangkat': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Pangkat'}),
             'tugas': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih Tugas'}),
+            'jabatan':forms.TextInput(attrs={'class': 'form-control'}),
             'jenis_jabatan': forms.Select(attrs={'class': 'form-select select2','data-placeholder':'Jenis Jabatan'}),
             'opd': forms.Select(attrs={'class': 'form-select select2','data-placeholder': 'Pilih OPD'}),
         }

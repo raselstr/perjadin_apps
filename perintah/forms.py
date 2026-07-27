@@ -16,6 +16,7 @@ from umum.models import Pegawai, Penandatangan
 
 from .document_utils import (
     filter_spt_pelaksana,
+    get_tugas_name,
     get_spt_pelaksana_scope,
     is_single_eselon_two_pelaksana,
 )
@@ -471,6 +472,10 @@ class PemberiTugasForm(BaseAppModelForm):
             "SPT untuk Sekretaris Daerah harus memiliki minimal satu "
             "pelaksana mulai eselon II sampai non eselon."
         ),
+        "Asisten": (
+            "SPT untuk Asisten harus memiliki minimal satu "
+            "pelaksana mulai eselon II sampai non eselon."
+        ),
         "Wakil Bupati": (
             "SPT untuk Wakil Bupati harus memiliki minimal satu "
             "pelaksana dengan eselon II."
@@ -538,6 +543,7 @@ class PemberiTugasForm(BaseAppModelForm):
             spt_queryset = spt_queryset.filter(spt_filters).distinct()
 
         penandatangan_queryset = Penandatangan.objects.select_related(
+            "tugas",
             "jenis_jabatan",
             "opd",
         ).order_by("nama")
@@ -549,17 +555,18 @@ class PemberiTugasForm(BaseAppModelForm):
 
         if active_opd_id and self.instance and self.instance.penandatangan_id:
             penandatangan_queryset = Penandatangan.objects.select_related(
+                "tugas",
                 "jenis_jabatan",
                 "opd",
             ).filter(
                 Q(pk__in=penandatangan_queryset.values("pk")) |
                 Q(pk=self.instance.penandatangan_id) |
-                Q(tugas__in=get_global_penandatangan_tasks(self.request))
+                Q(tugas__nama__in=get_global_penandatangan_tasks(self.request))
             ).distinct().order_by("nama")
 
-            if self.instance.penandatangan.tugas != "PPK":
+            if get_tugas_name(self.instance.penandatangan.tugas) != "PPK":
                 penandatangan_queryset = penandatangan_queryset.exclude(
-                    tugas="PPK"
+                    tugas__nama="PPK"
                 )
 
         self.fields["spt"].queryset = spt_queryset
@@ -614,28 +621,29 @@ class PemberiTugasForm(BaseAppModelForm):
 
         if spt and penandatangan:
             active_opd_id = get_active_opd_id(self.request)
+            tugas_name = get_tugas_name(penandatangan.tugas)
             pelaksana_queryset = spt.pelaksana.select_related(
                 "nama",
                 "nama__eselon",
             )
             pelaksana_scope = get_spt_pelaksana_scope(
                 pelaksana_queryset,
-                penandatangan.tugas,
+                tugas_name,
                 opd_id=active_opd_id,
             )
             matching_pelaksana = filter_spt_pelaksana(
                 pelaksana_scope,
-                penandatangan.tugas,
+                tugas_name,
                 opd_id=active_opd_id,
                 signatory_opd_id=getattr(penandatangan, "opd_id", None),
             )
             validation_message = self.TASK_VALIDATION_MESSAGES.get(
-                penandatangan.tugas,
+                tugas_name,
             )
 
             if validation_message and not matching_pelaksana:
                 if (
-                    penandatangan.tugas == "Kepala"
+                    tugas_name == "Kepala"
                     and is_single_eselon_two_pelaksana(pelaksana_scope)
                 ):
                     return cleaned_data

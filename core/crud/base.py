@@ -218,7 +218,9 @@ class BaseCRUDView(ExcelMixin, ListView):
         add_text_filter('status', 'status__nama__icontains')
         add_text_filter('opd', 'opd__nama__icontains')
         add_text_filter('tingkat', 'tingkat__tingkat__icontains')
-        if 'tugas' in field_names:
+        if 'tugas' in field_names and is_relation('tugas'):
+            filters |= Q(tugas__nama__icontains=search)
+        elif 'tugas' in field_names:
             filters |= Q(tugas__icontains=search)
         if 'nama_pemda' in field_names:
             filters |= Q(nama_pemda__icontains=search)

@@ -64,7 +64,7 @@ class PenandatanganTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = Penandatangan
-        fields = ('no', 'nama', 'nip', 'pangkat', 'tugas', 'jenis_jabatan', 'opd','aksi')
+        fields = ('no', 'nama', 'nip', 'pangkat', 'tugas', 'jenis_jabatan', 'jabatan','opd','aksi')
 
 
 class PemdaTable(BaseTable):

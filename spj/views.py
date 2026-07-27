@@ -839,8 +839,9 @@ class KwitansiView(LoginRequiredMixin, View):
         queryset = Penandatangan.objects.select_related(
             "opd",
             "pangkat",
+            "tugas",
             "jenis_jabatan",
-        ).filter(tugas="Bendahara")
+        ).filter(tugas__nama="Bendahara")
 
         active_opd_id = get_active_opd_id(request)
         if active_opd_id:
@@ -927,8 +928,9 @@ class KwitansiPrintView(LoginRequiredMixin, View):
         queryset = Penandatangan.objects.select_related(
             "opd",
             "pangkat",
+            "tugas",
             "jenis_jabatan",
-        ).filter(tugas="Bendahara")
+        ).filter(tugas__nama="Bendahara")
 
         active_opd_id = get_active_opd_id(request)
         if active_opd_id:

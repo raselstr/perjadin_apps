@@ -6,6 +6,7 @@ ADMINISTRATOR_GLOBAL_PENANDATANGAN_TASKS = (
     "Bupati",
     "Wakil Bupati",
     "Sekretaris Daerah",
+    "Asisten",
 )
 
 
@@ -72,11 +73,11 @@ def filter_penandatangan_queryset(
         filters = Q(**{opd_lookup: active_opd_id})
 
         if include_global_tasks:
-            filters |= Q(tugas__in=get_global_penandatangan_tasks(request))
+            filters |= Q(tugas__nama__in=get_global_penandatangan_tasks(request))
 
         result_queryset = queryset.filter(filters).distinct()
 
     if exclude_tasks:
-        result_queryset = result_queryset.exclude(tugas__in=exclude_tasks)
+        result_queryset = result_queryset.exclude(tugas__nama__in=exclude_tasks)
 
     return result_queryset

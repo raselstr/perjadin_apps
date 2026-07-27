@@ -26,6 +26,7 @@ from .document_utils import (
     get_kop_surat_config,
     get_letterhead_office_name,
     get_matching_pemda,
+    get_spt_letterhead_pemda,
     get_signature_location,
     is_regional_head_task,
     select_spd_primary_pelaksana,
@@ -168,6 +169,7 @@ class PemberiTugasView(BaseCRUDView):
             "spt",
             "spt__kota_tujuan",
             "penandatangan",
+            "penandatangan__tugas",
             "penandatangan__jenis_jabatan",
             "penandatangan__opd",
         ).order_by("-tanggal_spt", "-id")
@@ -233,6 +235,7 @@ class TtdSptSpdView(BaseCRUDView):
             "spt",
             "spt__kota_tujuan",
             "penandatangan",
+            "penandatangan__tugas",
             "penandatangan__jenis_jabatan",
             "penandatangan__opd",
         )
@@ -268,6 +271,7 @@ class TtdSptSpdView(BaseCRUDView):
             "pemberi_tugas__spt",
             "pemberi_tugas__spt__kota_tujuan",
             "pemberi_tugas__penandatangan",
+            "pemberi_tugas__penandatangan__tugas",
             "pemberi_tugas__penandatangan__jenis_jabatan",
             "pemberi_tugas__penandatangan__opd",
         ).order_by("-pemberi_tugas__tanggal_spt", "-id")
@@ -300,6 +304,7 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             "spt__jenis_kegiatan",
             "penandatangan",
             "penandatangan__pangkat",
+            "penandatangan__tugas",
             "penandatangan__jenis_jabatan",
             "penandatangan__opd",
         ).prefetch_related(
@@ -436,7 +441,7 @@ class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
                 None,
             ),
         )
-        pemda = get_matching_pemda(pemberi_tugas.penandatangan.opd)
+        pemda = get_spt_letterhead_pemda(pemberi_tugas.penandatangan)
         context = self.build_document_context(
             pemberi_tugas,
             pemda,

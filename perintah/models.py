@@ -215,6 +215,8 @@ class PemberiTugas(models.Model):
         ]
 
     def sync_from_penandatangan(self):
+        from .document_utils import get_tugas_name
+
         if self.penandatangan:
             self.nama = self.penandatangan.nama
             self.nip = self.penandatangan.nip or ""
@@ -222,7 +224,7 @@ class PemberiTugas(models.Model):
                 self.penandatangan.pangkat.pangkat
                 if self.penandatangan.pangkat else ""
             )
-            self.tugas = self.penandatangan.tugas
+            self.tugas = get_tugas_name(self.penandatangan.tugas)
             self.jenis_jabatan = (
                 self.penandatangan.jenis_jabatan.nama
                 if self.penandatangan.jenis_jabatan else ""
@@ -316,6 +318,7 @@ class PemberiTugas(models.Model):
             self.spt.pelaksana.select_related("nama", "nama__eselon").all(),
             self.tugas,
             opd_id=getattr(self.penandatangan, "opd_id", None),
+            signatory_opd_id=getattr(self.penandatangan, "opd_id", None),
         )
 
     @property
@@ -354,5 +357,3 @@ class TtdSptSpd(models.Model):
     def __str__(self):
         return str(self.pemberi_tugas)
     
-
-
