@@ -11,7 +11,7 @@ from umum.models import KopSurat, Pemda, Penandatangan, Tugas
 
 GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
 SECRETARY_LEVEL_SIGNATORY_TASKS = ("Sekretaris Daerah", "Asisten")
-HANDWRITTEN_NUMBER_SPACE = "\u00a0" * 8
+HANDWRITTEN_NUMBER_SPACE = "\u00a0" * 10
 ROMAN_MAP = {
     "I": 1,
     "V": 5,
