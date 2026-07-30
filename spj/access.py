@@ -16,7 +16,11 @@ def is_spj_admin_user(user):
 
 
 def is_spj_verifikator_user(user):
-    return is_spj_admin_user(user) or get_user_role_name(user) == "verifikator"
+    return is_spj_approver_user(user)
+
+
+def is_spj_approver_user(user):
+    return is_spj_admin_user(user) or get_user_role_name(user) == "bendahara"
 
 
 def is_spj_pengguna_user(user):

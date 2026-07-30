@@ -14,14 +14,12 @@ from .models import (
 )
 
 
-def spj_action_column(url_pk, url_delete):
+def spj_action_column(url_pk):
     return tables.TemplateColumn(
         template_name="spj/action_page_links.html",
         extra_context={
-            "update_action": "update",
-            "delete_action": "delete",
+            "detail_action": "detail",
             "url_pk": url_pk,
-            "url_delete": url_delete,
         },
         orderable=False,
     )
@@ -137,11 +135,11 @@ class SPJBaseTable(BaseTable):
         orderable=False,
         template_code="""
         {% if record.verif_status == "verified" %}
-          <span class="badge bg-light-success text-success">Diverifikasi</span>
+          <span class="badge bg-light-success text-success">Disetujui</span>
         {% elif record.verif_status == "rejected" %}
           <span class="badge bg-light-danger text-danger">Ditolak</span>
         {% else %}
-          <span class="badge bg-light-secondary text-secondary">Belum</span>
+          <span class="badge bg-light-secondary text-secondary">Belum disetujui</span>
         {% endif %}
         """,
     )
@@ -163,7 +161,7 @@ class JenisSPJTable(BaseTable):
 
 
 class PenginapanTable(SPJBaseTable):
-    aksi = spj_action_column("penginapan_action_pk", "penginapan_delete")
+    aksi = spj_action_column("penginapan_action_pk")
     bukti_link = BuktiColumn(verbose_name="Bukti")
     media = PenginapanMediaColumn()
 
@@ -186,7 +184,7 @@ class PenginapanTable(SPJBaseTable):
 
 
 class PesawatTable(SPJBaseTable):
-    aksi = spj_action_column("pesawat_action_pk", "pesawat_delete")
+    aksi = spj_action_column("pesawat_action_pk")
     bukti_link = BuktiColumn(verbose_name="Bukti")
 
     class Meta(BaseTable.Meta):
@@ -209,7 +207,7 @@ class PesawatTable(SPJBaseTable):
 
 
 class UangHarianTable(SPJBaseTable):
-    aksi = spj_action_column("uang_harian_action_pk", "uang_harian_delete")
+    aksi = spj_action_column("uang_harian_action_pk")
 
     class Meta(BaseTable.Meta):
         model = UangHarian
@@ -226,7 +224,7 @@ class UangHarianTable(SPJBaseTable):
 
 
 class TransportTable(SPJBaseTable):
-    aksi = spj_action_column("transport_action_pk", "transport_delete")
+    aksi = spj_action_column("transport_action_pk")
     bukti_link = BuktiColumn(verbose_name="Bukti")
 
     class Meta(BaseTable.Meta):
@@ -249,10 +247,7 @@ class TransportTable(SPJBaseTable):
 
 
 class UangRepresentasiTable(SPJBaseTable):
-    aksi = spj_action_column(
-        "uang_representasi_action_pk",
-        "uang_representasi_delete",
-    )
+    aksi = spj_action_column("uang_representasi_action_pk")
 
     class Meta(BaseTable.Meta):
         model = UangRepresentasi
@@ -270,7 +265,7 @@ class UangRepresentasiTable(SPJBaseTable):
 class LaporanPerjalananTable(SPJBaseTable):
     standar_maksimal = None
     total_biaya = None
-    aksi = spj_action_column("laporan_perjalanan_action_pk", "laporan_perjalanan_delete")
+    aksi = spj_action_column("laporan_perjalanan_action_pk")
     media = LaporanMediaColumn()
     dokumen = tables.TemplateColumn(
         verbose_name="Cetak",

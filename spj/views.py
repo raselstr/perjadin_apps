@@ -16,13 +16,14 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
 from core.crud.base import BaseCRUDView
-from core.utils.formatting import number_to_words
+from core.utils.formatting import format_indonesian_number, is_money_identifier, number_to_words
 from perintah.models import Pelaksana, PemberiTugas
 from profiles.utils import get_active_opd_id
 from umum.models import Pemda, Penandatangan
 
 from .access import (
     filter_spj_queryset_for_user,
+    is_spj_approver_user,
     is_spj_admin_user,
     is_spj_pengguna_user,
     is_spj_verifikator_user,
@@ -344,11 +345,18 @@ class SPJQuerysetMixin:
     template_name = "spj/page.html"
     template_form = "spj/form_page.html"
     template_delete = "spj/delete_page.html"
+    template_detail = "spj/detail_page.html"
     media_form_class = None
 
     def dispatch(self, request, *args, **kwargs):
+        action = kwargs.get("action")
+        pk = kwargs.get("pk")
+        if action == "detail" and pk:
+            return self.detail_view(request, pk)
+        if action == "approve" and pk:
+            return self.approve_view(request, pk)
         if "media" in request.path:
-            return self.media_view(request, kwargs.get("pk"))
+            return self.media_view(request, pk)
         return super().dispatch(request, *args, **kwargs)
 
     def get_base_queryset(self):
@@ -372,6 +380,109 @@ class SPJQuerysetMixin:
             getattr(instance, "verif_status", None) == "verified"
             and not is_spj_verifikator_user(self.request.user)
         )
+
+    def _format_detail_value(self, field, value):
+        if value in (None, ""):
+            return "-"
+
+        if getattr(field, "is_relation", False):
+            return str(value)
+
+        if hasattr(value, "url"):
+            try:
+                return {
+                    "label": getattr(value, "name", "") or "Lihat file",
+                    "url": value.url,
+                }
+            except ValueError:
+                return "-"
+
+        if is_money_identifier(field.name):
+            return format_indonesian_number(value)
+
+        return value
+
+    def _build_detail_rows(self, instance):
+        skip_fields = {
+            "id",
+            "created_at",
+            "updated_at",
+            "verif_status",
+            "verified_by",
+            "verified_at",
+        }
+        rows = []
+        for field in instance._meta.fields:
+            if field.name in skip_fields:
+                continue
+            rows.append({
+                "label": field.verbose_name,
+                "value": self._format_detail_value(
+                    field,
+                    getattr(instance, field.name),
+                ),
+            })
+
+        if hasattr(instance, "get_standar_maksimal"):
+            standard = instance.get_standar_maksimal()
+            rows.append({
+                "label": "Standar Maksimal",
+                "value": "-" if standard is None else format_indonesian_number(standard),
+            })
+        if hasattr(instance, "total_biaya"):
+            rows.append({
+                "label": "Total Biaya",
+                "value": format_indonesian_number(instance.total_biaya),
+            })
+
+        return rows
+
+    def detail_view(self, request, pk):
+        perm = self.get_permission()
+        if not perm or not perm.can_view:
+            return self._forbidden(request)
+
+        instance = get_object_or_404(self.get_object_queryset(), pk=pk)
+        can_approve = is_spj_approver_user(request.user)
+        context = {
+            "object": instance,
+            "detail_rows": self._build_detail_rows(instance),
+            "title": self.title,
+            "permission": perm,
+            "url_list": self.url_list,
+            "url_action_pk": self.url_action_pk,
+            "can_approve_spj": can_approve,
+            "approve_url": reverse(self.url_action_pk, args=[instance.pk, "approve"]),
+            "edit_url": reverse(self.url_action_pk, args=[instance.pk, "update"]),
+        }
+        return render(request, self.template_detail, context)
+
+    def approve_view(self, request, pk):
+        if request.method != "POST":
+            return redirect(reverse(self.url_action_pk, args=[pk, "detail"]))
+
+        perm = self.get_permission()
+        if not perm or not perm.can_view:
+            return self._forbidden(request)
+        if not is_spj_approver_user(request.user):
+            messages.error(
+                request,
+                "Persetujuan SPJ hanya dapat dilakukan oleh Bendahara atau superuser.",
+            )
+            return redirect(reverse(self.url_action_pk, args=[pk, "detail"]))
+
+        instance = get_object_or_404(self.get_object_queryset(), pk=pk)
+        if instance.verif_status == "verified":
+            messages.info(request, "SPJ sudah disetujui.")
+        else:
+            self.model.objects.filter(pk=instance.pk).update(
+                verif_status="verified",
+                verified_by=request.user,
+                verified_at=timezone.now(),
+            )
+            messages.success(request, "SPJ berhasil disetujui.")
+
+        return redirect(reverse(self.url_action_pk, args=[pk, "detail"]))
 
     def form_view(self, request, pk=None):
         perm = self.get_permission()
@@ -399,8 +510,6 @@ class SPJQuerysetMixin:
         if request.method == "POST" and form.is_valid():
             action = "update" if instance else "add"
             obj = form.save(commit=False)
-            if is_spj_verifikator_user(request.user):
-                obj.mark_verification_user(request.user)
             obj.save()
             form.save_m2m()
 

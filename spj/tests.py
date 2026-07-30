@@ -5,6 +5,7 @@ from django.test import SimpleTestCase
 
 from .access import (
     filter_spj_queryset_for_user,
+    is_spj_approver_user,
     is_spj_admin_user,
     is_spj_pengguna_user,
 )
@@ -34,11 +35,28 @@ class SPJUploadTemplateTests(SimpleTestCase):
 
 
 class SPJAccessTests(SimpleTestCase):
+    @staticmethod
+    def _role_user(role_name, is_superuser=False):
+        return SimpleNamespace(
+            is_superuser=is_superuser,
+            is_authenticated=True,
+            userprofile=SimpleNamespace(
+                role=SimpleNamespace(nama=role_name),
+            ),
+        )
+
     def test_superuser_is_admin_even_without_role_scope(self):
         user = SimpleNamespace(is_superuser=True, is_authenticated=True)
 
         self.assertTrue(is_spj_admin_user(user))
         self.assertFalse(is_spj_pengguna_user(user))
+        self.assertTrue(is_spj_approver_user(user))
+
+    def test_only_bendahara_role_can_approve_spj(self):
+        self.assertTrue(is_spj_approver_user(self._role_user("Bendahara")))
+        self.assertTrue(is_spj_approver_user(self._role_user(" bendahara ")))
+        self.assertFalse(is_spj_approver_user(self._role_user("Verifikator")))
+        self.assertFalse(is_spj_approver_user(self._role_user("Pengguna")))
 
     def test_non_superuser_filters_by_active_opd(self):
         request = SimpleNamespace(

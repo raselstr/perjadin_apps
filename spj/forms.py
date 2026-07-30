@@ -7,7 +7,7 @@ from django.urls import reverse_lazy
 from core.forms import BaseAppModelForm
 from perintah.models import Pelaksana
 from profiles.utils import get_active_opd_id
-from .access import is_spj_admin_user, is_spj_pengguna_user, is_spj_verifikator_user
+from .access import is_spj_admin_user, is_spj_pengguna_user
 
 from .models import (
     JenisSPJ,
@@ -126,16 +126,7 @@ class SPJModelForm(BaseAppModelForm):
         self._configure_geo_fields()
 
     def _configure_verification_fields(self, user):
-        if "verif_status" not in self.fields:
-            return
-
-        allowed = is_spj_verifikator_user(user)
-        for name in ("verif_status",):
-            if name in self.fields:
-                self.fields[name].disabled = not allowed
-                self.fields[name].widget.attrs["class"] = (
-                    self.fields[name].widget.attrs.get("class", "")
-                )
+        self.fields.pop("verif_status", None)
 
     def _filter_available_spt_options(self, user, selected_spt_id=None):
         if getattr(self.instance, "pk", None):

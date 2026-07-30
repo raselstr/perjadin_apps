@@ -1,0 +1,136 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <style>
+    .spj-detail-grid {
+      display: grid;
+      grid-template-columns: minmax(180px, 28%) 1fr;
+      gap: 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .spj-detail-label,
+    .spj-detail-value {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .spj-detail-label {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .spj-detail-value {
+      color: #0f172a;
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .spj-detail-label:nth-last-child(2),
+    .spj-detail-value:last-child {
+      border-bottom: 0;
+    }
+
+    @media (max-width: 767.98px) {
+      .spj-detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .spj-detail-label {
+        border-bottom: 0;
+        padding-bottom: 4px;
+      }
+
+      .spj-detail-value {
+        padding-top: 4px;
+      }
+    }
+  </style>
+{% endblock extrastyle %}
+
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="col-md-12">
+            <div class="page-header-title">
+              <h5 class="m-b-10">{{ title }}</h5>
+            </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item"><a href="{% url url_list %}">{{ title }}</a></li>
+              <li class="breadcrumb-item" aria-current="page">Detail</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center gap-2 flex-wrap">
+              <div>
+                <h3 class="mb-1">{{ title }}</h3>
+                {% if object.verif_status == "verified" %}
+                  <span class="badge bg-light-success text-success">Disetujui</span>
+                  {% if object.verified_by %}
+                    <span class="text-muted small ms-2">
+                      oleh {{ object.verified_by }}{% if object.verified_at %}, {{ object.verified_at|date:"d-m-Y H:i" }}{% endif %}
+                    </span>
+                  {% endif %}
+                {% elif object.verif_status == "rejected" %}
+                  <span class="badge bg-light-danger text-danger">Ditolak</span>
+                {% else %}
+                  <span class="badge bg-light-secondary text-secondary">Belum disetujui</span>
+                {% endif %}
+              </div>
+              <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-outline-secondary" href="{% url url_list %}">
+                  Kembali
+                </a>
+                {% if permission.can_edit and object.verif_status != "verified" %}
+                  <a class="btn btn-outline-warning" href="{{ edit_url }}">
+                    Ubah
+                  </a>
+                {% endif %}
+                {% if can_approve_spj and object.verif_status != "verified" %}
+                  <form method="post" action="{{ approve_url }}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                      Setujui SPJ
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="spj-detail-grid">
+              {% for row in detail_rows %}
+                <div class="spj-detail-label">{{ row.label|capfirst }}</div>
+                <div class="spj-detail-value">
+                  {% if row.value.url %}
+                    <a href="{{ row.value.url }}" target="_blank" rel="noopener">{{ row.value.label }}</a>
+                  {% else %}
+                    {{ row.value|linebreaksbr }}
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
