@@ -1,4 +1,4 @@
-from profiles.utils import filter_queryset_by_active_opd, is_administrator_user
+from profiles.utils import get_active_opd_id
 
 
 def get_user_role_name(user):
@@ -12,10 +12,7 @@ def get_user_role_name(user):
 
 
 def is_spj_admin_user(user):
-    return (
-        bool(user and getattr(user, "is_superuser", False))
-        or is_administrator_user(user)
-    )
+    return bool(user and getattr(user, "is_superuser", False))
 
 
 def is_spj_verifikator_user(user):
@@ -29,17 +26,20 @@ def is_spj_pengguna_user(user):
     return get_user_role_name(user) == "pengguna"
 
 
+def _opd_lookup_from_user_lookup(lookup):
+    if lookup and lookup.endswith("__nip"):
+        return f"{lookup[:-5]}__opd_id"
+    return "pelaksana__nama__opd_id"
+
+
 def filter_spj_queryset_for_user(queryset, request, lookup):
     user = getattr(request, "user", None)
 
     if is_spj_admin_user(user):
         return queryset
 
-    if is_spj_pengguna_user(user):
-        return queryset.filter(**{lookup: user.username})
+    active_opd_id = get_active_opd_id(request)
+    if not active_opd_id:
+        return queryset.none()
 
-    return filter_queryset_by_active_opd(
-        queryset,
-        request,
-        "pelaksana__nama__opd_id",
-    )
+    return queryset.filter(**{_opd_lookup_from_user_lookup(lookup): active_opd_id})

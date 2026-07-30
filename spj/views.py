@@ -104,12 +104,12 @@ class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
 
         queryset = queryset.filter(spt_id=spt_id)
 
-        if is_spj_pengguna_user(request.user):
-            queryset = queryset.filter(nama__nip=request.user.username)
-        elif not is_spj_admin_user(request.user):
+        if not is_spj_admin_user(request.user):
             active_opd_id = get_active_opd_id(request)
             if active_opd_id:
                 queryset = queryset.filter(nama__opd_id=active_opd_id)
+            else:
+                queryset = queryset.none()
 
         used = None
         if model == "penginapan":
@@ -152,14 +152,20 @@ class SPJCalculationView(LoginRequiredMixin, View):
         if not spt_id or not pelaksana_id:
             return JsonResponse(data)
 
+        pelaksana_queryset = Pelaksana.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "spt__jenis_kegiatan",
+            "nama",
+            "nama__tingkat",
+        )
+        pelaksana_queryset = filter_spj_queryset_for_user(
+            pelaksana_queryset,
+            request,
+            "nama__nip",
+        )
         try:
-            pelaksana = Pelaksana.objects.select_related(
-                "spt",
-                "spt__kota_tujuan",
-                "spt__jenis_kegiatan",
-                "nama",
-                "nama__tingkat",
-            ).get(pk=pelaksana_id, spt_id=spt_id)
+            pelaksana = pelaksana_queryset.get(pk=pelaksana_id, spt_id=spt_id)
         except Pelaksana.DoesNotExist:
             return JsonResponse(data)
 
@@ -597,11 +603,6 @@ class LaporanPerjalananView(SPJQuerysetMixin, BaseCRUDView):
             "pelaksana__nama__tingkat",
         ).order_by("-id")
 
-        if is_spj_pengguna_user(self.request.user):
-            return queryset.filter(
-                spt__pelaksana__nama__nip=self.request.user.username,
-            ).distinct()
-
         return filter_spj_queryset_for_user(
             queryset,
             self.request,
@@ -1030,10 +1031,6 @@ class LaporanPerjalananPrintView(LoginRequiredMixin, View):
             "pelaksana__nama",
             "pelaksana__nama__opd",
         )
-        if is_spj_pengguna_user(request.user):
-            return queryset.filter(
-                spt__pelaksana__nama__nip=request.user.username,
-            ).distinct()
         return filter_spj_queryset_for_user(
             queryset,
             request,
@@ -1042,13 +1039,20 @@ class LaporanPerjalananPrintView(LoginRequiredMixin, View):
 
     def get(self, request, pk):
         laporan = get_object_or_404(self.get_queryset(request), pk=pk)
+        pelaksana_list = laporan.spt.pelaksana.select_related(
+            "nama",
+            "nama__pangkat",
+        ).all()
+        if not is_spj_admin_user(request.user):
+            active_opd_id = get_active_opd_id(request)
+            pelaksana_list = (
+                pelaksana_list.filter(nama__opd_id=active_opd_id)
+                if active_opd_id else pelaksana_list.none()
+            )
         context = {
             "laporan": laporan,
             "spt": laporan.spt,
-            "pelaksana_list": laporan.spt.pelaksana.select_related(
-                "nama",
-                "nama__pangkat",
-            ).all(),
+            "pelaksana_list": pelaksana_list,
             "laporan_photos": self._laporan_photos(laporan),
             "auto_print": request.GET.get("autoprint", "1") != "0",
         }

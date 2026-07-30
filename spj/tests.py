@@ -3,7 +3,25 @@ from types import SimpleNamespace
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase
 
-from .access import is_spj_admin_user, is_spj_pengguna_user
+from .access import (
+    filter_spj_queryset_for_user,
+    is_spj_admin_user,
+    is_spj_pengguna_user,
+)
+
+
+class RecordingQuerySet:
+    def __init__(self):
+        self.filter_kwargs = None
+        self.none_called = False
+
+    def filter(self, **kwargs):
+        self.filter_kwargs = kwargs
+        return self
+
+    def none(self):
+        self.none_called = True
+        return self
 
 
 class SPJUploadTemplateTests(SimpleTestCase):
@@ -21,3 +39,35 @@ class SPJAccessTests(SimpleTestCase):
 
         self.assertTrue(is_spj_admin_user(user))
         self.assertFalse(is_spj_pengguna_user(user))
+
+    def test_non_superuser_filters_by_active_opd(self):
+        request = SimpleNamespace(
+            user=SimpleNamespace(is_superuser=False, is_authenticated=True),
+            session={"session_opd_id": 7},
+        )
+        queryset = RecordingQuerySet()
+
+        result = filter_spj_queryset_for_user(
+            queryset,
+            request,
+            "pelaksana__nama__nip",
+        )
+
+        self.assertIs(result, queryset)
+        self.assertEqual(queryset.filter_kwargs, {"pelaksana__nama__opd_id": 7})
+
+        pelaksana_queryset = RecordingQuerySet()
+        filter_spj_queryset_for_user(pelaksana_queryset, request, "nama__nip")
+        self.assertEqual(pelaksana_queryset.filter_kwargs, {"nama__opd_id": 7})
+
+    def test_non_superuser_without_active_opd_gets_empty_queryset(self):
+        request = SimpleNamespace(
+            user=SimpleNamespace(is_superuser=False, is_authenticated=True),
+            session={},
+        )
+        queryset = RecordingQuerySet()
+
+        result = filter_spj_queryset_for_user(queryset, request, "nama__nip")
+
+        self.assertIs(result, queryset)
+        self.assertTrue(queryset.none_called)

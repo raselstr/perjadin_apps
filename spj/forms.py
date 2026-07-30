@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 
 from core.forms import BaseAppModelForm
 from perintah.models import Pelaksana
-from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
+from profiles.utils import get_active_opd_id
 from .access import is_spj_admin_user, is_spj_pengguna_user, is_spj_verifikator_user
 
 from .models import (
@@ -37,18 +37,17 @@ class SPJModelForm(BaseAppModelForm):
             elif getattr(self.instance, "spt_id", None):
                 selected_spt_id = self.instance.spt_id
 
-            if is_pengguna:
-                self.fields["spt"].queryset = (
-                    self.fields["spt"].queryset.filter(
-                        pelaksana__nama__nip=user.username,
-                    ).distinct()
-                )
-            elif active_opd_id and not is_admin:
-                self.fields["spt"].queryset = filter_queryset_by_active_opd(
-                    self.fields["spt"].queryset,
-                    self.request,
-                    "pelaksana__nama__opd_id",
-                ).distinct()
+            if not is_admin:
+                if active_opd_id:
+                    self.fields["spt"].queryset = (
+                        self.fields["spt"].queryset.filter(
+                            pelaksana__nama__opd_id=active_opd_id,
+                        ).distinct()
+                    )
+                else:
+                    self.fields["spt"].queryset = (
+                        self.fields["spt"].queryset.none()
+                    )
             self.fields["spt"].widget.attrs.update({
                 "class": self.spt_field_class,
                 "data-placeholder": "Pilih SPT",
@@ -73,14 +72,13 @@ class SPJModelForm(BaseAppModelForm):
                     "nama__tingkat",
                 ).order_by("-spt_id", "nama__nama")
             )
-            if is_pengguna:
-                pelaksana_queryset = pelaksana_queryset.filter(
-                    nama__nip=user.username,
-                )
-            elif active_opd_id and not is_admin:
-                pelaksana_queryset = pelaksana_queryset.filter(
-                    nama__opd_id=active_opd_id,
-                )
+            if not is_admin:
+                if active_opd_id:
+                    pelaksana_queryset = pelaksana_queryset.filter(
+                        nama__opd_id=active_opd_id,
+                    )
+                else:
+                    pelaksana_queryset = pelaksana_queryset.none()
             if selected_spt_id:
                 pelaksana_queryset = pelaksana_queryset.filter(
                     spt_id=selected_spt_id,
