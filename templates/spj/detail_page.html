@@ -103,6 +103,11 @@
                     Ubah
                   </a>
                 {% endif %}
+                {% if permission.can_delete and object.verif_status != "verified" %}
+                  <a class="btn btn-outline-danger" href="{{ delete_url }}">
+                    Hapus
+                  </a>
+                {% endif %}
                 {% if can_approve_spj and object.verif_status != "verified" %}
                   <form method="post" action="{{ approve_url }}">
                     {% csrf_token %}

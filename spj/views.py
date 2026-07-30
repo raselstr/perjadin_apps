@@ -454,6 +454,7 @@ class SPJQuerysetMixin:
             "can_approve_spj": can_approve,
             "approve_url": reverse(self.url_action_pk, args=[instance.pk, "approve"]),
             "edit_url": reverse(self.url_action_pk, args=[instance.pk, "update"]),
+            "delete_url": reverse(self.url_action_pk, args=[instance.pk, "delete"]),
         }
         return render(request, self.template_detail, context)
 
