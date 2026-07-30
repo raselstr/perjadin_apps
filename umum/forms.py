@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from core.forms import BaseAppModelForm
 from profiles.models import OPD
-from profiles.utils import get_active_opd_id
+from profiles.utils import get_active_opd_id, is_administrator_request
 
 from .models import (
     Eselon,
@@ -29,6 +29,18 @@ def _build_limited_opd_queryset(active_opd_id, instance_opd_id=None):
         filters |= Q(pk=instance_opd_id)
 
     return queryset.filter(filters).distinct()
+
+
+def _can_create_pegawai_for_any_opd(request, instance):
+    if instance and instance.pk:
+        return False
+
+    user = getattr(request, "user", None)
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+
+    return user.is_superuser or is_administrator_request(request)
+
 
 class PangkatForm(forms.ModelForm):
     class Meta:
@@ -135,6 +147,10 @@ class PegawaiForm(BaseAppModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         active_opd_id = get_active_opd_id(self.request)
+        can_choose_any_opd = _can_create_pegawai_for_any_opd(
+            self.request,
+            self.instance,
+        )
         optional_fields = [
             "pangkat",
             "eselon",
@@ -148,7 +164,7 @@ class PegawaiForm(BaseAppModelForm):
         for field_name in optional_fields:
             self.fields[field_name].required = False
 
-        if active_opd_id:
+        if active_opd_id and not can_choose_any_opd:
             self.fields["opd"].queryset = _build_limited_opd_queryset(
                 active_opd_id,
                 instance_opd_id=self.instance.opd_id,
@@ -156,6 +172,8 @@ class PegawaiForm(BaseAppModelForm):
             self.fields["opd"].initial = (
                 self.instance.opd_id or active_opd_id
             )
+        elif active_opd_id:
+            self.fields["opd"].initial = active_opd_id
 
     def clean_foto(self):
         foto = self.cleaned_data.get("foto")
@@ -176,7 +194,11 @@ class PegawaiForm(BaseAppModelForm):
         cleaned_data = super().clean()
         active_opd_id = get_active_opd_id(self.request)
 
-        if active_opd_id and not cleaned_data.get("opd"):
+        if (
+            active_opd_id
+            and not cleaned_data.get("opd")
+            and not _can_create_pegawai_for_any_opd(self.request, self.instance)
+        ):
             cleaned_data["opd"] = OPD.objects.filter(
                 pk=active_opd_id
             ).first()

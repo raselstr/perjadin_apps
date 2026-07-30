@@ -424,16 +424,24 @@ table {
                                                         <td class="person-colon">:</td>
                                                         <td>{{ pelaksana.nama.nama|default:"-" }}</td>
                                                     </tr>
-                                                    <tr>
-                                                        <td class="person-label">Pangkat/Gol</td>
-                                                        <td class="person-colon">:</td>
-                                                        <td>{{ pelaksana.nama.pangkat|default:"-" }}</td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td class="person-label">Nip</td>
-                                                        <td class="person-colon">:</td>
-                                                        <td>{{ pelaksana.nama.nip|default:"-"}}</td>
-                                                    </tr>
+                                                    {% with pangkat_gol=pelaksana.nama.pangkat|pangkat_gol_display %}
+                                                        {% if pangkat_gol %}
+                                                        <tr>
+                                                            <td class="person-label">Pangkat/Gol</td>
+                                                            <td class="person-colon">:</td>
+                                                            <td>{{ pangkat_gol }}</td>
+                                                        </tr>
+                                                        {% endif %}
+                                                    {% endwith %}
+                                                    {% with nip=pelaksana.nama.nip|meaningful_text %}
+                                                        {% if nip %}
+                                                        <tr>
+                                                            <td class="person-label">Nip</td>
+                                                            <td class="person-colon">:</td>
+                                                            <td>{{ nip }}</td>
+                                                        </tr>
+                                                        {% endif %}
+                                                    {% endwith %}
                                                     <tr>
                                                         <td class="person-label">Jabatan</td>
                                                         <td class="person-colon">:</td>

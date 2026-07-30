@@ -8,6 +8,7 @@ ADMINISTRATOR_GLOBAL_PENANDATANGAN_TASKS = (
     "Sekretaris Daerah",
     "Asisten",
 )
+ADMINISTRATOR_ROLE_NAMES = {"administrator", "administrasi"}
 
 
 def is_administrator_user(user):
@@ -19,7 +20,7 @@ def is_administrator_user(user):
     except Exception:
         return False
 
-    return role_name.strip().lower() == "administrator"
+    return role_name.strip().lower() in ADMINISTRATOR_ROLE_NAMES
 
 
 def is_administrator_request(request):

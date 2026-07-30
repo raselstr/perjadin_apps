@@ -429,7 +429,9 @@ li {
                         <td colspan="2">
                             {% if primary_pelaksana %}
                                 {{ primary_pelaksana.nama.nama|default:"-" }}
-                                {% if primary_pelaksana.nama.nip %}<br>Nip. {{ primary_pelaksana.nama.nip}}{% endif %}
+                                {% with nip=primary_pelaksana.nama.nip|meaningful_text %}
+                                    {% if nip %}<br>Nip. {{ nip }}{% endif %}
+                                {% endwith %}
                             {% else %}
                                 <span class="empty-state">Belum ada pelaksana.</span>
                             {% endif %}
@@ -444,7 +446,9 @@ li {
                         </td>
                         <td colspan="2">
                             {% if primary_pelaksana %}
-                                a. {{ primary_pelaksana.nama.pangkat|default:"-" }}<br>
+                                {% with pangkat_gol=primary_pelaksana.nama.pangkat|pangkat_gol_display %}
+                                    {% if pangkat_gol %}a. {{ pangkat_gol }}<br>{% endif %}
+                                {% endwith %}
                                 b. {{ primary_pelaksana.nama.jabatan|default:"-" }}<br>
                                 c. {{ primary_pelaksana.nama.tingkat|default:"-" }}
                             {% else %}

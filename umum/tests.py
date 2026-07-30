@@ -1,10 +1,11 @@
 import io
 
-from django.test import TestCase
+from django.contrib.auth.models import User
+from django.test import RequestFactory, TestCase
 from openpyxl import Workbook
 
 from core.utils.excel_handler import ExcelImporter
-from profiles.models import OPD
+from profiles.models import OPD, Role, UserProfile
 
 from .forms import KopSuratForm, PegawaiForm, PenandatanganForm
 from .models import Eselon, JenisJabatan, Pangkat, Pegawai, Penandatangan, StatusASN, Tingkat
@@ -74,6 +75,53 @@ class PangkatImportTests(TestCase):
 
 
 class PegawaiFormTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def _build_request(self, user):
+        request = self.factory.post("/umum/pegawai/form/")
+        request.user = user
+        request.session = {}
+        return request
+
+    def _assert_admin_role_can_create_pegawai_for_any_opd(self, role_name):
+        active_opd = OPD.objects.create(nama=f"BPKAD {role_name}")
+        target_opd = OPD.objects.create(nama=f"Bapperida {role_name}")
+        role = Role.objects.create(nama=role_name)
+        user = User.objects.create_user(username=f"admin-{role_name.lower()}")
+        UserProfile.objects.filter(user=user).update(
+            role=role,
+            opd=active_opd,
+        )
+        user.refresh_from_db()
+
+        form = PegawaiForm(
+            data={
+                'nip': '198001012006041002',
+                'nama': 'Siti',
+                'pangkat': '',
+                'jabatan': 'Analis',
+                'eselon': '',
+                'jenis_jabatan': '',
+                'status': '',
+                'tgl_lahir': '',
+                'opd': target_opd.pk,
+                'tingkat': '',
+            },
+            request=self._build_request(user),
+        )
+
+        self.assertEqual(
+            list(
+                form.fields["opd"]
+                .queryset.order_by("pk")
+                .values_list("pk", flat=True)
+            ),
+            list(OPD.objects.order_by("pk").values_list("pk", flat=True)),
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["opd"], target_opd)
+
     def test_optional_relations_can_be_left_blank(self):
         form = PegawaiForm(data={
             'nip': '198001012006041001',
@@ -89,6 +137,80 @@ class PegawaiFormTests(TestCase):
         })
 
         self.assertTrue(form.is_valid(), form.errors)
+
+    def test_administrator_user_can_create_pegawai_for_any_opd(self):
+        self._assert_admin_role_can_create_pegawai_for_any_opd("Administrator")
+
+    def test_administrasi_user_can_create_pegawai_for_any_opd(self):
+        self._assert_admin_role_can_create_pegawai_for_any_opd("Administrasi")
+
+    def test_superuser_can_create_pegawai_for_any_opd(self):
+        target_opd = OPD.objects.create(nama="Bapperida")
+        user = User.objects.create_superuser(
+            username="super-admin",
+            password="secret",
+        )
+
+        form = PegawaiForm(
+            data={
+                'nip': '198001012006041003',
+                'nama': 'Rina',
+                'pangkat': '',
+                'jabatan': 'Analis',
+                'eselon': '',
+                'jenis_jabatan': '',
+                'status': '',
+                'tgl_lahir': '',
+                'opd': target_opd.pk,
+                'tingkat': '',
+            },
+            request=self._build_request(user),
+        )
+
+        self.assertEqual(
+            list(
+                form.fields["opd"]
+                .queryset.order_by("pk")
+                .values_list("pk", flat=True)
+            ),
+            list(OPD.objects.order_by("pk").values_list("pk", flat=True)),
+        )
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertEqual(form.cleaned_data["opd"], target_opd)
+
+    def test_regular_user_cannot_create_pegawai_for_other_opd(self):
+        active_opd = OPD.objects.create(nama="BPKAD")
+        target_opd = OPD.objects.create(nama="Bapperida")
+        role = Role.objects.create(nama="Operator")
+        user = User.objects.create_user(username="operator-opd")
+        UserProfile.objects.filter(user=user).update(
+            role=role,
+            opd=active_opd,
+        )
+        user.refresh_from_db()
+
+        form = PegawaiForm(
+            data={
+                'nip': '198001012006041004',
+                'nama': 'Joko',
+                'pangkat': '',
+                'jabatan': 'Analis',
+                'eselon': '',
+                'jenis_jabatan': '',
+                'status': '',
+                'tgl_lahir': '',
+                'opd': target_opd.pk,
+                'tingkat': '',
+            },
+            request=self._build_request(user),
+        )
+
+        self.assertEqual(
+            list(form.fields["opd"].queryset.values_list("pk", flat=True)),
+            [active_opd.pk],
+        )
+        self.assertFalse(form.is_valid())
+        self.assertIn("opd", form.errors)
 
 
 class PenandatanganFormTests(TestCase):

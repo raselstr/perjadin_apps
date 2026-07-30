@@ -1,4 +1,4 @@
-from profiles.utils import filter_queryset_by_active_opd
+from profiles.utils import filter_queryset_by_active_opd, is_administrator_user
 
 
 def get_user_role_name(user):
@@ -14,7 +14,7 @@ def get_user_role_name(user):
 def is_spj_admin_user(user):
     return (
         bool(user and getattr(user, "is_superuser", False))
-        or get_user_role_name(user) == "administrator"
+        or is_administrator_user(user)
     )
 
 
@@ -23,6 +23,9 @@ def is_spj_verifikator_user(user):
 
 
 def is_spj_pengguna_user(user):
+    if user and getattr(user, "is_superuser", False):
+        return False
+
     return get_user_role_name(user) == "pengguna"
 
 

@@ -7,6 +7,14 @@ from core.utils.formatting import (
 )
 
 register = template.Library()
+EMPTY_DOCUMENT_VALUES = {"", "-", "–", "—", "null", "none"}
+
+
+def _meaningful_text(value):
+    text = str(value or "").strip()
+    if text.lower() in EMPTY_DOCUMENT_VALUES:
+        return ""
+    return text
 
 
 @register.filter
@@ -44,3 +52,29 @@ def format_indonesian_number(value):
     if value is None:
         return ""
     return _format_indonesian_number(value)
+
+
+@register.filter
+def meaningful_text(value):
+    return _meaningful_text(value)
+
+
+@register.filter
+def pangkat_gol_display(value):
+    pangkat = _meaningful_text(getattr(value, "pangkat", value))
+    golongan = _meaningful_text(getattr(value, "golongan", ""))
+    ruang = _meaningful_text(getattr(value, "ruang", ""))
+
+    golongan_ruang = ""
+    if golongan and ruang:
+        golongan_ruang = f"{golongan}.{ruang}"
+    elif golongan:
+        golongan_ruang = golongan
+    elif ruang:
+        golongan_ruang = ruang
+
+    if pangkat and golongan_ruang:
+        return f"{pangkat} / {golongan_ruang}"
+    if pangkat:
+        return pangkat
+    return golongan_ruang

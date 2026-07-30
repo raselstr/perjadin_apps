@@ -12,6 +12,13 @@ from umum.models import KopSurat, Pemda, Penandatangan, Tugas
 GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
 SECRETARY_LEVEL_SIGNATORY_TASKS = ("Sekretaris Daerah", "Asisten")
 HANDWRITTEN_NUMBER_SPACE = "\u00a0" * 10
+PELAKSANA_JABATAN_PRIORITY = (
+    "Bupati",
+    "Wakil Bupati",
+    "Sekretaris Daerah",
+    "Asisten",
+    "Kepala OPD",
+)
 ROMAN_MAP = {
     "I": 1,
     "V": 5,
@@ -446,11 +453,37 @@ def _get_name_sort_value(pegawai):
     return (getattr(pegawai, "nama", "") or "").strip().lower()
 
 
+def _normalize_jabatan_value(pegawai):
+    return (getattr(pegawai, "jabatan", "") or "").strip().lower()
+
+
+def _get_pelaksana_jabatan_priority(pegawai):
+    jabatan = _normalize_jabatan_value(pegawai)
+    if not jabatan:
+        return len(PELAKSANA_JABATAN_PRIORITY)
+
+    if "wakil bupati" in jabatan:
+        return 1
+    if "bupati" in jabatan:
+        return 0
+    if "sekretaris daerah" in jabatan:
+        return 2
+    if "asisten" in jabatan:
+        return 3
+    if "kepala opd" in jabatan:
+        return 4
+    if jabatan.startswith("kepala ") and is_eselon_two(pegawai):
+        return 4
+
+    return len(PELAKSANA_JABATAN_PRIORITY)
+
+
 def _sort_key_for_eselon_priority(pelaksana):
     pegawai = pelaksana.nama
     has_ruang, golongan_rank, ruang_rank = _get_pangkat_rank(pegawai)
 
     return (
+        _get_pelaksana_jabatan_priority(pegawai),
         get_eselon_level(pegawai) or 999,
         -has_ruang,
         -golongan_rank,
