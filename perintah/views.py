@@ -76,14 +76,16 @@ def _get_active_opd_name(request, fallback=""):
 
 def _build_number_from_format(raw_number, fallback_number, tanggal, format_template):
     raw_number = (raw_number or "").strip()
-    if raw_number:
+    if "/" in raw_number:
         return raw_number
 
+    nomor = raw_number or (fallback_number or "").strip()
+
     if not format_template:
-        return (fallback_number or "").strip()
+        return nomor
 
     return generate_default_document_number(
-        fallback_number,
+        nomor,
         tanggal,
         format_template,
     )
@@ -368,6 +370,8 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             penandatangan,
             pemda=pemda,
         )
+        print("Nomor SPT:", pemberi_tugas.nomor_spt)
+        print("Format Nomor SPT:", kop_surat.default_spt_number_format)
 
         return {
             "pemda": pemda,
@@ -427,6 +431,7 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             self.frame_content_security_policy
         )
         return response
+    
 
 
 class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
