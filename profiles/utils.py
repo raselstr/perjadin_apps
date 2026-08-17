@@ -9,22 +9,46 @@ ADMINISTRATOR_GLOBAL_PENANDATANGAN_TASKS = (
     "Asisten",
 )
 ADMINISTRATOR_ROLE_NAMES = {"administrator", "administrasi"}
+PENGGUNA_ROLE_NAME = "pengguna"
+
+
+def get_user_role_name(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return ""
+
+    try:
+        role_name = user.userprofile.role.nama or ""
+    except Exception:
+        return ""
+
+    return role_name.strip().lower()
 
 
 def is_administrator_user(user):
     if not user or not getattr(user, "is_authenticated", False):
         return False
 
-    try:
-        role_name = user.userprofile.role.nama or ""
-    except Exception:
-        return False
-
-    return role_name.strip().lower() in ADMINISTRATOR_ROLE_NAMES
+    return get_user_role_name(user) in ADMINISTRATOR_ROLE_NAMES
 
 
 def is_administrator_request(request):
     return is_administrator_user(getattr(request, "user", None))
+
+
+def is_pengguna_user(user):
+    if not user or not getattr(user, "is_authenticated", False):
+        return False
+    if getattr(user, "is_superuser", False):
+        return False
+
+    return get_user_role_name(user) == PENGGUNA_ROLE_NAME
+
+
+def get_pengguna_nip(user):
+    if not is_pengguna_user(user):
+        return ""
+
+    return (getattr(user, "username", "") or "").strip()
 
 
 def get_global_penandatangan_tasks(request=None):
@@ -58,6 +82,19 @@ def filter_queryset_by_active_opd(queryset, request, lookup):
         return queryset
 
     return queryset.filter(**{lookup: active_opd_id})
+
+
+def filter_queryset_by_pengguna_or_active_opd(
+    queryset,
+    request,
+    opd_lookup,
+    nip_lookup,
+):
+    pengguna_nip = get_pengguna_nip(getattr(request, "user", None))
+    if pengguna_nip:
+        return queryset.filter(**{nip_lookup: pengguna_nip})
+
+    return filter_queryset_by_active_opd(queryset, request, opd_lookup)
 
 
 def filter_penandatangan_queryset(

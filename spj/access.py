@@ -1,14 +1,8 @@
-from profiles.utils import get_active_opd_id
-
-
-def get_user_role_name(user):
-    if not user or not getattr(user, "is_authenticated", False):
-        return ""
-
-    try:
-        return (user.userprofile.role.nama or "").strip().lower()
-    except Exception:
-        return ""
+from profiles.utils import (
+    get_active_opd_id,
+    get_pengguna_nip,
+    get_user_role_name,
+)
 
 
 def is_spj_admin_user(user):
@@ -41,6 +35,10 @@ def filter_spj_queryset_for_user(queryset, request, lookup):
 
     if is_spj_admin_user(user):
         return queryset
+
+    pengguna_nip = get_pengguna_nip(user)
+    if pengguna_nip:
+        return queryset.filter(**{lookup: pengguna_nip})
 
     active_opd_id = get_active_opd_id(request)
     if not active_opd_id:

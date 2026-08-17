@@ -123,23 +123,23 @@
                   <td>{{ row.hotel.lama_menginap|default:"-" }}</td>
                   <td class="text-end">{{ row.hotel.harga_per_malam|default:0|floatformat:2 }}</td>
                   <td class="text-end">{{ row.hotel.total_biaya|default:0|floatformat:2 }}</td>
-                  <td>{{ row.transport_berangkat.tujuan|default:"-" }}</td>
-                  <td>{{ row.transport_berangkat.tanggal_berangkat|default:row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
-                  <td class="text-end">{{ row.transport_berangkat.biaya|default:0|floatformat:2 }}</td>
-                  <td>{{ row.transport_kembali.tujuan|default:"-" }}</td>
-                  <td>{{ row.transport_kembali.tanggal_berangkat|default:row.spt.tgl_kembali|date:"d/m/Y" }}</td>
-                  <td class="text-end">{{ row.transport_kembali.biaya|default:0|floatformat:2 }}</td>
+                  <td>{{ row.transport_berangkat_tujuan|linebreaksbr }}</td>
+                  <td>{{ row.transport_berangkat_tanggal|linebreaksbr }}</td>
+                  <td class="text-end">{{ row.transport_berangkat_total|default:0|floatformat:2 }}</td>
+                  <td>{{ row.transport_kembali_tujuan|linebreaksbr }}</td>
+                  <td>{{ row.transport_kembali_tanggal|linebreaksbr }}</td>
+                  <td class="text-end">{{ row.transport_kembali_total|default:0|floatformat:2 }}</td>
                   <td class="text-end fw-semibold">{{ row.total|floatformat:2 }}</td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="38" class="text-center text-muted py-4">Belum ada data pada rentang tanggal ini.</td>
+                  <td colspan="40" class="text-center text-muted py-4">Belum ada data pada rentang tanggal ini.</td>
                 </tr>
               {% endfor %}
             </tbody>
             <tfoot>
               <tr>
-                <th colspan="37" class="text-end">Grand Total</th>
+                <th colspan="39" class="text-end">Grand Total</th>
                 <th class="text-end">{{ grand_total|floatformat:2 }}</th>
               </tr>
             </tfoot>

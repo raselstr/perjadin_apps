@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.files.storage import default_storage
@@ -11,7 +12,10 @@ from django.views import View
 from core.crud.base import BaseCRUDView, BaseMasterDetailCRUDView
 from menus.models import RolePermission, SubMenu
 from profiles.models import UserProfile
-from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
+from profiles.utils import (
+    filter_queryset_by_pengguna_or_active_opd,
+    get_active_opd_id,
+)
 
 from .document_utils import (
     build_contact_line,
@@ -141,6 +145,14 @@ class SptView(BaseMasterDetailCRUDView):
     url_export = None
     url_import = None
 
+    def dispatch(self, request, *args, **kwargs):
+        action = kwargs.get("action")
+        pk = kwargs.get("pk")
+        if action == "copy" and pk:
+            return self.copy_view(request, pk)
+
+        return super().dispatch(request, *args, **kwargs)
+
     def get_base_queryset(self):
         queryset = Spt.objects.select_related(
             "kota_tujuan",
@@ -149,12 +161,52 @@ class SptView(BaseMasterDetailCRUDView):
             "pelaksana__nama",
         ).order_by("-id")
 
-        queryset = filter_queryset_by_active_opd(
+        queryset = filter_queryset_by_pengguna_or_active_opd(
             queryset,
             self.request,
             "pelaksana__nama__opd_id",
+            "pelaksana__nama__nip",
         )
         return queryset.distinct()
+
+    def copy_view(self, request, pk):
+        if request.method != "POST":
+            return redirect(self.url_list)
+
+        perm = self.get_permission()
+        if not perm or not perm.can_add:
+            return self._forbidden(request)
+
+        source = get_object_or_404(
+            self.get_object_queryset().prefetch_related(
+                "kota_tujuan_tambahan",
+                "pelaksana",
+            ),
+            pk=pk,
+        )
+
+        with transaction.atomic():
+            copy = Spt.objects.create(
+                dasar=source.dasar,
+                berita=source.berita,
+                kota_tujuan=source.kota_tujuan,
+                tempat_tujuan=source.tempat_tujuan,
+                lama_perjalanan=source.lama_perjalanan,
+                tgl_berangkat=source.tgl_berangkat,
+                jenis_kegiatan=source.jenis_kegiatan,
+                kendaraan=source.kendaraan,
+            )
+            copy.kota_tujuan_tambahan.set(source.kota_tujuan_tambahan.all())
+            Pelaksana.objects.bulk_create([
+                Pelaksana(spt=copy, nama_id=pelaksana.nama_id)
+                for pelaksana in source.pelaksana.all()
+            ])
+
+        messages.success(
+            request,
+            f"SPT #{source.pk} berhasil disalin menjadi SPT #{copy.pk}.",
+        )
+        return redirect(self.url_list)
 
 
 class PemberiTugasView(BaseCRUDView):
@@ -179,10 +231,11 @@ class PemberiTugasView(BaseCRUDView):
             "penandatangan__opd",
         ).order_by("-tanggal_spt", "-id")
 
-        queryset = filter_queryset_by_active_opd(
+        queryset = filter_queryset_by_pengguna_or_active_opd(
             queryset,
             self.request,
             "spt__pelaksana__nama__opd_id",
+            "spt__pelaksana__nama__nip",
         )
         return queryset.distinct()
 
@@ -244,10 +297,11 @@ class TtdSptSpdView(BaseCRUDView):
             "penandatangan__jenis_jabatan",
             "penandatangan__opd",
         )
-        pemberi_tugas_queryset = filter_queryset_by_active_opd(
+        pemberi_tugas_queryset = filter_queryset_by_pengguna_or_active_opd(
             pemberi_tugas_queryset,
             self.request,
             "spt__pelaksana__nama__opd_id",
+            "spt__pelaksana__nama__nip",
         ).distinct()
 
         pemberi_tugas_ids = list(
@@ -325,10 +379,11 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             )
         )
 
-        queryset = filter_queryset_by_active_opd(
+        queryset = filter_queryset_by_pengguna_or_active_opd(
             queryset,
             self.request,
             "spt__pelaksana__nama__opd_id",
+            "spt__pelaksana__nama__nip",
         )
         return queryset.distinct()
 
@@ -617,10 +672,11 @@ class TtdSptSpdViewModalView(LoginRequiredMixin, View):
             "pemberi_tugas__spt",
             "pemberi_tugas__spt__kota_tujuan",
         )
-        return filter_queryset_by_active_opd(
+        return filter_queryset_by_pengguna_or_active_opd(
             queryset,
             request,
             "pemberi_tugas__spt__pelaksana__nama__opd_id",
+            "pemberi_tugas__spt__pelaksana__nama__nip",
         ).distinct()
 
     def get(self, request, pk):
@@ -671,10 +727,11 @@ class TtdSptSpdUploadView(LoginRequiredMixin, View):
             "pemberi_tugas",
             "pemberi_tugas__spt",
         )
-        return filter_queryset_by_active_opd(
+        return filter_queryset_by_pengguna_or_active_opd(
             queryset,
             request,
             "pemberi_tugas__spt__pelaksana__nama__opd_id",
+            "pemberi_tugas__spt__pelaksana__nama__nip",
         ).distinct()
 
     def post(self, request, pk):

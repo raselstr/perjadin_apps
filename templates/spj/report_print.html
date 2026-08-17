@@ -89,12 +89,12 @@
           <td>{{ row.hotel.lama_menginap|default:"-" }}</td>
           <td class="text-end">{{ row.hotel.harga_per_malam|default:0|floatformat:2 }}</td>
           <td class="text-end">{{ row.hotel.total_biaya|default:0|floatformat:2 }}</td>
-          <td>{{ row.transport_berangkat.tujuan|default:"-" }}</td>
-          <td>{{ row.transport_berangkat.tanggal_berangkat|default:row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
-          <td class="text-end">{{ row.transport_berangkat.biaya|default:0|floatformat:2 }}</td>
-          <td>{{ row.transport_kembali.tujuan|default:"-" }}</td>
-          <td>{{ row.transport_kembali.tanggal_berangkat|default:row.spt.tgl_kembali|date:"d/m/Y" }}</td>
-          <td class="text-end">{{ row.transport_kembali.biaya|default:0|floatformat:2 }}</td>
+          <td>{{ row.transport_berangkat_tujuan|linebreaksbr }}</td>
+          <td>{{ row.transport_berangkat_tanggal|linebreaksbr }}</td>
+          <td class="text-end">{{ row.transport_berangkat_total|default:0|floatformat:2 }}</td>
+          <td>{{ row.transport_kembali_tujuan|linebreaksbr }}</td>
+          <td>{{ row.transport_kembali_tanggal|linebreaksbr }}</td>
+          <td class="text-end">{{ row.transport_kembali_total|default:0|floatformat:2 }}</td>
           <td class="text-end">{{ row.total|floatformat:2 }}</td>
         </tr>
       {% empty %}

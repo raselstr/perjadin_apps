@@ -6,7 +6,49 @@ from .models import PemberiTugas, Spt, TtdSptSpd
 
 
 class SptTable(BaseTable):
-    aksi = action_column("spt_action_pk", "spt_delete")
+    aksi = tables.TemplateColumn(
+        verbose_name="Aksi",
+        orderable=False,
+        extra_context={
+            "update_action": "update",
+            "delete_action": "delete",
+            "copy_action": "copy",
+        },
+        template_code="""
+        <div class="d-flex gap-1 justify-content-center">
+            <button
+                class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center"
+                style="width:32px;height:32px"
+                hx-get="{% url 'spt_action_pk' record.id update_action %}"
+                hx-target="#modal-body"
+                data-bs-toggle="modal"
+                data-bs-target="#modal"
+                title="Edit">
+                <i class="ti ti-pencil"></i>
+            </button>
+            <form method="post" action="{% url 'spt_action_pk' record.id copy_action %}" class="d-inline">
+                {% csrf_token %}
+                <button
+                    class="btn btn-sm btn-outline-info d-flex align-items-center justify-content-center"
+                    style="width:32px;height:32px"
+                    type="submit"
+                    title="Copy SPT">
+                    <i class="ti ti-copy"></i>
+                </button>
+            </form>
+            <button
+                class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
+                style="width:32px;height:32px"
+                hx-get="{% url 'spt_delete' record.id delete_action %}"
+                hx-target="#modal-body"
+                data-bs-toggle="modal"
+                data-bs-target="#modal"
+                title="Hapus">
+                <i class="ti ti-trash"></i>
+            </button>
+        </div>
+        """,
+    )
 
     spt_id = tables.TemplateColumn(
         verbose_name="ID SPT",

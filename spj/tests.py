@@ -89,3 +89,23 @@ class SPJAccessTests(SimpleTestCase):
 
         self.assertIs(result, queryset)
         self.assertTrue(queryset.none_called)
+
+    def test_pengguna_filters_by_logged_in_username_nip(self):
+        request = SimpleNamespace(
+            user=self._role_user("Pengguna"),
+            session={"session_opd_id": 7},
+        )
+        request.user.username = "198001012005011001"
+        queryset = RecordingQuerySet()
+
+        result = filter_spj_queryset_for_user(
+            queryset,
+            request,
+            "pelaksana__nama__nip",
+        )
+
+        self.assertIs(result, queryset)
+        self.assertEqual(
+            queryset.filter_kwargs,
+            {"pelaksana__nama__nip": "198001012005011001"},
+        )

@@ -6,7 +6,7 @@ from django.urls import reverse_lazy
 
 from core.forms import BaseAppModelForm
 from perintah.models import Pelaksana
-from profiles.utils import get_active_opd_id
+from profiles.utils import get_active_opd_id, get_pengguna_nip
 from .access import is_spj_admin_user, is_spj_pengguna_user
 
 from .models import (
@@ -29,6 +29,7 @@ class SPJModelForm(BaseAppModelForm):
         user = getattr(self.request, "user", None)
         is_admin = is_spj_admin_user(user)
         is_pengguna = is_spj_pengguna_user(user)
+        pengguna_nip = get_pengguna_nip(user)
 
         if "spt" in self.fields:
             selected_spt_id = None
@@ -37,7 +38,13 @@ class SPJModelForm(BaseAppModelForm):
             elif getattr(self.instance, "spt_id", None):
                 selected_spt_id = self.instance.spt_id
 
-            if not is_admin:
+            if pengguna_nip:
+                self.fields["spt"].queryset = (
+                    self.fields["spt"].queryset.filter(
+                        pelaksana__nama__nip=pengguna_nip,
+                    ).distinct()
+                )
+            elif not is_admin:
                 if active_opd_id:
                     self.fields["spt"].queryset = (
                         self.fields["spt"].queryset.filter(
@@ -72,7 +79,11 @@ class SPJModelForm(BaseAppModelForm):
                     "nama__tingkat",
                 ).order_by("-spt_id", "nama__nama")
             )
-            if not is_admin:
+            if pengguna_nip:
+                pelaksana_queryset = pelaksana_queryset.filter(
+                    nama__nip=pengguna_nip,
+                )
+            elif not is_admin:
                 if active_opd_id:
                     pelaksana_queryset = pelaksana_queryset.filter(
                         nama__opd_id=active_opd_id,

@@ -4,7 +4,6 @@ from io import BytesIO
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from types import SimpleNamespace
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -18,14 +17,13 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from core.crud.base import BaseCRUDView
 from core.utils.formatting import format_indonesian_number, is_money_identifier, number_to_words
 from perintah.models import Pelaksana, PemberiTugas
-from profiles.utils import get_active_opd_id
+from profiles.utils import get_active_opd_id, get_pengguna_nip
 from umum.models import Pemda, Penandatangan
 
 from .access import (
     filter_spj_queryset_for_user,
     is_spj_approver_user,
     is_spj_admin_user,
-    is_spj_pengguna_user,
     is_spj_verifikator_user,
 )
 from .forms import (
@@ -105,7 +103,10 @@ class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
 
         queryset = queryset.filter(spt_id=spt_id)
 
-        if not is_spj_admin_user(request.user):
+        pengguna_nip = get_pengguna_nip(request.user)
+        if pengguna_nip:
+            queryset = queryset.filter(nama__nip=pengguna_nip)
+        elif not is_spj_admin_user(request.user):
             active_opd_id = get_active_opd_id(request)
             if active_opd_id:
                 queryset = queryset.filter(nama__opd_id=active_opd_id)
@@ -273,6 +274,45 @@ def _append_kwitansi_item(items, label, amount, keterangan=""):
         "amount": amount,
         "keterangan": keterangan,
     })
+
+
+def _transport_queryset_for_direction(transports, direction):
+    return [
+        transport for transport in transports
+        if (
+            getattr(getattr(transport, "jenis_spj", None), "jenis_spj", "")
+            or ""
+        ).strip().lower() == direction
+    ]
+
+
+def _sum_transport(transports):
+    return sum(
+        (
+            getattr(transport, "total_biaya", Decimal("0")) or Decimal("0")
+            for transport in transports
+        ),
+        Decimal("0"),
+    )
+
+
+def _join_transport_summary(transports, attr_name=None):
+    values = []
+    for transport in transports:
+        jenis = str(getattr(transport, "jenis_transportasi", "") or "").strip()
+        value = getattr(transport, attr_name) if attr_name else ""
+        if hasattr(value, "strftime"):
+            value = value.strftime("%d/%m/%Y")
+        value = str(value or "").strip()
+
+        if jenis and value:
+            values.append(f"{jenis}: {value}")
+        elif jenis:
+            values.append(jenis)
+        elif value:
+            values.append(value)
+
+    return "\n".join(values) or "-"
 
 
 def _build_kwitansi_items(pelaksana):
@@ -719,16 +759,6 @@ class LaporanPerjalananView(SPJQuerysetMixin, BaseCRUDView):
             "pelaksana__nama__nip",
         ).distinct()
 
-    def get_permission(self):
-        if is_spj_pengguna_user(self.request.user):
-            return SimpleNamespace(
-                can_view=True,
-                can_add=True,
-                can_edit=True,
-                can_delete=False,
-            )
-        return super().get_permission()
-
 
 class SPJReportView(LoginRequiredMixin, View):
     template_name = "spj/report.html"
@@ -784,9 +814,23 @@ class SPJReportView(LoginRequiredMixin, View):
             hotel = Penginapan.objects.filter(spt=spt, pelaksana=item).first()
             uang_harian = UangHarian.objects.filter(spt=spt, pelaksana=item).first()
             representasi = UangRepresentasi.objects.filter(spt=spt, pelaksana=item).first()
-            transports = Transport.objects.filter(spt=spt, pelaksana=item).select_related("jenis_spj", "tujuan")
-            transport_berangkat = transports.filter(jenis_spj__jenis_spj__iexact="Berangkat").first()
-            transport_kembali = transports.filter(jenis_spj__jenis_spj__iexact="Kembali").first()
+            transports = list(
+                Transport.objects.filter(spt=spt, pelaksana=item).select_related(
+                    "jenis_spj",
+                    "jenis_transportasi",
+                    "tujuan",
+                )
+            )
+            transport_berangkat = _transport_queryset_for_direction(
+                transports,
+                "berangkat",
+            )
+            transport_kembali = _transport_queryset_for_direction(
+                transports,
+                "kembali",
+            )
+            transport_berangkat_total = _sum_transport(transport_berangkat)
+            transport_kembali_total = _sum_transport(transport_kembali)
 
             total = sum([
                 getattr(uang_harian, "total_biaya", Decimal("0")) or Decimal("0"),
@@ -794,8 +838,8 @@ class SPJReportView(LoginRequiredMixin, View):
                 getattr(pesawat_berangkat, "total_biaya", Decimal("0")) or Decimal("0"),
                 getattr(pesawat_kembali, "total_biaya", Decimal("0")) or Decimal("0"),
                 getattr(hotel, "total_biaya", Decimal("0")) or Decimal("0"),
-                getattr(transport_berangkat, "total_biaya", Decimal("0")) or Decimal("0"),
-                getattr(transport_kembali, "total_biaya", Decimal("0")) or Decimal("0"),
+                transport_berangkat_total,
+                transport_kembali_total,
             ], Decimal("0"))
 
             rows.append({
@@ -809,6 +853,24 @@ class SPJReportView(LoginRequiredMixin, View):
                 "representasi": representasi,
                 "transport_berangkat": transport_berangkat,
                 "transport_kembali": transport_kembali,
+                "transport_berangkat_tujuan": _join_transport_summary(
+                    transport_berangkat,
+                    "tujuan",
+                ),
+                "transport_kembali_tujuan": _join_transport_summary(
+                    transport_kembali,
+                    "tujuan",
+                ),
+                "transport_berangkat_tanggal": _join_transport_summary(
+                    transport_berangkat,
+                    "tanggal_berangkat",
+                ),
+                "transport_kembali_tanggal": _join_transport_summary(
+                    transport_kembali,
+                    "tanggal_berangkat",
+                ),
+                "transport_berangkat_total": transport_berangkat_total,
+                "transport_kembali_total": transport_kembali_total,
                 "total": total,
             })
 
@@ -823,8 +885,6 @@ class SPJReportView(LoginRequiredMixin, View):
         pb = row["pesawat_berangkat"]
         pk = row["pesawat_kembali"]
         hotel = row["hotel"]
-        tb = row["transport_berangkat"]
-        tk = row["transport_kembali"]
         return [
             idx,
             spt.tgl_berangkat.year if spt.tgl_berangkat else "",
@@ -859,12 +919,12 @@ class SPJReportView(LoginRequiredMixin, View):
             getattr(hotel, "lama_menginap", "") or "-",
             getattr(hotel, "harga_per_malam", 0) or 0,
             getattr(hotel, "total_biaya", 0) or 0,
-            str(getattr(tb, "tujuan", "") or "-"),
-            getattr(tb, "tanggal_berangkat", None) or spt.tgl_berangkat,
-            getattr(tb, "biaya", 0) or 0,
-            str(getattr(tk, "tujuan", "") or "-"),
-            getattr(tk, "tanggal_berangkat", None) or spt.tgl_kembali,
-            getattr(tk, "biaya", 0) or 0,
+            row["transport_berangkat_tujuan"],
+            row["transport_berangkat_tanggal"] or spt.tgl_berangkat,
+            row["transport_berangkat_total"],
+            row["transport_kembali_tujuan"],
+            row["transport_kembali_tanggal"] or spt.tgl_kembali,
+            row["transport_kembali_total"],
             row["total"],
         ]
 
@@ -1153,7 +1213,10 @@ class LaporanPerjalananPrintView(LoginRequiredMixin, View):
             "nama",
             "nama__pangkat",
         ).all()
-        if not is_spj_admin_user(request.user):
+        pengguna_nip = get_pengguna_nip(request.user)
+        if pengguna_nip:
+            pelaksana_list = pelaksana_list.filter(nama__nip=pengguna_nip)
+        elif not is_spj_admin_user(request.user):
             active_opd_id = get_active_opd_id(request)
             pelaksana_list = (
                 pelaksana_list.filter(nama__opd_id=active_opd_id)

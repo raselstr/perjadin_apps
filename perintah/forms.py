@@ -8,6 +8,7 @@ from django.utils.dateparse import parse_date
 from core.forms import BaseAppModelForm
 from profiles.utils import (
     filter_penandatangan_queryset,
+    get_pengguna_nip,
     get_global_penandatangan_tasks,
     get_active_opd_id,
     is_administrator_request,
@@ -320,6 +321,7 @@ class PelaksanaForm(BaseAppModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         active_opd_id = get_active_opd_id(self.request)
+        pengguna_nip = get_pengguna_nip(getattr(self.request, "user", None))
 
         queryset = Pegawai.objects.select_related(
             "pangkat",
@@ -335,6 +337,8 @@ class PelaksanaForm(BaseAppModelForm):
             if self.instance and self.instance.nama_id:
                 filters |= Q(pk=self.instance.nama_id)
             queryset = queryset.filter(filters).distinct()
+        if pengguna_nip:
+            queryset = queryset.filter(nip=pengguna_nip)
 
         self.fields["nama"].queryset = queryset
         self.fields["nama"].label_from_instance = (
@@ -532,10 +536,15 @@ class PemberiTugasForm(BaseAppModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         active_opd_id = get_active_opd_id(self.request)
+        pengguna_nip = get_pengguna_nip(getattr(self.request, "user", None))
 
         spt_queryset = Spt.objects.select_related(
             "kota_tujuan"
         ).order_by("-id")
+        if pengguna_nip:
+            spt_queryset = spt_queryset.filter(
+                pelaksana__nama__nip=pengguna_nip,
+            ).distinct()
         if active_opd_id:
             spt_filters = Q(pelaksana__nama__opd_id=active_opd_id)
             if self.instance and self.instance.spt_id:
@@ -695,6 +704,25 @@ class TtdSptSpdForm(BaseAppModelForm):
         super().__init__(*args, **kwargs)
         self.fields["hardcopy"].help_text = (
             "Upload Hard Copy SPT/SPD yang sudah di tandatangani."
+        )
+        active_opd_id = get_active_opd_id(self.request)
+        pengguna_nip = get_pengguna_nip(getattr(self.request, "user", None))
+        pemberi_tugas_queryset = self.fields[
+            "pemberi_tugas"
+        ].queryset.select_related(
+            "spt",
+            "penandatangan",
+        )
+        if pengguna_nip:
+            pemberi_tugas_queryset = pemberi_tugas_queryset.filter(
+                spt__pelaksana__nama__nip=pengguna_nip,
+            )
+        elif active_opd_id:
+            pemberi_tugas_queryset = pemberi_tugas_queryset.filter(
+                spt__pelaksana__nama__opd_id=active_opd_id,
+            )
+        self.fields["pemberi_tugas"].queryset = (
+            pemberi_tugas_queryset.distinct()
         )
         self.fields["pemberi_tugas"].label_from_instance = self._format_ttdsptspd_label
     
