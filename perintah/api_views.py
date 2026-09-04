@@ -152,6 +152,14 @@ def wa_document_preview_response(
 class WaSessionApiView(View):
 
     def get(self, request):
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
 
         nomor = request.GET.get("nomor")
 
@@ -186,6 +194,15 @@ class WaSessionApiView(View):
             })
     
     def post(self, request):
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
+
         try:
             body = json.loads(
                 request.body.decode("utf-8")
@@ -251,6 +268,15 @@ class WaSessionApiView(View):
         })
 
     def delete(self, request):
+        if not validate_api_key(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "message": "API Key tidak valid",
+                },
+                status=401,
+            )
+
         nomor = request.GET.get("nomor")
         if not nomor:
             return JsonResponse({

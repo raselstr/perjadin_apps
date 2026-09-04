@@ -51,6 +51,14 @@ class ModalTemplateTestCase(TestCase):
         self.assertIn("spt_id", TtdSptSpdTable.base_columns)
 
 
+class WAApiSecurityTests(TestCase):
+    def test_wa_session_requires_api_key(self):
+        response = self.client.get(reverse("wa_session"), {"nomor": "62812"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertFalse(response.json()["success"])
+
+
 def attach_session(request):
     middleware = SessionMiddleware(lambda req: None)
     middleware.process_request(request)

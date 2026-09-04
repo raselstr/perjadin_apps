@@ -340,6 +340,10 @@ class BaseCRUDView(ExcelMixin, ListView):
         if "form" in request.path:
             return self.form_view(request)
 
+        perm = self.get_permission()
+        if not perm or not perm.can_view:
+            return self._forbidden(request)
+
         return super().dispatch(request, *args, **kwargs)
 
     def list_view(self, request):

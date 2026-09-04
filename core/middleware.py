@@ -51,7 +51,6 @@ class SessionSecurityMiddleware:
     def _is_asset_path(self, path):
         asset_prefixes = [
             settings.STATIC_URL,
-            settings.MEDIA_URL,
         ]
         return any(path.startswith(prefix) for prefix in asset_prefixes if prefix)
 

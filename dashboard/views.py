@@ -7,6 +7,7 @@ from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from perintah.models import Pelaksana, Spt
+from profiles.utils import get_active_opd_id
 from umum.models import Pegawai
 
 
@@ -70,7 +71,7 @@ def _build_spt_queryset(user, session_opd_id=None):
 @login_required
 def dashboard_view(request):
     opd = request.session.get("session_opd_nama")
-    session_opd_id = request.session.get("session_opd_id")
+    session_opd_id = get_active_opd_id(request)
     today = _get_today_jakarta()
 
     tahun_anggaran = request.session.get("tahun_anggaran")

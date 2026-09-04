@@ -7,12 +7,54 @@ from django.views import View
 from django.views.generic import TemplateView
 from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from core.utils.excel_handler import ExcelExporter, ExcelImporter
 
 
-class ExcelExportView(View):
+class ExcelPermissionMixin(LoginRequiredMixin):
+    permission_action = "can_view"
+
+    def get_permission_url_name(self):
+        url_name = getattr(self.request.resolver_match, "url_name", "") or ""
+        for suffix in ("_export", "_import"):
+            if url_name.endswith(suffix):
+                return f"{url_name[:-len(suffix)]}_list"
+        return url_name
+
+    def has_excel_permission(self):
+        user = self.request.user
+        if user.is_superuser:
+            return True
+
+        from menus.models import RolePermission, SubMenu
+        from profiles.models import UserProfile
+
+        url_name = self.get_permission_url_name()
+        try:
+            profile = UserProfile.objects.select_related("role").get(user=user)
+            submenu = SubMenu.objects.get(url=url_name)
+        except (UserProfile.DoesNotExist, SubMenu.DoesNotExist):
+            return False
+
+        permission = RolePermission.objects.filter(
+            role=profile.role,
+            submenu=submenu,
+        ).first()
+        return bool(
+            permission
+            and getattr(permission, self.permission_action, False)
+        )
+
+    def dispatch(self, request, *args, **kwargs):
+        if not self.has_excel_permission():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ExcelExportView(ExcelPermissionMixin, View):
     """Generic view untuk download data sebagai Excel"""
     
     model = None
@@ -92,7 +134,7 @@ class ExcelExportView(View):
         return response
 
 
-class ExcelImportView(TemplateView):
+class ExcelImportView(ExcelPermissionMixin, TemplateView):
     """Generic view untuk upload & import Excel dengan preview"""
     
     model = None
@@ -100,6 +142,7 @@ class ExcelImportView(TemplateView):
     success_url = None
     columns = None  # Jika None, ambil dari model fields
     match_fields = None
+    permission_action = "can_add"
     
     def _get_default_columns(self):
         """Get default columns dari model"""
@@ -202,6 +245,8 @@ class GenericExcelExportView(ExcelExportView):
     """Generic view untuk export berdasarkan app.model"""
     
     def dispatch(self, request, app_label, model_name, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
         # Set model dynamically
         from django.apps import apps
         self.model = apps.get_model(app_label, model_name)
@@ -212,6 +257,8 @@ class GenericExcelImportView(ExcelImportView):
     """Generic view untuk import berdasarkan app.model"""
     
     def dispatch(self, request, app_label, model_name, *args, **kwargs):
+        if not request.user.is_superuser:
+            raise PermissionDenied
         # Set model dynamically
         from django.apps import apps
         self.model = apps.get_model(app_label, model_name)

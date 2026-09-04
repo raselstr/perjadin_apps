@@ -2,12 +2,16 @@ import inspect
 import io
 from decimal import Decimal
 
+from django.contrib.auth.models import AnonymousUser, User
+from django.core.exceptions import PermissionDenied
 from django.core.exceptions import FieldDoesNotExist
+from django.http import HttpResponse
 from django.test import RequestFactory, SimpleTestCase, TestCase
 from openpyxl import Workbook
 
+from core.middleware import SessionSecurityMiddleware
 from core.utils.excel_handler import ExcelExporter, ExcelImporter
-from core.views_excel import ExcelImportView
+from core.views_excel import ExcelImportView, GenericExcelExportView
 from profiles.models import OPD
 from spd import views as spd_views
 from spd.models import (
@@ -70,6 +74,28 @@ class ExcelImportViewConfigurationTests(SimpleTestCase):
             context["import_url"],
             "/umum/pangkat/import/?next=/umum/pangkat/",
         )
+
+
+class SecurityHardeningTests(TestCase):
+    def test_media_url_requires_authenticated_session(self):
+        middleware = SessionSecurityMiddleware(lambda request: HttpResponse("ok"))
+        request = RequestFactory().get("/media/spj/penginapan/bukti.pdf")
+        request.user = AnonymousUser()
+
+        response = middleware(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/profiles/masuk/", response["Location"])
+
+    def test_generic_excel_export_requires_superuser(self):
+        user = User.objects.create_user("operator", password="secret")
+        request = RequestFactory().get("/core/excel/umum/pegawai/export/")
+        request.user = user
+
+        view = GenericExcelExportView()
+
+        with self.assertRaises(PermissionDenied):
+            view.dispatch(request, "umum", "pegawai")
 
 
 class ExcelImporterTests(TestCase):

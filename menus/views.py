@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 
@@ -12,6 +13,9 @@ from .tables import MenuTable, SubMenuTable
 
 @login_required
 def permission_view(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     roles = Role.objects.all()
     menus = Menu.objects.prefetch_related('submenus').all()
 
@@ -56,7 +60,11 @@ def permission_view(request):
 
 
 @require_POST
+@login_required
 def update_permission(request):
+    if not request.user.is_superuser:
+        raise PermissionDenied
+
     role_id = request.POST.get("role_id")
     submenu_id = request.POST.get("submenu_id")
 

@@ -13,6 +13,7 @@ from django.http import HttpResponse, JsonResponse
 from types import SimpleNamespace
 
 from core.crud.base import BaseCRUDView
+from profiles.utils import filter_queryset_by_active_opd, get_active_opd_id
 from umum.models import Pegawai, Pemda
 from .models import UserProfile, OPD, Role
 from .forms import AccountSettingsForm, OPDForm, RoleForm, UserProfileForm, UserWithProfileForm
@@ -168,7 +169,11 @@ class OPDView(LoginRequiredMixin, BaseCRUDView):
     url_action_pk = "opd_action_pk"
 
     def get_queryset(self):
-        return super().get_queryset().order_by('nama')
+        queryset = super().get_queryset().order_by('nama')
+        active_opd_id = get_active_opd_id(self.request)
+        if active_opd_id:
+            queryset = queryset.filter(pk=active_opd_id)
+        return queryset
 
 
 # ========================
@@ -185,7 +190,11 @@ class UserProfileView(LoginRequiredMixin, BaseCRUDView):
     url_action_pk = "userprofile_action_pk"
 
     def get_queryset(self):
-        return super().get_queryset().select_related('user', 'opd', 'role')
+        return filter_queryset_by_active_opd(
+            super().get_queryset().select_related('user', 'opd', 'role'),
+            self.request,
+            "opd_id",
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -210,7 +219,11 @@ class RoleView(LoginRequiredMixin, BaseCRUDView):
         return super().get_queryset().order_by('nama')
 
 
+@login_required
 def create_user_with_profile(request):
+    if not request.user.is_superuser:
+        return render(request, "components/crud/403.html", status=403)
+
     if request.method == 'POST':
         form = UserWithProfileForm(request.POST)
         if form.is_valid():
