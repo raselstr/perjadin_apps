@@ -1240,6 +1240,101 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         )
         self.assertIn(self.pegawai_non_eselon.nama, sorted_names[5:])
 
+    def test_pelaksana_priority_puts_non_eselon_with_nip_first(self):
+        spt = Spt.objects.create(
+            dasar="Dasar urutan nip non eselon",
+            berita="Koordinasi urutan nip non eselon",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 9),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        non_eselon_without_nip = Pegawai.objects.create(
+            nip="",
+            nama="Pelaksana Non Eselon Tanpa NIP",
+            pangkat=self.pangkat_iva,
+            jabatan="Supir",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1970, 1, 1),
+        )
+        non_eselon_with_nip = Pegawai.objects.create(
+            nip="199501172025212059",
+            nama="Pelaksana Non Eselon Dengan NIP",
+            pangkat=self.pangkat_iiic,
+            jabatan="Operator Layanan Operasional",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1995, 1, 17),
+        )
+
+        spt.pelaksana.create(nama=non_eselon_without_nip)
+        spt.pelaksana.create(nama=non_eselon_with_nip)
+
+        sorted_names = [
+            pelaksana.nama.nama
+            for pelaksana in sort_pelaksana_by_priority(spt.pelaksana.all())
+        ]
+
+        self.assertLess(
+            sorted_names.index(non_eselon_with_nip.nama),
+            sorted_names.index(non_eselon_without_nip.nama),
+        )
+
+    def test_print_spt_puts_non_eselon_with_nip_first(self):
+        spt = Spt.objects.create(
+            dasar="Dasar cetak urutan nip non eselon",
+            berita="Koordinasi cetak urutan nip non eselon",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        non_eselon_without_nip = Pegawai.objects.create(
+            nip="-",
+            nama="M. Hasan Asyari",
+            pangkat=self.pangkat_iva,
+            jabatan="Supir",
+            eselon=None,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1972, 11, 7),
+        )
+        non_eselon_with_nip = Pegawai.objects.create(
+            nip="199501172025212059",
+            nama="Thivani Amanda Tanjung",
+            pangkat=None,
+            jabatan="Operator Layanan Operasional",
+            eselon=None,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1995, 1, 17),
+        )
+        spt.pelaksana.create(nama=non_eselon_without_nip)
+        spt.pelaksana.create(nama=non_eselon_with_nip)
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=spt,
+            penandatangan=self.kepala_bk,
+            nomor_spt="094/ST/BK/2026",
+            tanggal_spt=date(2026, 5, 10),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertLess(
+            response_html.index(non_eselon_with_nip.nama),
+            response_html.index(non_eselon_without_nip.nama),
+        )
+
     def test_print_spt_hides_blank_dash_pelaksana_identity_fields(self):
         pegawai = Pegawai.objects.create(
             nip="-",

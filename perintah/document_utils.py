@@ -453,6 +453,17 @@ def _get_name_sort_value(pegawai):
     return (getattr(pegawai, "nama", "") or "").strip().lower()
 
 
+def _has_meaningful_nip(pegawai):
+    nip = (getattr(pegawai, "nip", "") or "").strip()
+    return bool(nip and nip != "-")
+
+
+def _get_non_eselon_nip_priority(pegawai, eselon_level):
+    if eselon_level is not None:
+        return 0
+    return 0 if _has_meaningful_nip(pegawai) else 1
+
+
 def _normalize_jabatan_value(pegawai):
     return (getattr(pegawai, "jabatan", "") or "").strip().lower()
 
@@ -481,10 +492,12 @@ def _get_pelaksana_jabatan_priority(pegawai):
 def _sort_key_for_eselon_priority(pelaksana):
     pegawai = pelaksana.nama
     has_ruang, golongan_rank, ruang_rank = _get_pangkat_rank(pegawai)
+    eselon_level = get_eselon_level(pegawai)
 
     return (
         _get_pelaksana_jabatan_priority(pegawai),
-        get_eselon_level(pegawai) or 999,
+        eselon_level or 999,
+        _get_non_eselon_nip_priority(pegawai, eselon_level),
         -has_ruang,
         -golongan_rank,
         -ruang_rank,
