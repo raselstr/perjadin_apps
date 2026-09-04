@@ -64,6 +64,82 @@
     }
   }
 
+  function getCalculationField(name) {
+    return scope.querySelector('[data-spj-calculation-field="' + name + '"]');
+  }
+
+  function getPenginapanTarifField() {
+    return scope.querySelector('[data-spj-penginapan-tarif-field="1"]');
+  }
+
+  function parseNumber(value) {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+
+  function formatMoney(value) {
+    return Number.isFinite(value) ? value.toFixed(2) : '';
+  }
+
+  function setFieldVisible(name, visible) {
+    const wrapper = scope.querySelector('[data-spj-field-name="' + name + '"]');
+    if (!wrapper) {
+      return;
+    }
+    wrapper.classList.toggle('d-none', !visible);
+    wrapper.querySelectorAll('input, select, textarea').forEach(function (field) {
+      field.disabled = !visible;
+      if (!visible) {
+        field.removeAttribute('required');
+      }
+    });
+  }
+
+  function updatePenginapanMode() {
+    const tariffField = getPenginapanTarifField();
+    if (!tariffField) {
+      return;
+    }
+    const isThirtyPercent = tariffField.value === '30';
+    [
+      'nama_hotel',
+      'alamat_hotel',
+      'tipe_kamar',
+      'nomor_kamar',
+      'tanggal_checkin',
+      'tanggal_checkout',
+      'bukti'
+    ].forEach(function (name) {
+      setFieldVisible(name, !isThirtyPercent);
+    });
+    const priceField = getCalculationField('harga');
+    if (priceField) {
+      priceField.readOnly = isThirtyPercent;
+    }
+  }
+
+  function updateCalculatedTotal() {
+    const kind = sptField.dataset.spjCalculationKind;
+    const valueField = getCalculationField('nilai');
+    const daysField = getCalculationField('hari');
+    const priceField = getCalculationField('harga');
+    const tariffField = getPenginapanTarifField();
+    const days = parseNumber(daysField ? daysField.value : 0);
+    const nilai = parseNumber(valueField ? valueField.value : 0);
+
+    if (kind === 'uang_harian') {
+      setCalculatedValue('total', formatMoney(nilai * days));
+    } else if (kind === 'penginapan') {
+      const isThirtyPercent = tariffField && tariffField.value === '30';
+      if (isThirtyPercent && priceField) {
+        priceField.value = formatMoney(nilai * 0.3);
+      }
+      const price = parseNumber(priceField ? priceField.value : 0);
+      setCalculatedValue('total', formatMoney(price * days));
+      updatePenginapanMode();
+    }
+  }
+
   function loadCalculation() {
     const url = sptField.dataset.spjCalculationUrl;
     const kind = sptField.dataset.spjCalculationKind;
@@ -73,10 +149,12 @@
       return;
     }
 
+    const daysField = getCalculationField('hari');
     const params = new URLSearchParams({
       jenis: kind,
       spt: sptField.value,
       pelaksana: pelaksanaField.value,
+      jumlah_hari: daysField ? daysField.value : '',
     });
     fetch(url + '?' + params.toString(), {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
@@ -84,7 +162,19 @@
       .then(function (response) { return response.json(); })
       .then(function (data) {
         setCalculatedValue('nilai', data.nilai);
-        setCalculatedValue('total', data.total);
+        if (daysField && !daysField.value && data.lama_perjalanan) {
+          daysField.value = data.lama_perjalanan;
+        }
+        if (kind === 'penginapan') {
+          const tariffField = getPenginapanTarifField();
+          if (data.harga_30 && tariffField && tariffField.value === '30') {
+            setCalculatedValue('harga', data.harga_30);
+          }
+        }
+        if (data.total) {
+          setCalculatedValue('total', data.total);
+        }
+        updateCalculatedTotal();
       })
       .catch(function () {});
   }
@@ -96,6 +186,13 @@
   if (window.jQuery && window.jQuery.fn.select2) {
     window.jQuery(pelaksanaField).on('select2:select', loadCalculation);
   }
+  [getCalculationField('hari'), getCalculationField('harga'), getPenginapanTarifField()].forEach(function (field) {
+    if (field) {
+      field.addEventListener('input', updateCalculatedTotal);
+      field.addEventListener('change', updateCalculatedTotal);
+    }
+  });
+  updatePenginapanMode();
   loadCalculation();
 })();
 </script>

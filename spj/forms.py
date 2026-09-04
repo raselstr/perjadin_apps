@@ -1,4 +1,5 @@
 import json
+from decimal import Decimal, InvalidOperation
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -17,6 +18,7 @@ from .models import (
     Transport,
     UangHarian,
     UangRepresentasi,
+    quantize_money,
 )
 
 
@@ -284,6 +286,9 @@ class PenginapanForm(SPJModelForm):
     field_layout = {
         "spt": 6,
         "pelaksana": 6,
+        "jenis_tarif_penginapan": 4,
+        "standar_penginapan": 4,
+        "total_penginapan": 4,
         "nama_hotel": 6,
         "alamat_hotel": 6,
         "tipe_kamar": 3,
@@ -295,12 +300,25 @@ class PenginapanForm(SPJModelForm):
         "bukti": 3,
         "verif_status": 3,
     }
+    standar_penginapan = forms.DecimalField(
+        label="Standar Penginapan",
+        required=False,
+        disabled=True,
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
+    total_penginapan = forms.DecimalField(
+        label="Total Penginapan",
+        required=False,
+        disabled=True,
+        widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
 
     class Meta:
         model = Penginapan
         fields = [
             "spt",
             "pelaksana",
+            "jenis_tarif_penginapan",
             "nama_hotel",
             "alamat_hotel",
             "tipe_kamar",
@@ -313,6 +331,9 @@ class PenginapanForm(SPJModelForm):
             "verif_status",
         ]
         widgets = {
+            "jenis_tarif_penginapan": forms.Select(attrs={
+                "class": "form-select",
+            }),
             "nama_hotel": forms.TextInput(attrs={"class": "form-control"}),
             "alamat_hotel": forms.Textarea(attrs={
                 "class": "form-control",
@@ -326,6 +347,172 @@ class PenginapanForm(SPJModelForm):
             }),
             "bukti": forms.ClearableFileInput(attrs={"class": "form-control"}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["jenis_tarif_penginapan"].widget.attrs.update({
+            "data-spj-penginapan-tarif-field": "1",
+        })
+        self.fields["lama_menginap"].label = "Jumlah Hari/Malam SPJ"
+        self.fields["lama_menginap"].widget.attrs.update({
+            "data-spj-calculation-field": "hari",
+            "min": "1",
+        })
+        self.fields["harga_per_malam"].widget.attrs.update({
+            "data-spj-calculation-field": "harga",
+        })
+        self.fields["standar_penginapan"].widget.attrs.update({
+            "data-spj-calculation-field": "nilai",
+        })
+        self.fields["total_penginapan"].widget.attrs.update({
+            "data-spj-calculation-field": "total",
+        })
+        if "spt" in self.fields:
+            self.fields["spt"].widget.attrs.update({
+                "data-spj-calculation-kind": "penginapan",
+                "data-spj-calculation-url": str(reverse_lazy("spj_calculation")),
+            })
+        self.order_fields([
+            "spt",
+            "pelaksana",
+            "jenis_tarif_penginapan",
+            "lama_menginap",
+            "standar_penginapan",
+            "harga_per_malam",
+            "total_penginapan",
+            "nama_hotel",
+            "alamat_hotel",
+            "tipe_kamar",
+            "nomor_kamar",
+            "tanggal_checkin",
+            "tanggal_checkout",
+            "bukti",
+            "verif_status",
+        ])
+        nilai, harga, total = self._calculate_values()
+        self.fields["standar_penginapan"].initial = nilai
+        if harga is not None:
+            self.fields["harga_per_malam"].initial = harga
+        self.fields["total_penginapan"].initial = total
+        if self._selected_tarif_penginapan() == "30":
+            for name in self._penginapan_100_percent_fields():
+                self.fields[name].required = False
+
+    @staticmethod
+    def _penginapan_100_percent_fields():
+        return (
+            "nama_hotel",
+            "alamat_hotel",
+            "tipe_kamar",
+            "nomor_kamar",
+            "tanggal_checkin",
+            "tanggal_checkout",
+            "bukti",
+        )
+
+    def _selected_tarif_penginapan(self):
+        if self.is_bound:
+            return (
+                self.data.get(self.add_prefix("jenis_tarif_penginapan"))
+                or "100"
+            )
+        return (
+            self.initial.get("jenis_tarif_penginapan")
+            or getattr(self.instance, "jenis_tarif_penginapan", None)
+            or "100"
+        )
+
+    def _selected_hari_penginapan(self):
+        value = None
+        if self.is_bound:
+            value = self.data.get(self.add_prefix("lama_menginap"))
+        elif self.initial.get("lama_menginap"):
+            value = self.initial.get("lama_menginap")
+        elif getattr(self.instance, "lama_menginap", None):
+            value = self.instance.lama_menginap
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _calculate_values(self):
+        spt_id = self.data.get(self.add_prefix("spt")) if self.is_bound else self.initial.get("spt")
+        pelaksana_id = self.data.get(self.add_prefix("pelaksana")) if self.is_bound else self.initial.get("pelaksana")
+        if not spt_id and getattr(self.instance, "spt_id", None):
+            spt_id = self.instance.spt_id
+        if not pelaksana_id and getattr(self.instance, "pelaksana_id", None):
+            pelaksana_id = self.instance.pelaksana_id
+        if not spt_id or not pelaksana_id:
+            return None, None, None
+
+        from perintah.models import Pelaksana, Spt
+
+        try:
+            spt = Spt.objects.select_related("kota_tujuan").get(pk=spt_id)
+            pelaksana = Pelaksana.objects.select_related(
+                "nama",
+                "nama__tingkat",
+            ).get(pk=pelaksana_id, spt_id=spt_id)
+        except (Spt.DoesNotExist, Pelaksana.DoesNotExist):
+            return None, None, None
+
+        obj = self._meta.model(spt=spt, pelaksana=pelaksana)
+        nilai = obj.get_standar_maksimal()
+        hari = self._selected_hari_penginapan()
+        if hari is None:
+            hari = getattr(self.instance, "lama_menginap", None)
+        if hari is None:
+            hari = spt.lama_perjalanan
+        if self._selected_tarif_penginapan() == "30" and nilai is not None:
+            harga = quantize_money(nilai * Decimal("0.30"))
+        else:
+            harga = (
+                self.data.get(self.add_prefix("harga_per_malam"))
+                if self.is_bound else self.initial.get("harga_per_malam")
+            )
+            if not harga and getattr(self.instance, "harga_per_malam", None):
+                harga = self.instance.harga_per_malam
+        try:
+            harga_decimal = Decimal(str(harga)) if harga not in (None, "") else None
+        except InvalidOperation:
+            harga_decimal = None
+        total = (
+            harga_decimal * hari
+            if harga_decimal is not None and hari is not None
+            else None
+        )
+        return nilai, harga_decimal, total
+
+    def clean(self):
+        cleaned_data = super().clean()
+        spt = cleaned_data.get("spt")
+        tarif = cleaned_data.get("jenis_tarif_penginapan")
+        lama_menginap = cleaned_data.get("lama_menginap")
+        if spt and lama_menginap and lama_menginap > spt.lama_perjalanan:
+            self.add_error(
+                "lama_menginap",
+                "Jumlah hari/malam SPJ tidak boleh melebihi lama perjalanan SPT.",
+            )
+        if tarif == "30":
+            obj = self._meta.model(
+                spt=spt,
+                pelaksana=cleaned_data.get("pelaksana"),
+            )
+            nilai = obj.get_standar_maksimal() if spt else None
+            if nilai is None:
+                self.add_error(
+                    "harga_per_malam",
+                    "Standar penginapan untuk SPT dan tingkat pelaksana ini belum tersedia.",
+                )
+            else:
+                cleaned_data["harga_per_malam"] = quantize_money(
+                    nilai * Decimal("0.30")
+                )
+            for name in self._penginapan_100_percent_fields():
+                cleaned_data[name] = "" if name != "bukti" else None
+            cleaned_data["tanggal_checkin"] = None
+            cleaned_data["tanggal_checkout"] = None
+        return cleaned_data
 
 
 class PenginapanMediaForm(SPJModelForm):
@@ -411,6 +598,7 @@ class UangHarianForm(SPJModelForm):
     field_layout = {
         "spt": 6,
         "pelaksana": 6,
+        "jumlah_hari_spj": 4,
         "uang_harian_per_hari": 4,
         "total_uang_harian": 4,
         "verif_status": 4,
@@ -427,10 +615,14 @@ class UangHarianForm(SPJModelForm):
         fields = [
             "spt",
             "pelaksana",
+            "jumlah_hari_spj",
             "uang_harian_per_hari",
             "verif_status",
         ]
         widgets = {
+            "jumlah_hari_spj": forms.NumberInput(attrs={
+                "class": "form-control",
+            }),
             "uang_harian_per_hari": forms.NumberInput(attrs={
                 "class": "form-control",
             }),
@@ -443,6 +635,10 @@ class UangHarianForm(SPJModelForm):
         self.fields["uang_harian_per_hari"].widget.attrs.update({
             "data-spj-calculation-field": "nilai",
         })
+        self.fields["jumlah_hari_spj"].widget.attrs.update({
+            "data-spj-calculation-field": "hari",
+            "min": "1",
+        })
         self.fields["total_uang_harian"].widget.attrs.update({
             "data-spj-calculation-field": "total",
         })
@@ -454,6 +650,7 @@ class UangHarianForm(SPJModelForm):
         self.order_fields([
             "spt",
             "pelaksana",
+            "jumlah_hari_spj",
             "uang_harian_per_hari",
             "total_uang_harian",
             "verif_status",
@@ -481,7 +678,18 @@ class UangHarianForm(SPJModelForm):
 
         obj = self._meta.model(spt=spt)
         nilai = obj.get_standar_maksimal()
-        total = nilai * spt.lama_perjalanan if nilai is not None else None
+        hari = None
+        if self.is_bound:
+            hari = self.data.get(self.add_prefix("jumlah_hari_spj"))
+        elif self.initial.get("jumlah_hari_spj"):
+            hari = self.initial.get("jumlah_hari_spj")
+        elif getattr(self.instance, "jumlah_hari_spj", None):
+            hari = self.instance.jumlah_hari_spj
+        try:
+            hari = int(hari)
+        except (TypeError, ValueError):
+            hari = spt.lama_perjalanan
+        total = nilai * hari if nilai is not None else None
         return nilai, total
 
     def clean(self):
@@ -489,6 +697,17 @@ class UangHarianForm(SPJModelForm):
         nilai, total = self._calculate_values()
         cleaned_data["uang_harian_per_hari"] = nilai
         cleaned_data["total_uang_harian"] = total
+        spt = cleaned_data.get("spt")
+        jumlah_hari_spj = cleaned_data.get("jumlah_hari_spj")
+        if (
+            spt
+            and jumlah_hari_spj
+            and jumlah_hari_spj > spt.lama_perjalanan
+        ):
+            self.add_error(
+                "jumlah_hari_spj",
+                "Jumlah hari SPJ tidak boleh melebihi lama perjalanan SPT.",
+            )
         return cleaned_data
 
 

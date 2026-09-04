@@ -5,7 +5,9 @@
     {% if field.is_hidden %}
       {{ field }}
     {% else %}
-      <div class="{{ form.normalized_field_layout|get_item:field.name|default:'col-md-12' }}">
+      <div
+        class="{{ form.normalized_field_layout|get_item:field.name|default:'col-md-12' }}"
+        data-spj-field-name="{{ field.name }}">
         {% if field.field.widget.input_type == "checkbox" %}
           <div class="form-check pt-2">
             {{ field }}

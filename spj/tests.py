@@ -1,7 +1,14 @@
+from datetime import date
+from decimal import Decimal
 from types import SimpleNamespace
 
 from django.template.loader import render_to_string
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
+
+from perintah.models import Pelaksana, Spt
+from profiles.models import OPD
+from spd.models import DasarPeraturan, JenisKegiatan, Lokasi, StandardPenginapan, StandardUangHarian
+from umum.models import JenisJabatan, Pegawai, Tingkat
 
 from .access import (
     filter_spj_queryset_for_user,
@@ -9,6 +16,7 @@ from .access import (
     is_spj_admin_user,
     is_spj_pengguna_user,
 )
+from .models import Penginapan, UangHarian
 
 
 class RecordingQuerySet:
@@ -109,3 +117,75 @@ class SPJAccessTests(SimpleTestCase):
             queryset.filter_kwargs,
             {"pelaksana__nama__nip": "198001012005011001"},
         )
+
+
+class SPJCalculationModelTests(TestCase):
+    def setUp(self):
+        self.opd = OPD.objects.create(nama="Badan Keuangan Daerah")
+        self.tingkat = Tingkat.objects.create(tingkat="D")
+        self.jenis_jabatan = JenisJabatan.objects.create(nama="Definitif")
+        self.kegiatan = JenisKegiatan.objects.create(nama="Koordinasi")
+        self.lokasi = Lokasi.objects.create(lokasi="Medan", kota="Medan")
+        self.dasar_peraturan = DasarPeraturan.objects.create(
+            nama_peraturan="Perbup Standar Biaya",
+            tanggal_peraturan=date(2026, 1, 1),
+        )
+        self.pegawai = Pegawai.objects.create(
+            nip="199501172025212059",
+            nama="Pelaksana SPJ",
+            jabatan="Operator",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd,
+            tingkat=self.tingkat,
+        )
+        self.spt = Spt.objects.create(
+            dasar="Dasar",
+            berita="Berita",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=3,
+            tgl_berangkat=date(2026, 5, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        self.pelaksana = Pelaksana.objects.create(
+            spt=self.spt,
+            nama=self.pegawai,
+        )
+        StandardUangHarian.objects.create(
+            lokasi=self.lokasi,
+            jenis_kegiatan=self.kegiatan,
+            satuan="OH",
+            biaya=Decimal("500000"),
+            dasar_peraturan=self.dasar_peraturan,
+        )
+        StandardPenginapan.objects.create(
+            lokasi=self.lokasi,
+            tingkat=self.tingkat,
+            satuan="Malam",
+            biaya=Decimal("600000"),
+            dasar_peraturan=self.dasar_peraturan,
+        )
+
+    def test_uang_harian_total_uses_jumlah_hari_spj(self):
+        uang_harian = UangHarian.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jumlah_hari_spj=2,
+        )
+
+        self.assertEqual(uang_harian.uang_harian_per_hari, Decimal("500000"))
+        self.assertEqual(uang_harian.total_biaya, Decimal("1000000"))
+
+    def test_penginapan_30_percent_uses_standard_times_days(self):
+        penginapan = Penginapan.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_penginapan="30",
+            lama_menginap=2,
+            harga_per_malam=Decimal("0"),
+        )
+
+        self.assertEqual(penginapan.harga_per_malam, Decimal("180000.00"))
+        self.assertEqual(penginapan.total_biaya, Decimal("360000.00"))
+        self.assertEqual(penginapan.nama_hotel, "")

@@ -45,6 +45,7 @@ from .models import (
     Transport,
     UangHarian,
     UangRepresentasi,
+    quantize_money,
 )
 from .tables import (
     JenisSPJTable,
@@ -149,7 +150,13 @@ class SPJCalculationView(LoginRequiredMixin, View):
         jenis = request.GET.get("jenis")
         spt_id = request.GET.get("spt")
         pelaksana_id = request.GET.get("pelaksana")
-        data = {"nilai": None, "total": None, "eligible": False}
+        jumlah_hari = request.GET.get("jumlah_hari")
+        data = {
+            "nilai": None,
+            "total": None,
+            "eligible": False,
+            "lama_perjalanan": None,
+        }
 
         if not spt_id or not pelaksana_id:
             return JsonResponse(data)
@@ -171,13 +178,33 @@ class SPJCalculationView(LoginRequiredMixin, View):
         except Pelaksana.DoesNotExist:
             return JsonResponse(data)
 
+        data["lama_perjalanan"] = pelaksana.spt.lama_perjalanan
+        try:
+            jumlah_hari = int(jumlah_hari)
+        except (TypeError, ValueError):
+            jumlah_hari = pelaksana.spt.lama_perjalanan
+
         if jenis == "uang_harian":
             obj = UangHarian(spt=pelaksana.spt, pelaksana=pelaksana)
             nilai = obj.get_standar_maksimal()
             data["nilai"] = str(nilai) if nilai is not None else None
             data["total"] = (
-                str(nilai * pelaksana.spt.lama_perjalanan)
+                str(nilai * jumlah_hari)
                 if nilai is not None else None
+            )
+            data["eligible"] = nilai is not None
+        elif jenis == "penginapan":
+            obj = Penginapan(spt=pelaksana.spt, pelaksana=pelaksana)
+            nilai = obj.get_standar_maksimal()
+            tarif_30 = (
+                quantize_money(nilai * Decimal("0.30"))
+                if nilai is not None else None
+            )
+            data["nilai"] = str(nilai) if nilai is not None else None
+            data["harga_30"] = str(tarif_30) if tarif_30 is not None else None
+            data["total"] = (
+                str(tarif_30 * jumlah_hari)
+                if tarif_30 is not None else None
             )
             data["eligible"] = nilai is not None
         elif jenis == "representasi":

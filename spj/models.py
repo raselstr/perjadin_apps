@@ -1,4 +1,4 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -31,6 +31,11 @@ VERIF_STATUS_CHOICES = [
     ("rejected", "Ditolak"),
 ]
 
+PENGINAPAN_TARIF_CHOICES = [
+    ("100", "100% dari biaya riil"),
+    ("30", "30% dari standar"),
+]
+
 
 def _latest_standard(queryset):
     return queryset.select_related("dasar_peraturan").order_by(
@@ -48,6 +53,12 @@ def _pelaksana_tingkat(pelaksana):
 def _spt_jenis_spd(spt):
     lokasi = getattr(spt, "kota_tujuan", None)
     return getattr(lokasi, "jenis_spd", None)
+
+
+def quantize_money(value):
+    if value is None:
+        return None
+    return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 class JenisSPJ(models.Model):
@@ -145,7 +156,13 @@ class BaseSPJModel(models.Model):
 
 
 class Penginapan(BaseSPJModel):
-    nama_hotel = models.CharField(max_length=200)
+    jenis_tarif_penginapan = models.CharField(
+        max_length=3,
+        choices=PENGINAPAN_TARIF_CHOICES,
+        default="100",
+        verbose_name="Pilihan Tarif Penginapan",
+    )
+    nama_hotel = models.CharField(max_length=200, blank=True, default="")
     alamat_hotel = models.TextField(blank=True, default="")
     foto_hotel = models.ImageField(
         upload_to="spj/penginapan/hotel/",
@@ -174,12 +191,14 @@ class Penginapan(BaseSPJModel):
     tanggal_checkin = models.DateField(blank=True, null=True)
     tanggal_checkout = models.DateField(blank=True, null=True)
     lama_menginap = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
+        verbose_name="Jumlah Hari/Malam SPJ",
     )
     harga_per_malam = models.DecimalField(
         max_digits=14,
         decimal_places=2,
         validators=[MinValueValidator(Decimal("0"))],
+        verbose_name="Tarif per Hari/Malam",
     )
     bukti = models.FileField(
         upload_to="spj/penginapan/",
@@ -202,6 +221,16 @@ class Penginapan(BaseSPJModel):
     @property
     def total_biaya(self):
         return (self.harga_per_malam or 0) * (self.lama_menginap or 0)
+
+    @property
+    def is_tarif_30_persen(self):
+        return self.jenis_tarif_penginapan == "30"
+
+    def get_tarif_30_persen(self):
+        maksimal = self.get_standar_maksimal()
+        if maksimal is None:
+            return None
+        return quantize_money(maksimal * Decimal("0.30"))
 
     def get_standar_maksimal(self):
         from spd.models import StandardPenginapan
@@ -226,6 +255,31 @@ class Penginapan(BaseSPJModel):
         )
         maksimal = self.get_standar_maksimal()
         if (
+            self.spt_id
+            and self.lama_menginap
+            and self.lama_menginap > self.spt.lama_perjalanan
+        ):
+            raise ValidationError({
+                "lama_menginap": (
+                    "Jumlah hari penginapan yang di-SPJ-kan tidak boleh "
+                    "melebihi lama perjalanan pada SPT."
+                )
+            })
+        if self.is_tarif_30_persen:
+            if maksimal is None:
+                raise ValidationError({
+                    "harga_per_malam": (
+                        "Standar penginapan untuk SPT dan tingkat pelaksana "
+                        "ini belum tersedia."
+                    )
+                })
+            return
+
+        if not self.nama_hotel:
+            raise ValidationError({
+                "nama_hotel": "Nama hotel wajib diisi untuk tarif 100%."
+            })
+        if (
             maksimal is not None
             and self.harga_per_malam is not None
             and self.harga_per_malam > maksimal
@@ -240,6 +294,17 @@ class Penginapan(BaseSPJModel):
         return f"{self.pelaksana} - {self.nama_hotel}"
 
     def save(self, *args, **kwargs):
+        if self.is_tarif_30_persen:
+            self.nama_hotel = ""
+            self.alamat_hotel = ""
+            self.tipe_kamar = ""
+            self.nomor_kamar = ""
+            self.tanggal_checkin = None
+            self.tanggal_checkout = None
+            self.harga_per_malam = (
+                self.get_tarif_30_persen() or Decimal("0")
+            )
+            self.bukti = None
         if is_uploaded_image(self.foto_hotel):
             self.foto_hotel = compress_if_image(self.foto_hotel)
         if is_uploaded_image(self.bukti):
@@ -348,6 +413,11 @@ class Pesawat(BaseSPJModel):
 
 
 class UangHarian(BaseSPJModel):
+    jumlah_hari_spj = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1)],
+        verbose_name="Jumlah Hari SPJ",
+    )
     uang_harian_per_hari = models.DecimalField(
         max_digits=14,
         decimal_places=2,
@@ -405,12 +475,23 @@ class UangHarian(BaseSPJModel):
                     "Standar uang harian untuk SPT ini belum tersedia."
                 )
             })
+        if (
+            self.spt_id
+            and self.jumlah_hari_spj
+            and self.jumlah_hari_spj > self.spt.lama_perjalanan
+        ):
+            raise ValidationError({
+                "jumlah_hari_spj": (
+                    "Jumlah hari yang di-SPJ-kan tidak boleh melebihi lama "
+                    "perjalanan pada SPT."
+                )
+            })
 
     def save(self, *args, **kwargs):
         self.uang_harian_per_hari = self.get_standar_maksimal() or Decimal("0")
         self.total_uang_harian = (
             (self.uang_harian_per_hari or Decimal("0"))
-            * (self.spt.lama_perjalanan if self.spt_id else 0)
+            * (self.jumlah_hari_spj or 0)
         )
         self.full_clean()
         super().save(*args, **kwargs)
