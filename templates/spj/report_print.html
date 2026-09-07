@@ -27,9 +27,9 @@
         <th rowspan="3">JABATAN/GOL/TINGKAT BIAYA</th>
         <th colspan="6" rowspan="2">SURAT PERINTAH TUGAS</th>
         <th colspan="6" rowspan="2">SURAT PERJALANAN DINAS</th>
-        <th colspan="2" rowspan="2">BIAYA PERJALANAN DINAS</th>
+        <th colspan="3" rowspan="2">BIAYA PERJALANAN DINAS</th>
         <th colspan="10">PESAWAT</th>
-        <th colspan="8" rowspan="2">HOTEL</th>
+        <th colspan="9" rowspan="2">HOTEL</th>
         <th colspan="6">TAKSI/TRANSPORT LOKAL</th>
         <th rowspan="3">TOTAL</th>
       </tr>
@@ -42,10 +42,10 @@
       <tr>
         <th>NO. SPT</th><th>TANGGAL</th><th>TEMPAT TUJUAN</th><th>JUMLAH HARI</th><th>TGL BERANGKAT</th><th>TGL KEMBALI</th>
         <th>NO. SPD</th><th>TANGGAL</th><th>TEMPAT TUJUAN</th><th>JUMLAH HARI</th><th>TGL BERANGKAT</th><th>TGL KEMBALI</th>
-        <th>UANG HARIAN</th><th>REPRESENTATIF</th>
+        <th>UANG HARIAN</th><th>RINCIAN HARI</th><th>REPRESENTATIF</th>
         <th>MASKAPAI</th><th>NO. TIKET</th><th>KODE BOOKING</th><th>TGL PENERBANGAN</th><th>HARGA</th>
         <th>MASKAPAI</th><th>NO. TIKET</th><th>KODE BOOKING</th><th>TGL PENERBANGAN</th><th>HARGA</th>
-        <th>NAMA DAN LOKASI HOTEL</th><th>TIPE KAMAR</th><th>NOMOR KAMAR</th><th>TGL CHECKIN</th><th>TGL CHECKOUT</th><th>LAMA</th><th>HARGA/MALAM</th><th>TOTAL</th>
+        <th>NAMA DAN LOKASI HOTEL</th><th>TIPE KAMAR</th><th>NOMOR KAMAR</th><th>TGL CHECKIN</th><th>TGL CHECKOUT</th><th>LAMA</th><th>HARGA/MALAM</th><th>TOTAL</th><th>RINCIAN HARI</th>
         <th>TUJUAN</th><th>TGL BERANGKAT</th><th>HARGA</th><th>TUJUAN</th><th>TGL BERANGKAT</th><th>HARGA</th>
       </tr>
     </thead>
@@ -69,7 +69,8 @@
           <td>{{ row.spt.lama_perjalanan }}</td>
           <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
           <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
-          <td class="text-end">{{ row.uang_harian.total_biaya|default:0|floatformat:2 }}</td>
+          <td class="text-end">{{ row.uang_harian_total|floatformat:2 }}</td>
+          <td>{{ row.uang_harian_rincian }}</td>
           <td class="text-end">{{ row.representasi.total_biaya|default:0|floatformat:2 }}</td>
           <td>{{ row.pesawat_berangkat.nama_maskapai|default:"-" }}</td>
           <td>{{ row.pesawat_berangkat.nomor_tiket|default:"-" }}</td>
@@ -88,7 +89,8 @@
           <td>{{ row.hotel.tanggal_checkout|date:"d/m/Y"|default:"-" }}</td>
           <td>{{ row.hotel.lama_menginap|default:"-" }}</td>
           <td class="text-end">{{ row.hotel.harga_per_malam|default:0|floatformat:2 }}</td>
-          <td class="text-end">{{ row.hotel.total_biaya|default:0|floatformat:2 }}</td>
+          <td class="text-end">{{ row.hotel_total|floatformat:2 }}</td>
+          <td>{{ row.hotel_rincian }}</td>
           <td>{{ row.transport_berangkat_tujuan|linebreaksbr }}</td>
           <td>{{ row.transport_berangkat_tanggal|linebreaksbr }}</td>
           <td class="text-end">{{ row.transport_berangkat_total|default:0|floatformat:2 }}</td>
@@ -98,12 +100,12 @@
           <td class="text-end">{{ row.total|floatformat:2 }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="40" class="text-center">Belum ada data.</td></tr>
+        <tr><td colspan="42" class="text-center">Belum ada data.</td></tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
-        <th colspan="39" class="text-end">Grand Total</th>
+        <th colspan="41" class="text-end">Grand Total</th>
         <th class="text-end">{{ grand_total|floatformat:2 }}</th>
       </tr>
     </tfoot>

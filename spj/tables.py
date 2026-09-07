@@ -216,6 +216,7 @@ class UangHarianTable(SPJBaseTable):
             "no",
             "spt_info",
             "pelaksana_info",
+            "jenis_tarif_uang_harian",
             "jumlah_hari_spj",
             "uang_harian_per_hari",
             "standar_maksimal",

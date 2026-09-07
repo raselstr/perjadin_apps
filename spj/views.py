@@ -45,6 +45,7 @@ from .models import (
     Transport,
     UangHarian,
     UangRepresentasi,
+    build_day_breakdown_from_items,
     quantize_money,
 )
 from .tables import (
@@ -115,11 +116,7 @@ class SPJPelaksanaOptionsView(LoginRequiredMixin, View):
                 queryset = queryset.none()
 
         used = None
-        if model == "penginapan":
-            used = Penginapan.objects.filter(spt_id=spt_id)
-        elif model == "uang_harian":
-            used = UangHarian.objects.filter(spt_id=spt_id)
-        elif model == "uang_representasi":
+        if model == "uang_representasi":
             used = UangRepresentasi.objects.filter(spt_id=spt_id)
         elif model == "pesawat" and jenis_spj_id:
             used = Pesawat.objects.filter(
@@ -151,6 +148,8 @@ class SPJCalculationView(LoginRequiredMixin, View):
         spt_id = request.GET.get("spt")
         pelaksana_id = request.GET.get("pelaksana")
         jumlah_hari = request.GET.get("jumlah_hari")
+        tarif_penginapan = request.GET.get("tarif_penginapan") or "100"
+        tarif_uang_harian = request.GET.get("tarif_uang_harian") or "100"
         data = {
             "nilai": None,
             "total": None,
@@ -186,13 +185,15 @@ class SPJCalculationView(LoginRequiredMixin, View):
 
         if jenis == "uang_harian":
             obj = UangHarian(spt=pelaksana.spt, pelaksana=pelaksana)
-            nilai = obj.get_standar_maksimal()
+            obj.jenis_tarif_uang_harian = tarif_uang_harian
+            nilai = obj.get_tarif_per_hari()
             data["nilai"] = str(nilai) if nilai is not None else None
             data["total"] = (
                 str(nilai * jumlah_hari)
                 if nilai is not None else None
             )
             data["eligible"] = nilai is not None
+            data["rincian"] = f"{jumlah_hari} hari x {tarif_uang_harian}%"
         elif jenis == "penginapan":
             obj = Penginapan(spt=pelaksana.spt, pelaksana=pelaksana)
             nilai = obj.get_standar_maksimal()
@@ -200,13 +201,19 @@ class SPJCalculationView(LoginRequiredMixin, View):
                 quantize_money(nilai * Decimal("0.30"))
                 if nilai is not None else None
             )
+            tarif = (
+                tarif_30 if tarif_penginapan == "30"
+                else Decimal("0") if tarif_penginapan == "0"
+                else None
+            )
             data["nilai"] = str(nilai) if nilai is not None else None
             data["harga_30"] = str(tarif_30) if tarif_30 is not None else None
             data["total"] = (
-                str(tarif_30 * jumlah_hari)
-                if tarif_30 is not None else None
+                str(tarif * jumlah_hari)
+                if tarif is not None else None
             )
             data["eligible"] = nilai is not None
+            data["rincian"] = f"{jumlah_hari} hari x {tarif_penginapan}%"
         elif jenis == "representasi":
             obj = UangRepresentasi(spt=pelaksana.spt, pelaksana=pelaksana)
             nilai = obj.get_standar_maksimal()
@@ -346,16 +353,19 @@ def _build_kwitansi_items(pelaksana):
     spt = pelaksana.spt
     items = []
 
-    uang_harian = UangHarian.objects.filter(
+    uang_harians = UangHarian.objects.filter(
         spt=spt,
         pelaksana=pelaksana,
-    ).first()
-    if uang_harian:
+    )
+    for uang_harian in uang_harians:
         _append_kwitansi_item(
             items,
-            "Uang harian perjalanan dinas",
+            (
+                "Uang harian perjalanan dinas "
+                f"({uang_harian.jenis_tarif_uang_harian}%)"
+            ),
             uang_harian.total_biaya,
-            f"{spt.lama_perjalanan} hari",
+            f"{uang_harian.jumlah_hari_spj} hari",
         )
 
     representasi = UangRepresentasi.objects.filter(
@@ -381,16 +391,22 @@ def _build_kwitansi_items(pelaksana):
             tujuan,
         )
 
-    penginapan = Penginapan.objects.filter(
+    penginapans = Penginapan.objects.filter(
         spt=spt,
         pelaksana=pelaksana,
-    ).first()
-    if penginapan:
+    )
+    for penginapan in penginapans:
         _append_kwitansi_item(
             items,
-            f"Penginapan {penginapan.nama_hotel}",
+            (
+                f"Penginapan {penginapan.nama_hotel}".strip()
+                or "Penginapan"
+            ),
             penginapan.total_biaya,
-            f"{penginapan.lama_menginap} malam",
+            (
+                f"{penginapan.lama_menginap} malam "
+                f"({penginapan.jenis_tarif_penginapan}%)"
+            ),
         )
 
     for transport in Transport.objects.filter(
@@ -838,8 +854,21 @@ class SPJReportView(LoginRequiredMixin, View):
                 pelaksana=item,
                 jenis_spj__jenis_spj__iexact="Kembali",
             ).first()
-            hotel = Penginapan.objects.filter(spt=spt, pelaksana=item).first()
-            uang_harian = UangHarian.objects.filter(spt=spt, pelaksana=item).first()
+            hotels = list(Penginapan.objects.filter(spt=spt, pelaksana=item))
+            uang_harians = list(UangHarian.objects.filter(spt=spt, pelaksana=item))
+            hotel = next(
+                (hotel_item for hotel_item in hotels if hotel_item.nama_hotel),
+                hotels[0] if hotels else None,
+            )
+            uang_harian = uang_harians[0] if uang_harians else None
+            hotel_total = sum(
+                (hotel_item.total_biaya for hotel_item in hotels),
+                Decimal("0"),
+            )
+            uang_harian_total = sum(
+                (harian_item.total_biaya for harian_item in uang_harians),
+                Decimal("0"),
+            )
             representasi = UangRepresentasi.objects.filter(spt=spt, pelaksana=item).first()
             transports = list(
                 Transport.objects.filter(spt=spt, pelaksana=item).select_related(
@@ -860,11 +889,11 @@ class SPJReportView(LoginRequiredMixin, View):
             transport_kembali_total = _sum_transport(transport_kembali)
 
             total = sum([
-                getattr(uang_harian, "total_biaya", Decimal("0")) or Decimal("0"),
+                uang_harian_total,
                 getattr(representasi, "total_biaya", Decimal("0")) or Decimal("0"),
                 getattr(pesawat_berangkat, "total_biaya", Decimal("0")) or Decimal("0"),
                 getattr(pesawat_kembali, "total_biaya", Decimal("0")) or Decimal("0"),
-                getattr(hotel, "total_biaya", Decimal("0")) or Decimal("0"),
+                hotel_total,
                 transport_berangkat_total,
                 transport_kembali_total,
             ], Decimal("0"))
@@ -877,6 +906,14 @@ class SPJReportView(LoginRequiredMixin, View):
                 "pesawat_kembali": pesawat_kembali,
                 "hotel": hotel,
                 "uang_harian": uang_harian,
+                "hotel_total": hotel_total,
+                "uang_harian_total": uang_harian_total,
+                "hotel_rincian": build_day_breakdown_from_items(
+                    spt, hotels, "lama_menginap", "jenis_tarif_penginapan",
+                ),
+                "uang_harian_rincian": build_day_breakdown_from_items(
+                    spt, uang_harians, "jumlah_hari_spj", "jenis_tarif_uang_harian",
+                ),
                 "representasi": representasi,
                 "transport_berangkat": transport_berangkat,
                 "transport_kembali": transport_kembali,
@@ -926,7 +963,8 @@ class SPJReportView(LoginRequiredMixin, View):
             spt.tgl_kembali,
             getattr(pemberi, "nomor_spd", "") or "-",
             getattr(pemberi, "tanggal_spt", "") or "",
-            getattr(row["uang_harian"], "total_biaya", 0) or 0,
+            row["uang_harian_total"],
+            row["uang_harian_rincian"],
             getattr(row["representasi"], "total_biaya", 0) or 0,
             getattr(pb, "nama_maskapai", "") or "-",
             getattr(pb, "nomor_tiket", "") or "-",
@@ -945,7 +983,8 @@ class SPJReportView(LoginRequiredMixin, View):
             getattr(hotel, "tanggal_checkout", "") or "",
             getattr(hotel, "lama_menginap", "") or "-",
             getattr(hotel, "harga_per_malam", 0) or 0,
-            getattr(hotel, "total_biaya", 0) or 0,
+            row["hotel_total"],
+            row["hotel_rincian"],
             row["transport_berangkat_tujuan"],
             row["transport_berangkat_tanggal"] or spt.tgl_berangkat,
             row["transport_berangkat_total"],
@@ -963,13 +1002,13 @@ class SPJReportView(LoginRequiredMixin, View):
             "NO", "TAHUN", "JENIS PERJALANAN", "NAMA",
             "JABATAN/GOL/TINGKAT BIAYA", "NO. SPT", "TANGGAL SPT",
             "TEMPAT TUJUAN", "JUMLAH HARI", "TGL BERANGKAT", "TGL KEMBALI",
-            "NO. SPD", "TANGGAL SPD", "UANG HARIAN", "REPRESENTATIF",
+            "NO. SPD", "TANGGAL SPD", "UANG HARIAN", "RINCIAN UANG HARIAN", "REPRESENTATIF",
             "MASKAPAI BERANGKAT", "NO TIKET", "KODE BOOKING",
             "TGL PENERBANGAN", "HARGA", "MASKAPAI KEMBALI", "NO TIKET",
             "KODE BOOKING", "TGL PENERBANGAN", "HARGA",
             "NAMA DAN LOKASI HOTEL", "TIPE KAMAR", "NOMOR KAMAR",
             "TGL CHECKIN", "TGL CHECKOUT", "LAMA", "HARGA PER MALAM",
-            "TOTAL HOTEL", "TRANSPORT BERANGKAT", "HARGA",
+            "TOTAL HOTEL", "RINCIAN HOTEL", "TRANSPORT BERANGKAT", "HARGA",
             "TRANSPORT KEMBALI", "HARGA", "TOTAL",
         ]
         ws.append(headers)

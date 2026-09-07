@@ -177,7 +177,7 @@ class SPJModelForm(BaseAppModelForm):
         instance_id = getattr(self.instance, "pk", None)
         used = None
 
-        if model in (Penginapan, UangHarian, UangRepresentasi):
+        if model is UangRepresentasi:
             used = model.objects.filter(spt_id=spt_id)
         elif model is Pesawat:
             jenis_spj_id = (
@@ -289,6 +289,7 @@ class PenginapanForm(SPJModelForm):
         "jenis_tarif_penginapan": 4,
         "standar_penginapan": 4,
         "total_penginapan": 4,
+        "rincian_hari_spj": 12,
         "nama_hotel": 6,
         "alamat_hotel": 6,
         "tipe_kamar": 3,
@@ -311,6 +312,12 @@ class PenginapanForm(SPJModelForm):
         required=False,
         disabled=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
+    )
+    rincian_hari_spj = forms.CharField(
+        label="Uraian Hari SPJ Ini",
+        required=False,
+        disabled=True,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
     )
 
     class Meta:
@@ -367,6 +374,9 @@ class PenginapanForm(SPJModelForm):
         self.fields["total_penginapan"].widget.attrs.update({
             "data-spj-calculation-field": "total",
         })
+        self.fields["rincian_hari_spj"].widget.attrs.update({
+            "data-spj-calculation-field": "rincian",
+        })
         if "spt" in self.fields:
             self.fields["spt"].widget.attrs.update({
                 "data-spj-calculation-kind": "penginapan",
@@ -380,6 +390,7 @@ class PenginapanForm(SPJModelForm):
             "standar_penginapan",
             "harga_per_malam",
             "total_penginapan",
+            "rincian_hari_spj",
             "nama_hotel",
             "alamat_hotel",
             "tipe_kamar",
@@ -389,11 +400,12 @@ class PenginapanForm(SPJModelForm):
             "bukti",
             "verif_status",
         ])
-        nilai, harga, total = self._calculate_values()
+        nilai, harga, total, rincian = self._calculate_values()
         self.fields["standar_penginapan"].initial = nilai
         if harga is not None:
             self.fields["harga_per_malam"].initial = harga
         self.fields["total_penginapan"].initial = total
+        self.fields["rincian_hari_spj"].initial = rincian
         if self._selected_tarif_penginapan() == "30":
             for name in self._penginapan_100_percent_fields():
                 self.fields[name].required = False
@@ -443,7 +455,7 @@ class PenginapanForm(SPJModelForm):
         if not pelaksana_id and getattr(self.instance, "pelaksana_id", None):
             pelaksana_id = self.instance.pelaksana_id
         if not spt_id or not pelaksana_id:
-            return None, None, None
+            return None, None, None, None
 
         from perintah.models import Pelaksana, Spt
 
@@ -454,7 +466,7 @@ class PenginapanForm(SPJModelForm):
                 "nama__tingkat",
             ).get(pk=pelaksana_id, spt_id=spt_id)
         except (Spt.DoesNotExist, Pelaksana.DoesNotExist):
-            return None, None, None
+            return None, None, None, None
 
         obj = self._meta.model(spt=spt, pelaksana=pelaksana)
         nilai = obj.get_standar_maksimal()
@@ -481,7 +493,8 @@ class PenginapanForm(SPJModelForm):
             if harga_decimal is not None and hari is not None
             else None
         )
-        return nilai, harga_decimal, total
+        rincian = f"{hari} hari x {self._selected_tarif_penginapan()}%"
+        return nilai, harga_decimal, total, rincian
 
     def clean(self):
         cleaned_data = super().clean()
@@ -598,9 +611,11 @@ class UangHarianForm(SPJModelForm):
     field_layout = {
         "spt": 6,
         "pelaksana": 6,
+        "jenis_tarif_uang_harian": 4,
         "jumlah_hari_spj": 4,
         "uang_harian_per_hari": 4,
         "total_uang_harian": 4,
+        "rincian_hari_spj": 12,
         "verif_status": 4,
     }
     total_uang_harian = forms.DecimalField(
@@ -609,17 +624,27 @@ class UangHarianForm(SPJModelForm):
         disabled=True,
         widget=forms.NumberInput(attrs={"class": "form-control"}),
     )
+    rincian_hari_spj = forms.CharField(
+        label="Uraian Hari SPJ Ini",
+        required=False,
+        disabled=True,
+        widget=forms.TextInput(attrs={"class": "form-control"}),
+    )
 
     class Meta:
         model = UangHarian
         fields = [
             "spt",
             "pelaksana",
+            "jenis_tarif_uang_harian",
             "jumlah_hari_spj",
             "uang_harian_per_hari",
             "verif_status",
         ]
         widgets = {
+            "jenis_tarif_uang_harian": forms.Select(attrs={
+                "class": "form-select",
+            }),
             "jumlah_hari_spj": forms.NumberInput(attrs={
                 "class": "form-control",
             }),
@@ -639,8 +664,14 @@ class UangHarianForm(SPJModelForm):
             "data-spj-calculation-field": "hari",
             "min": "1",
         })
+        self.fields["jenis_tarif_uang_harian"].widget.attrs.update({
+            "data-spj-uang-harian-tarif-field": "1",
+        })
         self.fields["total_uang_harian"].widget.attrs.update({
             "data-spj-calculation-field": "total",
+        })
+        self.fields["rincian_hari_spj"].widget.attrs.update({
+            "data-spj-calculation-field": "rincian",
         })
         if "spt" in self.fields:
             self.fields["spt"].widget.attrs.update({
@@ -650,14 +681,17 @@ class UangHarianForm(SPJModelForm):
         self.order_fields([
             "spt",
             "pelaksana",
+            "jenis_tarif_uang_harian",
             "jumlah_hari_spj",
             "uang_harian_per_hari",
             "total_uang_harian",
+            "rincian_hari_spj",
             "verif_status",
         ])
-        nilai, total = self._calculate_values()
+        nilai, total, rincian = self._calculate_values()
         self.fields["uang_harian_per_hari"].initial = nilai
         self.fields["total_uang_harian"].initial = total
+        self.fields["rincian_hari_spj"].initial = rincian
 
     def _calculate_values(self):
         spt_id = self.data.get(self.add_prefix("spt")) if self.is_bound else self.initial.get("spt")
@@ -667,17 +701,18 @@ class UangHarianForm(SPJModelForm):
         if not pelaksana_id and getattr(self.instance, "pelaksana_id", None):
             pelaksana_id = self.instance.pelaksana_id
         if not spt_id or not pelaksana_id:
-            return None, None
+            return None, None, None
 
         from perintah.models import Spt
 
         try:
             spt = Spt.objects.select_related("kota_tujuan", "jenis_kegiatan").get(pk=spt_id)
         except Spt.DoesNotExist:
-            return None, None
+            return None, None, None
 
         obj = self._meta.model(spt=spt)
-        nilai = obj.get_standar_maksimal()
+        obj.jenis_tarif_uang_harian = self._selected_tarif_uang_harian()
+        nilai = obj.get_tarif_per_hari()
         hari = None
         if self.is_bound:
             hari = self.data.get(self.add_prefix("jumlah_hari_spj"))
@@ -690,11 +725,24 @@ class UangHarianForm(SPJModelForm):
         except (TypeError, ValueError):
             hari = spt.lama_perjalanan
         total = nilai * hari if nilai is not None else None
-        return nilai, total
+        rincian = f"{hari} hari x {self._selected_tarif_uang_harian()}%"
+        return nilai, total, rincian
+
+    def _selected_tarif_uang_harian(self):
+        if self.is_bound:
+            return (
+                self.data.get(self.add_prefix("jenis_tarif_uang_harian"))
+                or "100"
+            )
+        return (
+            self.initial.get("jenis_tarif_uang_harian")
+            or getattr(self.instance, "jenis_tarif_uang_harian", None)
+            or "100"
+        )
 
     def clean(self):
         cleaned_data = super().clean()
-        nilai, total = self._calculate_values()
+        nilai, total, _ = self._calculate_values()
         cleaned_data["uang_harian_per_hari"] = nilai
         cleaned_data["total_uang_harian"] = total
         spt = cleaned_data.get("spt")

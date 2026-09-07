@@ -113,6 +113,10 @@
     return scope.querySelector('[data-spj-penginapan-tarif-field="1"]');
   }
 
+  function getUangHarianTarifField() {
+    return scope.querySelector('[data-spj-uang-harian-tarif-field="1"]');
+  }
+
   function parseNumber(value) {
     const parsed = Number(value || 0);
     return Number.isFinite(parsed) ? parsed : 0;
@@ -141,7 +145,7 @@
     if (!tariffField) {
       return;
     }
-    const isThirtyPercent = tariffField.value === '30';
+    const isNonRealTariff = tariffField.value === '30' || tariffField.value === '0';
     [
       'nama_hotel',
       'alamat_hotel',
@@ -151,12 +155,29 @@
       'tanggal_checkout',
       'bukti'
     ].forEach(function (name) {
-      setFieldVisible(name, !isThirtyPercent);
+      setFieldVisible(name, !isNonRealTariff);
     });
     const priceField = getCalculationField('harga');
     if (priceField) {
-      priceField.readOnly = isThirtyPercent;
+      priceField.readOnly = isNonRealTariff;
     }
+  }
+
+  function updateDayBreakdown() {
+    const daysField = getCalculationField('hari');
+    const totalDays = parseNumber(sptField.dataset.spjLamaPerjalanan);
+    if (!daysField || !totalDays) {
+      setCalculatedValue('rincian', '');
+      return;
+    }
+    const paidDays = Math.min(Math.max(parseNumber(daysField.value), 0), totalDays);
+    const tariffField = getPenginapanTarifField() || getUangHarianTarifField();
+    const rate = tariffField ? tariffField.value || '100' : '100';
+    const details = [];
+    if (paidDays) {
+      details.push(paidDays + ' hari x ' + rate + '%');
+    }
+    setCalculatedValue('rincian', details.join('; ') || '0 hari');
   }
 
   function updateCalculatedTotal() {
@@ -172,13 +193,18 @@
       setCalculatedValue('total', formatMoney(nilai * days));
     } else if (kind === 'penginapan') {
       const isThirtyPercent = tariffField && tariffField.value === '30';
+      const isUnpaid = tariffField && tariffField.value === '0';
       if (isThirtyPercent && priceField) {
         priceField.value = formatMoney(nilai * 0.3);
+      }
+      if (isUnpaid && priceField) {
+        priceField.value = formatMoney(0);
       }
       const price = parseNumber(priceField ? priceField.value : 0);
       setCalculatedValue('total', formatMoney(price * days));
       updatePenginapanMode();
     }
+    updateDayBreakdown();
   }
 
   function loadCalculation() {
@@ -191,17 +217,22 @@
     }
 
     const daysField = getCalculationField('hari');
+    const tariffField = getPenginapanTarifField();
+    const uangHarianTarifField = getUangHarianTarifField();
     const params = new URLSearchParams({
       jenis: kind,
       spt: sptField.value,
       pelaksana: pelaksanaField.value,
       jumlah_hari: daysField ? daysField.value : '',
+      tarif_penginapan: tariffField ? tariffField.value : '',
+      tarif_uang_harian: uangHarianTarifField ? uangHarianTarifField.value : '',
     });
     fetch(url + '?' + params.toString(), {
       headers: { 'X-Requested-With': 'XMLHttpRequest' },
     })
       .then(function (response) { return response.json(); })
       .then(function (data) {
+        sptField.dataset.spjLamaPerjalanan = data.lama_perjalanan || '';
         setCalculatedValue('nilai', data.nilai);
         if (daysField && !daysField.value && data.lama_perjalanan) {
           daysField.value = data.lama_perjalanan;
@@ -215,6 +246,9 @@
         if (data.total) {
           setCalculatedValue('total', data.total);
         }
+        if (data.rincian) {
+          setCalculatedValue('rincian', data.rincian);
+        }
         updateCalculatedTotal();
       })
       .catch(function () {});
@@ -227,7 +261,7 @@
   if (window.jQuery && window.jQuery.fn.select2) {
     window.jQuery(pelaksanaField).on('select2:select', loadCalculation);
   }
-  [getCalculationField('hari'), getCalculationField('harga'), getPenginapanTarifField()].forEach(function (field) {
+  [getCalculationField('hari'), getCalculationField('harga'), getPenginapanTarifField(), getUangHarianTarifField()].forEach(function (field) {
     if (field) {
       field.addEventListener('input', updateCalculatedTotal);
       field.addEventListener('change', updateCalculatedTotal);

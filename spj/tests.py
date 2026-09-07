@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
+from django.test.client import RequestFactory
 
 from perintah.models import Pelaksana, Spt
 from profiles.models import OPD
@@ -17,6 +18,7 @@ from .access import (
     is_spj_pengguna_user,
 )
 from .models import Penginapan, UangHarian
+from .views import SPJReportView
 
 
 class RecordingQuerySet:
@@ -176,6 +178,10 @@ class SPJCalculationModelTests(TestCase):
 
         self.assertEqual(uang_harian.uang_harian_per_hari, Decimal("500000"))
         self.assertEqual(uang_harian.total_biaya, Decimal("1000000"))
+        self.assertEqual(
+            uang_harian.get_rincian_hari_spj()["display"],
+            "2 hari x 100%",
+        )
 
     def test_penginapan_30_percent_uses_standard_times_days(self):
         penginapan = Penginapan.objects.create(
@@ -189,3 +195,97 @@ class SPJCalculationModelTests(TestCase):
         self.assertEqual(penginapan.harga_per_malam, Decimal("180000.00"))
         self.assertEqual(penginapan.total_biaya, Decimal("360000.00"))
         self.assertEqual(penginapan.nama_hotel, "")
+        self.assertEqual(
+            penginapan.get_rincian_hari_spj()["display"],
+            "2 hari x 30%",
+        )
+
+    def test_one_spt_can_have_mixed_tariff_rows(self):
+        uang_harian_100 = UangHarian.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_uang_harian="100",
+            jumlah_hari_spj=1,
+        )
+        uang_harian_30 = UangHarian.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_uang_harian="30",
+            jumlah_hari_spj=1,
+        )
+        uang_harian_0 = UangHarian.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_uang_harian="0",
+            jumlah_hari_spj=1,
+        )
+
+        self.assertEqual(UangHarian.objects.count(), 3)
+        self.assertEqual(uang_harian_100.total_biaya, Decimal("500000"))
+        self.assertEqual(uang_harian_30.total_biaya, Decimal("150000.00"))
+        self.assertEqual(uang_harian_0.total_biaya, Decimal("0"))
+
+        penginapan_100 = Penginapan.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_penginapan="100",
+            nama_hotel="Hotel Contoh",
+            lama_menginap=1,
+            harga_per_malam=Decimal("500000"),
+        )
+        penginapan_30 = Penginapan.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_penginapan="30",
+            lama_menginap=1,
+            harga_per_malam=Decimal("0"),
+        )
+        penginapan_0 = Penginapan.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_penginapan="0",
+            lama_menginap=1,
+            harga_per_malam=Decimal("0"),
+        )
+
+        self.assertEqual(Penginapan.objects.count(), 3)
+        self.assertEqual(penginapan_100.total_biaya, Decimal("500000"))
+        self.assertEqual(penginapan_30.total_biaya, Decimal("180000.00"))
+        self.assertEqual(penginapan_0.total_biaya, Decimal("0"))
+
+    def test_rekap_spj_sums_all_mixed_tariff_rows(self):
+        for tarif in ("100", "30", "0"):
+            UangHarian.objects.create(
+                spt=self.spt,
+                pelaksana=self.pelaksana,
+                jenis_tarif_uang_harian=tarif,
+                jumlah_hari_spj=1,
+            )
+        Penginapan.objects.create(
+            spt=self.spt,
+            pelaksana=self.pelaksana,
+            jenis_tarif_penginapan="100",
+            nama_hotel="Hotel Contoh",
+            lama_menginap=1,
+            harga_per_malam=Decimal("500000"),
+        )
+        for tarif in ("30", "0"):
+            Penginapan.objects.create(
+                spt=self.spt,
+                pelaksana=self.pelaksana,
+                jenis_tarif_penginapan=tarif,
+                lama_menginap=1,
+                harga_per_malam=Decimal("0"),
+            )
+
+        request = RequestFactory().get("/spj/report/")
+        request.user = SimpleNamespace(is_superuser=True, is_authenticated=True)
+        rows, _, _, _ = SPJReportView()._build_rows(request)
+
+        self.assertEqual(rows[0]["uang_harian_total"], Decimal("650000.00"))
+        self.assertEqual(rows[0]["hotel_total"], Decimal("680000.00"))
+        self.assertEqual(rows[0]["total"], Decimal("1330000.00"))
+        self.assertEqual(
+            rows[0]["uang_harian_rincian"],
+            "1 hari x 100%; 1 hari x 30%; 1 hari x 0%",
+        )

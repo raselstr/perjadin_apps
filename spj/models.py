@@ -34,6 +34,13 @@ VERIF_STATUS_CHOICES = [
 PENGINAPAN_TARIF_CHOICES = [
     ("100", "100% dari biaya riil"),
     ("30", "30% dari standar"),
+    ("0", "0% (tidak dibayar)"),
+]
+
+UANG_HARIAN_TARIF_CHOICES = [
+    ("100", "100% dari standar"),
+    ("30", "30% dari standar"),
+    ("0", "0% (tidak dibayar)"),
 ]
 
 
@@ -59,6 +66,26 @@ def quantize_money(value):
     if value is None:
         return None
     return Decimal(value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+def build_day_breakdown_from_items(spt, items, days_attr, rate_attr):
+    total_days = max(int(getattr(spt, "lama_perjalanan", 0) or 0), 0)
+    days_by_rate = {"100": 0, "30": 0, "0": 0}
+    for item in items:
+        rate = str(getattr(item, rate_attr, "100") or "100")
+        if rate not in days_by_rate:
+            rate = "100"
+        days_by_rate[rate] += max(int(getattr(item, days_attr, 0) or 0), 0)
+
+    details = [
+        f"{days_by_rate[rate]} hari x {rate}%"
+        for rate in ("100", "30", "0")
+        if days_by_rate[rate]
+    ]
+    unallocated_days = max(total_days - sum(days_by_rate.values()), 0)
+    if unallocated_days:
+        details.append(f"{unallocated_days} hari belum diuraikan")
+    return "; ".join(details) or f"{total_days} hari belum diuraikan"
 
 
 class JenisSPJ(models.Model):
@@ -211,12 +238,6 @@ class Penginapan(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Penginapan"
         verbose_name_plural = "SPJ Penginapan"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["spt", "pelaksana"],
-                name="unique_spj_penginapan_spt_pelaksana",
-            )
-        ]
 
     @property
     def total_biaya(self):
@@ -226,11 +247,22 @@ class Penginapan(BaseSPJModel):
     def is_tarif_30_persen(self):
         return self.jenis_tarif_penginapan == "30"
 
+    @property
+    def is_tarif_0_persen(self):
+        return self.jenis_tarif_penginapan == "0"
+
     def get_tarif_30_persen(self):
         maksimal = self.get_standar_maksimal()
         if maksimal is None:
             return None
         return quantize_money(maksimal * Decimal("0.30"))
+
+    def get_rincian_hari_spj(self):
+        days = self.lama_menginap or 0
+        return {
+            "days": days,
+            "display": f"{days} hari x {self.jenis_tarif_penginapan}%",
+        }
 
     def get_standar_maksimal(self):
         from spd.models import StandardPenginapan
@@ -249,10 +281,6 @@ class Penginapan(BaseSPJModel):
 
     def clean(self):
         super().clean()
-        self._raise_duplicate_error(
-            {"spt": self.spt, "pelaksana": self.pelaksana},
-            "SPJ Penginapan untuk SPT dan pelaksana ini sudah dibuat.",
-        )
         maksimal = self.get_standar_maksimal()
         if (
             self.spt_id
@@ -265,6 +293,21 @@ class Penginapan(BaseSPJModel):
                     "melebihi lama perjalanan pada SPT."
                 )
             })
+        if self.spt_id and self.pelaksana_id:
+            allocated_days = sum(
+                item.lama_menginap or 0
+                for item in self.__class__.objects.filter(
+                    spt=self.spt,
+                    pelaksana=self.pelaksana,
+                ).exclude(pk=self.pk)
+            )
+            if allocated_days + (self.lama_menginap or 0) > self.spt.lama_perjalanan:
+                raise ValidationError({
+                    "lama_menginap": (
+                        "Total hari seluruh uraian SPJ Penginapan tidak boleh "
+                        "melebihi lama perjalanan pada SPT."
+                    )
+                })
         if self.is_tarif_30_persen:
             if maksimal is None:
                 raise ValidationError({
@@ -273,6 +316,9 @@ class Penginapan(BaseSPJModel):
                         "ini belum tersedia."
                     )
                 })
+            return
+
+        if self.is_tarif_0_persen:
             return
 
         if not self.nama_hotel:
@@ -294,7 +340,7 @@ class Penginapan(BaseSPJModel):
         return f"{self.pelaksana} - {self.nama_hotel}"
 
     def save(self, *args, **kwargs):
-        if self.is_tarif_30_persen:
+        if self.is_tarif_30_persen or self.is_tarif_0_persen:
             self.nama_hotel = ""
             self.alamat_hotel = ""
             self.tipe_kamar = ""
@@ -303,12 +349,14 @@ class Penginapan(BaseSPJModel):
             self.tanggal_checkout = None
             self.harga_per_malam = (
                 self.get_tarif_30_persen() or Decimal("0")
+                if self.is_tarif_30_persen else Decimal("0")
             )
             self.bukti = None
         if is_uploaded_image(self.foto_hotel):
             self.foto_hotel = compress_if_image(self.foto_hotel)
         if is_uploaded_image(self.bukti):
             self.bukti = compress_if_image(self.bukti)
+        self.full_clean()
         super().save(*args, **kwargs)
 
 
@@ -413,6 +461,12 @@ class Pesawat(BaseSPJModel):
 
 
 class UangHarian(BaseSPJModel):
+    jenis_tarif_uang_harian = models.CharField(
+        max_length=3,
+        choices=UANG_HARIAN_TARIF_CHOICES,
+        default="100",
+        verbose_name="Pilihan Tarif Uang Harian",
+    )
     jumlah_hari_spj = models.PositiveIntegerField(
         default=1,
         validators=[MinValueValidator(1)],
@@ -434,12 +488,6 @@ class UangHarian(BaseSPJModel):
         ordering = ["-id"]
         verbose_name = "SPJ Uang Harian"
         verbose_name_plural = "SPJ Uang Harian"
-        constraints = [
-            models.UniqueConstraint(
-                fields=["spt", "pelaksana"],
-                name="unique_spj_uang_harian_spt_pelaksana",
-            )
-        ]
 
     @property
     def total_biaya(self):
@@ -463,18 +511,49 @@ class UangHarian(BaseSPJModel):
         )
         return standard.biaya if standard else None
 
+    def get_tarif_per_hari(self):
+        if self.jenis_tarif_uang_harian == "0":
+            return Decimal("0")
+        standar = self.get_standar_maksimal()
+        if standar is None:
+            return None
+        if self.jenis_tarif_uang_harian == "30":
+            return quantize_money(standar * Decimal("0.30"))
+        return standar
+
+    def get_rincian_hari_spj(self):
+        days = self.jumlah_hari_spj or 0
+        return {
+            "days": days,
+            "display": f"{days} hari x {self.jenis_tarif_uang_harian}%",
+        }
+
     def clean(self):
         super().clean()
-        self._raise_duplicate_error(
-            {"spt": self.spt, "pelaksana": self.pelaksana},
-            "SPJ Uang Harian untuk SPT dan pelaksana ini sudah dibuat.",
-        )
-        if self.get_standar_maksimal() is None:
+        if (
+            self.jenis_tarif_uang_harian != "0"
+            and self.get_standar_maksimal() is None
+        ):
             raise ValidationError({
                 "uang_harian_per_hari": (
                     "Standar uang harian untuk SPT ini belum tersedia."
                 )
             })
+        if self.spt_id and self.pelaksana_id:
+            allocated_days = sum(
+                item.jumlah_hari_spj or 0
+                for item in self.__class__.objects.filter(
+                    spt=self.spt,
+                    pelaksana=self.pelaksana,
+                ).exclude(pk=self.pk)
+            )
+            if allocated_days + (self.jumlah_hari_spj or 0) > self.spt.lama_perjalanan:
+                raise ValidationError({
+                    "jumlah_hari_spj": (
+                        "Total hari seluruh uraian SPJ Uang Harian tidak boleh "
+                        "melebihi lama perjalanan pada SPT."
+                    )
+                })
         if (
             self.spt_id
             and self.jumlah_hari_spj
@@ -488,7 +567,7 @@ class UangHarian(BaseSPJModel):
             })
 
     def save(self, *args, **kwargs):
-        self.uang_harian_per_hari = self.get_standar_maksimal() or Decimal("0")
+        self.uang_harian_per_hari = self.get_tarif_per_hari() or Decimal("0")
         self.total_uang_harian = (
             (self.uang_harian_per_hari or Decimal("0"))
             * (self.jumlah_hari_spj or 0)
