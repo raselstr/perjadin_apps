@@ -29,12 +29,24 @@ class Pangkat(models.Model):
         return f"{self.pangkat} / {self.golongan}"
 
 class Eselon(models.Model):
-    eselon = models.CharField(max_length=100, unique=True)
-    keterangan = models.CharField(max_length=200, null=True, blank=True)
+    eselon = models.CharField(max_length=10)
+    peringkat = models.CharField(max_length=2)
+    ruang_lingkup_pusat = models.CharField(max_length=200, null=True, blank=True)
+    ruang_lingkup_daerah = models.CharField(max_length=200, null=True, blank=True)
+
+    class Meta:
+        ordering = ['eselon', 'peringkat']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['eselon', 'peringkat'],
+                name='unique_eselon_peringkat'
+            )
+        ]
 
     def __str__(self):
-        return self.eselon
-
+        if not self.peringkat:
+            return self.eselon
+        return f"{self.eselon}.{self.peringkat}"
 
 class JenisJabatan(models.Model):
     nama = models.CharField(max_length=150, unique=True)

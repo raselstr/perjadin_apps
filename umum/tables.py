@@ -35,7 +35,7 @@ class EselonTable(BaseTable):
 
     class Meta(BaseTable.Meta):
         model = Eselon
-        fields = ('no', 'eselon', 'keterangan', 'aksi')
+        fields = ('no', 'eselon', 'peringkat', 'ruang_lingkup_pusat', 'ruang_lingkup_daerah', 'aksi')
 
 
 class StatusASNTable(BaseTable):

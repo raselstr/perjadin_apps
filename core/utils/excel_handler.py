@@ -4,6 +4,7 @@ Digunakan di semua app untuk konsistensi
 """
 import csv
 import io
+import re
 from datetime import datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -476,6 +477,21 @@ class ExcelImporter:
             return related_model.objects.get(pk=normalized_value)
         except (related_model.DoesNotExist, ValueError, TypeError):
             pass
+
+        if (
+            isinstance(normalized_value, str)
+            and hasattr(related_model, "eselon")
+            and any(field.name == "peringkat" for field in related_model._meta.fields)
+        ):
+            eselon_match = re.match(
+                r"^\s*([A-Za-z0-9]+)\s*(?:[.:\-/]|\s+)\s*([A-Za-z0-9]+)\s*$",
+                normalized_value,
+            )
+            if eselon_match:
+                return related_model.objects.get(
+                    eselon__iexact=eselon_match.group(1),
+                    peringkat__iexact=eselon_match.group(2),
+                )
 
         if isinstance(normalized_value, str):
             for field in self._resolve_related_lookup_fields(related_model):

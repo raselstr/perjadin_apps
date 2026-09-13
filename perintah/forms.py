@@ -333,7 +333,12 @@ class PelaksanaForm(BaseAppModelForm):
         if active_opd_id:
             filters = Q(opd_id=active_opd_id)
             if is_administrator_request(self.request):
-                filters |= Q(eselon__eselon__iexact="II")
+                filters |= (
+                    Q(eselon__eselon__iexact="II")
+                    | Q(eselon__eselon__istartswith="II.")
+                    | Q(eselon__eselon__iexact="III")
+                    | Q(eselon__eselon__istartswith="III.")
+                )
             if self.instance and self.instance.nama_id:
                 filters |= Q(pk=self.instance.nama_id)
             queryset = queryset.filter(filters).distinct()
@@ -466,7 +471,7 @@ class PemberiTugasForm(BaseAppModelForm):
     TASK_VALIDATION_MESSAGES = {
         "Bupati": (
             "SPT untuk Bupati harus memiliki minimal satu "
-            "pelaksana dengan eselon II."
+            "pelaksana dengan eselon II atau III."
         ),
         "Kepala": (
             "SPT untuk Kepala harus memiliki minimal satu "
@@ -482,7 +487,7 @@ class PemberiTugasForm(BaseAppModelForm):
         ),
         "Wakil Bupati": (
             "SPT untuk Wakil Bupati harus memiliki minimal satu "
-            "pelaksana dengan eselon II."
+            "pelaksana dengan eselon II atau III."
         ),
     }
 

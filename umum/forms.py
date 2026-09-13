@@ -69,7 +69,9 @@ class EselonForm(forms.ModelForm):
         fields = '__all__'
         widgets = {
             'eselon': forms.TextInput(attrs={'class': 'form-control'}),
-            'keterangan': forms.TextInput(attrs={'class': 'form-control'}),
+            'peringkat': forms.TextInput(attrs={'class': 'form-control'}),
+            'ruang_lingkup_pusat': forms.TextInput(attrs={'class': 'form-control'}),
+            'ruang_lingkup_daerah': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
 

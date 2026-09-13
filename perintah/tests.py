@@ -92,19 +92,23 @@ class PerintahBaseTestCase(TestCase):
 
         self.eselon_ii = Eselon.objects.create(
             eselon="II",
-            keterangan="Pimpinan Tinggi Pratama",
+            peringkat="a",
+            ruang_lingkup_daerah="Pimpinan Tinggi Pratama",
         )
         self.eselon_iii = Eselon.objects.create(
             eselon="III",
-            keterangan="Administrator",
+            peringkat="a",
+            ruang_lingkup_daerah="Administrator",
         )
         self.eselon_iv = Eselon.objects.create(
             eselon="IV",
-            keterangan="Pengawas",
+            peringkat="a",
+            ruang_lingkup_daerah="Pengawas",
         )
         self.eselon_i = Eselon.objects.create(
             eselon="I",
-            keterangan="Pimpinan Tinggi Madya",
+            peringkat="a",
+            ruang_lingkup_daerah="Pimpinan Tinggi Madya",
         )
 
         self.jenis_jabatan = JenisJabatan.objects.create(
@@ -389,6 +393,16 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         request.user = user
         request.session["session_opd_id"] = self.opd_bk.id
         request.session["session_opd_nama"] = self.opd_bk.nama
+        pegawai_setda_eselon_iii = Pegawai.objects.create(
+            nip="198305052006051007",
+            nama="Pelaksana Setda Eselon III",
+            pangkat=self.pangkat_iva,
+            jabatan="Kepala Bagian",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+            tgl_lahir=date(1983, 5, 5),
+        )
 
         form = PelaksanaForm(request=request)
 
@@ -399,6 +413,7 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
             self.pegawai_setda_eselon_ii,
             form.fields["nama"].queryset,
         )
+        self.assertIn(pegawai_setda_eselon_iii, form.fields["nama"].queryset)
         self.assertNotIn(self.pegawai_setda, form.fields["nama"].queryset)
 
     def test_pelaksana_formset_rejects_duplicate_pegawai(self):
@@ -596,9 +611,21 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         self.assertFalse(pemberi_tugas.can_print_spt)
         self.assertTrue(pemberi_tugas.can_print_spd)
 
-    def test_form_rejects_bupati_when_spt_has_no_eselon_ii(self):
+    def test_form_rejects_bupati_when_spt_has_no_eselon_two_or_three(self):
+        spt = Spt.objects.create(
+            dasar="Dasar tanpa eselon dua atau tiga",
+            berita="Koordinasi staf",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Provinsi",
+            lama_perjalanan=1,
+            tgl_berangkat=date(2026, 5, 2),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt.pelaksana.create(nama=self.pegawai_non_eselon)
+
         form = PemberiTugasForm(data={
-            "spt": self.spt_without_eselon_ii.pk,
+            "spt": spt.pk,
             "penandatangan": self.bupati.pk,
             "nomor_spt": "090/ST/2026",
             "tanggal_spt": "2026-05-02",
@@ -607,9 +634,19 @@ class PemberiTugasFormTests(PerintahBaseTestCase):
         self.assertFalse(form.is_valid())
         self.assertIn("spt", form.errors)
         self.assertIn(
-            "minimal satu pelaksana dengan eselon II",
+            "minimal satu pelaksana dengan eselon II atau III",
             form.errors["spt"][0],
         )
+
+    def test_form_allows_bupati_when_spt_has_eselon_three(self):
+        form = PemberiTugasForm(data={
+            "spt": self.spt_without_eselon_ii.pk,
+            "penandatangan": self.bupati.pk,
+            "nomor_spt": "090/ST/2026",
+            "tanggal_spt": "2026-05-02",
+        })
+
+        self.assertTrue(form.is_valid(), form.errors)
 
     def test_form_rejects_tanggal_spt_after_spt_departure(self):
         form = PemberiTugasForm(data={
@@ -897,7 +934,7 @@ class DocumentUtilsTests(PerintahBaseTestCase):
         )
         self.assertEqual(
             [item.nama for item in filtered_for_other_opd],
-            [self.pegawai_eselon_ii],
+            [self.pegawai_eselon_ii, self.pegawai_eselon_iii],
         )
         self.assertEqual(
             [item.nama for item in filtered_for_setda],
@@ -1057,7 +1094,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Bupati Asahan")
         self.assertContains(response, self.pegawai_eselon_ii.nama)
-        self.assertNotContains(response, self.pegawai_eselon_iii.nama)
+        self.assertContains(response, self.pegawai_eselon_iii.nama)
         self.assertRegex(
             response_html,
             (
@@ -1122,7 +1159,7 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             f"<td>{self.pegawai_eselon_iii.nama}</td>",
             response_html,
         )
-        self.assertIn(
+        self.assertNotIn(
             f"<td>{self.pegawai_non_eselon.nama}</td>",
             response_html,
         )
@@ -1291,6 +1328,55 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             sorted_names.index(non_eselon_without_nip.nama),
         )
 
+    def test_pelaksana_priority_uses_eselon_peringkat_order(self):
+        eselon_iii_b = Eselon.objects.create(
+            eselon="III",
+            peringkat="b",
+            ruang_lingkup_daerah="Administrator B",
+        )
+        spt = Spt.objects.create(
+            dasar="Dasar urutan peringkat eselon",
+            berita="Koordinasi urutan peringkat eselon",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 13),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        eselon_iii_a = Pegawai.objects.create(
+            nip="198001012010011201",
+            nama="Pelaksana Eselon III A",
+            pangkat=self.pangkat_iva,
+            jabatan="Kepala Bagian A",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1980, 1, 1),
+        )
+        eselon_iii_b_pegawai = Pegawai.objects.create(
+            nip="198001012010011202",
+            nama="Pelaksana Eselon III B",
+            pangkat=self.pangkat_iva,
+            jabatan="Kepala Bagian B",
+            eselon=eselon_iii_b,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+            tgl_lahir=date(1970, 1, 1),
+        )
+        spt.pelaksana.create(nama=eselon_iii_b_pegawai)
+        spt.pelaksana.create(nama=eselon_iii_a)
+
+        sorted_names = [
+            pelaksana.nama.nama
+            for pelaksana in sort_pelaksana_by_priority(spt.pelaksana.all())
+        ]
+
+        self.assertEqual(
+            sorted_names[:2],
+            [eselon_iii_a.nama, eselon_iii_b_pegawai.nama],
+        )
+
     def test_print_spt_puts_non_eselon_with_nip_first(self):
         spt = Spt.objects.create(
             dasar="Dasar cetak urutan nip non eselon",
@@ -1422,9 +1508,204 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
             f"<td>{self.pegawai_eselon_iii.nama}</td>",
             response_html,
         )
-        self.assertIn(
+        self.assertNotIn(
             f"<td>{self.pegawai_non_eselon.nama}</td>",
             response_html,
+        )
+
+    def test_print_spt_adds_multi_opd_cost_instruction_for_regional_head(self):
+        spt = Spt.objects.create(
+            dasar="Dasar biaya lintas OPD",
+            berita="Koordinasi lintas OPD",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Provinsi",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 11),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        spt.pelaksana.create(nama=self.pegawai_eselon_ii)
+        spt.pelaksana.create(nama=self.pegawai_setda_eselon_ii)
+        pemberi_tugas = PemberiTugas.objects.create(
+            spt=spt,
+            penandatangan=self.bupati,
+            nomor_spt="097/ST/BUP/2026",
+            tanggal_spt=date(2026, 5, 11),
+        )
+        self.client.force_login(self.superuser)
+
+        response = self.client.get(
+            reverse("pemberi_tugas_print_spt", args=[pemberi_tugas.pk])
+        )
+        response_html = response.content.decode()
+        cost_instruction = (
+            "Segala Biaya yang dikeluarkan atas pelaksanaan tugas tersebut "
+            "dibebankan pada DPA Organisasi Perangkat Daerah (OPD) "
+            "masing-masing."
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, cost_instruction, html=False)
+        self.assertLess(
+            response_html.index(cost_instruction),
+            response_html.index("Setelah selesai melaksanakan tugas"),
+        )
+
+    def test_spt_multi_opd_sort_uses_opd_and_eselon_three_priority(self):
+        opd_inspektorat = OPD.objects.create(nama="Inspektorat")
+        opd_bapperida = OPD.objects.create(
+            nama="Badan Perencanaan Pembangunan Riset dan Inovasi"
+        )
+        opd_bapenda = OPD.objects.create(nama="Badan Pendapatan Daerah")
+        opd_lain = OPD.objects.create(nama="Dinas Pendidikan")
+        spt = Spt.objects.create(
+            dasar="Dasar urutan lintas OPD",
+            berita="Koordinasi urutan lintas OPD",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Provinsi",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 5, 12),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        bupati = Pegawai.objects.create(
+            nip="197001012000011101",
+            nama="Bupati Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Bupati",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+        wakil_bupati = Pegawai.objects.create(
+            nip="197101012000011102",
+            nama="Wakil Bupati Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Wakil Bupati",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+        asisten = Pegawai.objects.create(
+            nip="197201012000011103",
+            nama="Asisten Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Asisten Administrasi",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+        sekretaris_daerah = Pegawai.objects.create(
+            nip="197201012000011111",
+            nama="Sekretaris Daerah Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Sekretaris Daerah",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+        kepala_inspektorat = Pegawai.objects.create(
+            nip="197301012000011104",
+            nama="Inspektur Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Inspektur",
+            eselon=self.eselon_ii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=opd_inspektorat,
+        )
+        kepala_bapperida = Pegawai.objects.create(
+            nip="197401012000011105",
+            nama="Kepala Bapperida Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Kepala Badan Perencanaan Pembangunan Riset dan Inovasi",
+            eselon=self.eselon_ii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=opd_bapperida,
+        )
+        kepala_bk = Pegawai.objects.create(
+            nip="197501012000011106",
+            nama="Kepala BKAD Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Kepala Badan Keuangan dan Aset Daerah",
+            eselon=self.eselon_ii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_bk,
+        )
+        kepala_bapenda = Pegawai.objects.create(
+            nip="197601012000011107",
+            nama="Kepala Bapenda Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Kepala Badan Pendapatan Daerah",
+            eselon=self.eselon_ii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=opd_bapenda,
+        )
+        kepala_opd_lain = Pegawai.objects.create(
+            nip="197701012000011108",
+            nama="Kepala OPD Lain Pelaksana",
+            pangkat=self.pangkat_ivc,
+            jabatan="Kepala Dinas Pendidikan",
+            eselon=self.eselon_ii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=opd_lain,
+        )
+        eselon_tiga_setda = Pegawai.objects.create(
+            nip="197801012000011109",
+            nama="Eselon III Setda Pelaksana",
+            pangkat=self.pangkat_iva,
+            jabatan="Kepala Bagian Umum",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd_setda,
+        )
+        eselon_tiga_opd_lain = Pegawai.objects.create(
+            nip="197901012000011110",
+            nama="Eselon III OPD Lain Pelaksana",
+            pangkat=self.pangkat_iva,
+            jabatan="Sekretaris Dinas Pendidikan",
+            eselon=self.eselon_iii,
+            jenis_jabatan=self.jenis_jabatan,
+            opd=opd_lain,
+        )
+
+        for pegawai in (
+            eselon_tiga_opd_lain,
+            kepala_bapenda,
+            kepala_opd_lain,
+            kepala_bk,
+            eselon_tiga_setda,
+            asisten,
+            sekretaris_daerah,
+            kepala_bapperida,
+            wakil_bupati,
+            kepala_inspektorat,
+            bupati,
+        ):
+            spt.pelaksana.create(nama=pegawai)
+
+        sorted_names = [
+            pelaksana.nama.nama
+            for pelaksana in filter_spt_pelaksana(
+                spt.pelaksana.select_related("nama", "nama__opd", "nama__eselon"),
+                self.bupati.tugas,
+            )
+        ]
+
+        self.assertEqual(
+            sorted_names,
+            [
+                bupati.nama,
+                wakil_bupati.nama,
+                sekretaris_daerah.nama,
+                asisten.nama,
+                kepala_inspektorat.nama,
+                kepala_bapperida.nama,
+                kepala_bk.nama,
+                kepala_bapenda.nama,
+                kepala_opd_lain.nama,
+                eselon_tiga_setda.nama,
+                eselon_tiga_opd_lain.nama,
+            ],
         )
 
     def test_print_spt_shows_sekretaris_daerah_title_and_name_only(self):

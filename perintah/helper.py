@@ -2,6 +2,7 @@ from perintah.document_utils import (
     get_print_opd_id,
     get_spt_letterhead_pemda,
     filter_spt_pelaksana,
+    should_show_multi_opd_cost_instruction,
 )
 
 def get_spt_print_context(pemberi_tugas):
@@ -25,4 +26,10 @@ def get_spt_print_context(pemberi_tugas):
     return {
         "pemda": pemda,
         "pelaksana_list": pelaksana_list,
+        "show_multi_opd_cost_instruction": (
+            should_show_multi_opd_cost_instruction(
+                pemberi_tugas.penandatangan.tugas,
+                pelaksana_list,
+            )
+        ),
     }

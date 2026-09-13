@@ -11,6 +11,11 @@ from umum.models import KopSurat, Pemda, Penandatangan, Tugas
 
 GLOBAL_SIGNATORY_TASKS = ("Bupati", "Wakil Bupati")
 SECRETARY_LEVEL_SIGNATORY_TASKS = ("Sekretaris Daerah", "Asisten")
+MULTI_OPD_COST_INSTRUCTION_TASKS = (
+    "Bupati",
+    "Wakil Bupati",
+    *SECRETARY_LEVEL_SIGNATORY_TASKS,
+)
 HANDWRITTEN_NUMBER_SPACE = "\u00a0" * 10
 PELAKSANA_JABATAN_PRIORITY = (
     "Bupati",
@@ -331,6 +336,37 @@ def get_eselon_level(pegawai):
     return extract_rank_level(raw_value)
 
 
+def _get_eselon_peringkat_value(pegawai):
+    eselon = getattr(pegawai, "eselon", None)
+    peringkat = (getattr(eselon, "peringkat", "") or "").strip().lower()
+    if not peringkat:
+        raw_value = str(getattr(eselon, "eselon", eselon) or "")
+        suffix_match = re.search(r"[.\-\s]+([a-z])\b", raw_value.lower())
+        if suffix_match:
+            peringkat = suffix_match.group(1)
+
+    if not peringkat:
+        return 999
+
+    first_char = peringkat[0]
+    if "a" <= first_char <= "z":
+        return ord(first_char) - 96
+
+    return 999
+
+
+def get_eselon_sort_value(pegawai):
+    eselon_level = get_eselon_level(pegawai)
+    if eselon_level is None:
+        return (999, 999)
+
+    return (eselon_level, _get_eselon_peringkat_value(pegawai))
+
+
+def is_eselon_three_a(pegawai):
+    return get_eselon_level(pegawai) == 3 and _get_eselon_peringkat_value(pegawai) == 1
+
+
 def is_eselon_two(pegawai):
     return get_eselon_level(pegawai) == 2
 
@@ -343,6 +379,10 @@ def is_eselon_two_to_non(pegawai):
 def is_eselon_three_to_non(pegawai):
     eselon_level = get_eselon_level(pegawai)
     return eselon_level is None or eselon_level >= 3
+
+
+def is_eselon_two_or_three(pegawai):
+    return get_eselon_level(pegawai) in (2, 3)
 
 
 def _filter_pelaksana_by_opd(pelaksana_list, opd_id=None):
@@ -390,29 +430,29 @@ def filter_spt_pelaksana(
         eselon_filter = (
             is_eselon_two_to_non
             if is_active_signatory_opd
-            else is_eselon_two
+            else is_eselon_two_or_three
         )
         filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
             if eselon_filter(pelaksana.nama)
         ]
-        return sort_pelaksana_by_priority(filtered_pelaksana)
+        return sort_spt_pelaksana_by_priority(filtered_pelaksana)
 
     if tugas in ("Bupati", "Wakil Bupati"):
         filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
-            if is_eselon_two(pelaksana.nama)
+            if is_eselon_two_or_three(pelaksana.nama)
         ]
-        return sort_pelaksana_by_priority(filtered_pelaksana)
+        return sort_spt_pelaksana_by_priority(filtered_pelaksana)
 
     if tugas == "Kepala":
         filtered_pelaksana = [
             pelaksana for pelaksana in pelaksana_list
             if is_eselon_three_to_non(pelaksana.nama)
         ]
-        return sort_pelaksana_by_priority(filtered_pelaksana)
+        return sort_spt_pelaksana_by_priority(filtered_pelaksana)
 
-    return sort_pelaksana_by_priority(pelaksana_list)
+    return sort_spt_pelaksana_by_priority(pelaksana_list)
 
 
 def filter_spd_pelaksana(pelaksana_list, opd_id=None):
@@ -430,6 +470,23 @@ def filter_spd_pelaksana(pelaksana_list, opd_id=None):
 def is_single_eselon_two_pelaksana(pelaksana_list):
     pelaksana_list = list(pelaksana_list)
     return len(pelaksana_list) == 1 and is_eselon_two(pelaksana_list[0].nama)
+
+
+def has_multiple_pelaksana_opd(pelaksana_list):
+    opd_ids = {
+        getattr(pelaksana.nama, "opd_id", None)
+        for pelaksana in pelaksana_list
+        if getattr(pelaksana, "nama", None)
+    }
+    opd_ids.discard(None)
+    return len(opd_ids) > 1
+
+
+def should_show_multi_opd_cost_instruction(tugas, pelaksana_list):
+    return (
+        get_tugas_name(tugas) in MULTI_OPD_COST_INSTRUCTION_TASKS
+        and has_multiple_pelaksana_opd(pelaksana_list)
+    )
 
 
 def _get_pangkat_rank(pegawai):
@@ -468,6 +525,27 @@ def _normalize_jabatan_value(pegawai):
     return (getattr(pegawai, "jabatan", "") or "").strip().lower()
 
 
+def _normalize_opd_value(pegawai):
+    opd = getattr(pegawai, "opd", None)
+    return (getattr(opd, "nama", "") or "").strip().lower()
+
+
+def _get_opd_priority(pegawai):
+    text = f"{_normalize_opd_value(pegawai)} {_normalize_jabatan_value(pegawai)}"
+    if "inspektorat" in text:
+        return 0
+    if "perencanaan pembangunan riset dan inovasi" in text:
+        return 1
+    if (
+        "keuangan dan aset daerah" in text
+        or "keuangan daerah" in text
+    ):
+        return 2
+    if "pendapatan daerah" in text:
+        return 3
+    return 4
+
+
 def _get_pelaksana_jabatan_priority(pegawai):
     jabatan = _normalize_jabatan_value(pegawai)
     if not jabatan:
@@ -496,7 +574,7 @@ def _sort_key_for_eselon_priority(pelaksana):
 
     return (
         _get_pelaksana_jabatan_priority(pegawai),
-        eselon_level or 999,
+        get_eselon_sort_value(pegawai),
         _get_non_eselon_nip_priority(pegawai, eselon_level),
         -has_ruang,
         -golongan_rank,
@@ -504,6 +582,41 @@ def _sort_key_for_eselon_priority(pelaksana):
         _get_birthdate_sort_value(pegawai),
         _get_name_sort_value(pegawai),
     )
+
+
+def _sort_key_for_multi_opd_priority(pelaksana):
+    pegawai = pelaksana.nama
+    eselon_level = get_eselon_level(pegawai)
+    jabatan_priority = _get_pelaksana_jabatan_priority(pegawai)
+    existing_key = _sort_key_for_eselon_priority(pelaksana)
+
+    if jabatan_priority == 0:
+        return (0, *existing_key)
+    if jabatan_priority == 1:
+        return (1, *existing_key)
+    if jabatan_priority == 2:
+        return (2, *existing_key)
+    if jabatan_priority == 3:
+        return (3, *existing_key)
+    if eselon_level == 2:
+        opd_priority = _get_opd_priority(pegawai)
+        return (4 + opd_priority, *existing_key)
+    if (
+        is_eselon_three_a(pegawai)
+        and "sekretariat daerah" in _normalize_opd_value(pegawai)
+    ):
+        return (9, *existing_key)
+    if eselon_level == 3:
+        return (10, *existing_key)
+
+    return (8, *existing_key)
+
+
+def sort_spt_pelaksana_by_priority(pelaksana_list):
+    pelaksana_list = list(pelaksana_list)
+    if has_multiple_pelaksana_opd(pelaksana_list):
+        return sorted(pelaksana_list, key=_sort_key_for_multi_opd_priority)
+    return sort_pelaksana_by_priority(pelaksana_list)
 
 
 def sort_pelaksana_by_priority(pelaksana_list):

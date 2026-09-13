@@ -43,6 +43,7 @@ from perintah.document_utils import (
     get_letterhead_office_name,
     get_signature_location,
     get_spt_letterhead_pemda,
+    should_show_multi_opd_cost_instruction,
     should_hide_signatory_identity_details,
     format_spt_date_range,
     filter_spt_pelaksana,
@@ -898,6 +899,11 @@ class PrintSptWAApiView(View):
             "pemberi_tugas": pemberi_tugas,
             "spt": spt,
             "pelaksana_list": pelaksana_list,
+            "show_multi_opd_cost_instruction":
+                should_show_multi_opd_cost_instruction(
+                    pemberi_tugas.penandatangan.tugas,
+                    pelaksana_list,
+                ),
 
             "kop_office_name":
                 get_letterhead_office_name(

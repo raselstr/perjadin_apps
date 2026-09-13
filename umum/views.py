@@ -267,8 +267,8 @@ class EselonImportView(ExcelImportView):
     """Upload & import Eselon data dari Excel"""
     model = Eselon
     success_url = '/umum/eselon/'
-    columns = ['eselon', 'keterangan']
-    match_fields = [('eselon','keterangan')] 
+    columns = ['eselon', 'peringkat', 'ruang_lingkup_pusat', 'ruang_lingkup_daerah']
+    match_fields = [('eselon','peringkat')]
 
 class StatusASNExportView(ExcelExportView):
     """Download Status ASN data sebagai Excel"""

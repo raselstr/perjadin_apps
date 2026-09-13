@@ -8,7 +8,16 @@ from core.utils.excel_handler import ExcelImporter
 from profiles.models import OPD, Role, UserProfile
 
 from .forms import KopSuratForm, PegawaiForm, PenandatanganForm
-from .models import Eselon, JenisJabatan, Pangkat, Pegawai, Penandatangan, StatusASN, Tingkat
+from .models import (
+    Eselon,
+    JenisJabatan,
+    Pangkat,
+    Pegawai,
+    Penandatangan,
+    StatusASN,
+    Tingkat,
+    Tugas,
+)
 
 
 def build_excel_file(rows):
@@ -222,12 +231,13 @@ class PenandatanganFormTests(TestCase):
             ruang="a",
         )
         jenis_jabatan = JenisJabatan.objects.create(nama="Definitif")
+        tugas, _ = Tugas.objects.get_or_create(nama="Kepala")
 
         Penandatangan.objects.create(
             nama="Ahmad",
             nip="197001011995031001",
             pangkat=pangkat,
-            tugas="Kepala",
+            tugas=tugas,
             jenis_jabatan=jenis_jabatan,
             opd=opd,
         )
@@ -236,7 +246,7 @@ class PenandatanganFormTests(TestCase):
             "nama": "Ahmad",
             "nip": "197001011995031001",
             "pangkat": pangkat.pk,
-            "tugas": "Kepala",
+            "tugas": tugas.pk,
             "jenis_jabatan": jenis_jabatan.pk,
             "opd": opd.pk,
         })
@@ -263,7 +273,11 @@ class KopSuratFormTests(TestCase):
 class PegawaiImportTests(TestCase):
     def test_import_updates_existing_pegawai_by_nip(self):
         pangkat = Pangkat.objects.create(pangkat='Pengatur', golongan='III', ruang='a')
-        eselon = Eselon.objects.create(eselon='III', keterangan='Administrator')
+        eselon = Eselon.objects.create(
+            eselon='III',
+            peringkat='a',
+            ruang_lingkup_daerah='Administrator',
+        )
         jenis_jabatan = JenisJabatan.objects.create(nama='Fungsional')
         status = StatusASN.objects.create(nama='PNS')
         opd = OPD.objects.create(nama='Sekretariat')
@@ -303,3 +317,38 @@ class PegawaiImportTests(TestCase):
         self.assertEqual(pegawai.jabatan, 'Jabatan Baru')
         self.assertEqual(pegawai.eselon, eselon)
         self.assertEqual(pegawai.tingkat, tingkat)
+
+    def test_import_resolves_eselon_with_peringkat_value(self):
+        pangkat = Pangkat.objects.create(pangkat='Pengatur', golongan='III', ruang='a')
+        Eselon.objects.create(
+            eselon='III',
+            peringkat='a',
+            ruang_lingkup_daerah='Administrator A',
+        )
+        eselon_iii_b = Eselon.objects.create(
+            eselon='III',
+            peringkat='b',
+            ruang_lingkup_daerah='Administrator B',
+        )
+        jenis_jabatan = JenisJabatan.objects.create(nama='Fungsional')
+        status = StatusASN.objects.create(nama='PNS')
+        opd = OPD.objects.create(nama='Sekretariat')
+        tingkat = Tingkat.objects.create(tingkat='A')
+
+        excel_data = build_excel_file([
+            ['nip', 'nama', 'pangkat', 'jabatan', 'eselon', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat'],
+            ['198001012006041002', 'Budi', 'Pengatur', 'Jabatan Baru', 'III.b', 'Fungsional', 'PNS', None, 'Sekretariat', 'A'],
+        ])
+
+        importer = ExcelImporter(
+            model=Pegawai,
+            file_stream=excel_data,
+            columns=['nip', 'nama', 'pangkat', 'jabatan', 'eselon', 'jenis_jabatan', 'status', 'tgl_lahir', 'opd', 'tingkat'],
+            match_fields=[('nip',)],
+        )
+
+        result = importer.import_data()
+
+        self.assertTrue(result['success'], result['errors'])
+        pegawai = Pegawai.objects.get(nip='198001012006041002')
+        self.assertEqual(pegawai.eselon, eselon_iii_b)

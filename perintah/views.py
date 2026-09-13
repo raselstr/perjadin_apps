@@ -34,6 +34,7 @@ from .document_utils import (
     get_signature_location,
     is_regional_head_task,
     select_spd_primary_pelaksana,
+    should_show_multi_opd_cost_instruction,
     should_hide_signatory_identity_details,
 )
 from .forms import PelaksanaFormSet, PemberiTugasForm, SptForm, TtdSptSpdForm
@@ -513,6 +514,12 @@ class PemberiTugasPrintSptView(PemberiTugasPrintBaseView):
         context.update({
             "pelaksana_list": pelaksana_list,
             "show_pelaksana_numbering": len(pelaksana_list) > 1,
+            "show_multi_opd_cost_instruction": (
+                should_show_multi_opd_cost_instruction(
+                    pemberi_tugas.penandatangan.tugas,
+                    pelaksana_list,
+                )
+            ),
         })
         return context
 

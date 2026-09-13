@@ -472,6 +472,11 @@ table {
                                     di {{ kota_tujuan_text|default:"-" }} terhitung tanggal
                                     {{ tanggal_perjalanan_spt }}.
                                 </li>
+                                {% if show_multi_opd_cost_instruction %}
+                                <li>
+                                    Segala Biaya yang dikeluarkan atas pelaksanaan tugas tersebut dibebankan pada DPA Organisasi Perangkat Daerah (OPD) masing-masing.
+                                </li>
+                                {% endif %}
                                 <li>
                                     Setelah selesai melaksanakan tugas, agar menyampaikan laporan kepada
                                     {% for title_line in spt_signature_title_lines %}
