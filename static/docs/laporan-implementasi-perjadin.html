@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>Laporan Implementasi Sistem Informasi Perjalanan Dinas</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm 17mm; @bottom-right { content: "Halaman " counter(page) " dari " counter(pages); font-size: 8pt; color: #64748b; } }
+    @page cover { margin: 0; @bottom-right { content: ""; } }
+    * { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; color: #172033; font-size: 10pt; line-height: 1.45; margin: 0; }
+    h1, h2, h3 { color: #123a63; page-break-after: avoid; }
+    h1 { font-size: 22pt; margin: 0 0 14pt; }
+    h2 { font-size: 16pt; border-bottom: 2px solid #2b75b6; padding-bottom: 5pt; margin: 20pt 0 10pt; }
+    h3 { font-size: 12pt; margin: 13pt 0 6pt; }
+    p { margin: 5pt 0 8pt; text-align: justify; }
+    ul, ol { margin-top: 4pt; }
+    li { margin: 3pt 0; }
+    .cover { page: cover; height: 297mm; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: linear-gradient(145deg, #eaf4ff, #fff); }
+    .cover .mark { width: 86px; height: 86px; border-radius: 18px; background: #123a63; color: white; display: flex; align-items: center; justify-content: center; font-size: 24pt; font-weight: bold; margin-bottom: 28px; }
+    .cover h1 { font-size: 27pt; max-width: 155mm; }
+    .cover .subtitle { font-size: 14pt; color: #37648b; max-width: 145mm; }
+    .cover .meta { margin-top: 45mm; color: #475569; line-height: 1.7; }
+    .note { background: #eff6ff; border-left: 4px solid #2b75b6; padding: 9pt 11pt; margin: 9pt 0; }
+    .warning { background: #fff7ed; border-left: 4px solid #ea580c; padding: 9pt 11pt; margin: 9pt 0; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; }
+    .card { border: 1px solid #cbd5e1; border-radius: 6px; padding: 9pt; background: #fff; }
+    .card strong { color: #123a63; }
+    table { width: 100%; border-collapse: collapse; margin: 7pt 0 12pt; font-size: 8.5pt; }
+    th, td { border: 1px solid #cbd5e1; padding: 5pt 6pt; vertical-align: top; }
+    th { background: #e8f1f9; color: #123a63; text-align: left; }
+    .small { font-size: 8.5pt; color: #475569; }
+    .mono { font-family: "Courier New", monospace; font-size: 8pt; white-space: pre-wrap; background: #0f172a; color: #e2e8f0; padding: 9pt; border-radius: 5px; line-height: 1.35; }
+    .screen { border: 1px solid #94a3b8; border-radius: 6px; overflow: hidden; box-shadow: 0 2px 5px #cbd5e1; background: #f8fafc; margin: 7pt 0; }
+    .screen-head { background: #123a63; color: white; padding: 6pt 8pt; font-weight: bold; }
+    .screen-body { display: flex; min-height: 102px; }
+    .screen-side { width: 26%; background: #e8f1f9; padding: 7pt; color: #123a63; font-size: 7.5pt; }
+    .screen-main { flex: 1; padding: 7pt; }
+    .pill { display: inline-block; padding: 3pt 6pt; border-radius: 10px; background: #dbeafe; color: #1d4ed8; font-size: 7.5pt; margin: 2pt; }
+    .metric { display: inline-block; width: 31%; background: white; border: 1px solid #dbe4ee; padding: 6pt; margin-right: 1%; font-size: 8pt; }
+    .metric b { display: block; font-size: 15pt; color: #123a63; }
+    .flow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 5pt; margin: 12pt 0; }
+    .flow .box { border: 2px solid #2b75b6; background: #eff6ff; border-radius: 6px; padding: 7pt 8pt; text-align: center; font-size: 8.5pt; min-width: 31mm; }
+    .flow .decision { border-color: #ca8a04; background: #fef9c3; transform: skew(-8deg); }
+    .flow .arrow { color: #64748b; font-weight: bold; font-size: 15pt; }
+    .architecture { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 7pt; text-align: center; }
+    .architecture .layer { border: 1px solid #94a3b8; border-radius: 5px; padding: 8pt; min-height: 70px; }
+    .architecture .layer h3 { margin: 0 0 4pt; font-size: 10pt; }
+    .toc li { margin: 6pt 0; }
+    .page-break { page-break-before: always; }
+    .caption { text-align: center; font-size: 8pt; color: #64748b; margin-top: 2pt; }
+    .check { color: #15803d; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="mark">PD</div>
+    <h1>Laporan Implementasi<br>Sistem Informasi Perjalanan Dinas</h1>
+    <div class="subtitle">User interface, mockup, flowchart, cara penggunaan, struktur aplikasi, metadata, dan source code</div>
+    <div class="meta"><b>Perjadin Apps</b><br>Dokumen teknis dan panduan implementasi<br>Versi laporan: 1.0 &nbsp;|&nbsp; 13 September 2026</div>
+  </section>
+
+  <section>
+    <h2>1. Identitas dan Ringkasan Aplikasi</h2>
+    <table>
+      <tr><th>Nama aplikasi</th><td>Perjadin Apps — Sistem Informasi Perjalanan Dinas</td></tr>
+      <tr><th>Tujuan</th><td>Mengelola proses perjalanan dinas dari data pegawai, penyusunan SPT/SPD, pencatatan SPJ, verifikasi, hingga pencetakan dokumen dan laporan biaya.</td></tr>
+      <tr><th>Platform</th><td>Aplikasi web responsif berbasis Django 5.2, Python, PostgreSQL, HTML/CSS/JavaScript.</td></tr>
+      <tr><th>Generator dokumen</th><td>WeasyPrint dengan template HTML/CSS untuk SPT, SPD, SPJ, kwitansi, dan laporan pengawasan.</td></tr>
+      <tr><th>Bahasa dan zona waktu</th><td>Bahasa Indonesia (id-id), konfigurasi zona waktu aplikasi UTC; format tanggal UI dan dokumen menggunakan dd/mm/yyyy.</td></tr>
+      <tr><th>Basis kode</th><td>Repository <b>raselstr/perjadin_apps</b>; modul utama: profiles, menus, dashboard, umum, spd, perintah, spj, core.</td></tr>
+    </table>
+    <div class="note"><b>Ruang lingkup laporan.</b> Mockup pada dokumen ini adalah representasi visual dari UI yang berjalan, bukan screenshot data produksi. Nilai transaksi di contoh bersifat ilustratif.</div>
+
+    <h2>2. Daftar Isi</h2>
+    <ol class="toc">
+      <li>Identitas dan Ringkasan Aplikasi</li>
+      <li>Tujuan, Aktor, dan Modul</li>
+      <li>User Interface dan Mockup</li>
+      <li>Flowchart Proses Bisnis</li>
+      <li>Cara Penggunaan</li>
+      <li>Struktur Aplikasi dan Data</li>
+      <li>Metadata, Keamanan, dan Operasional</li>
+      <li>Source Code Kunci dan Referensi Implementasi</li>
+      <li>Checklist Implementasi dan Kesimpulan</li>
+    </ol>
+  </section>
+
+  <section class="page-break">
+    <h2>3. Tujuan, Aktor, dan Modul</h2>
+    <div class="grid">
+      <div class="card"><strong>Admin/Pengelola aplikasi</strong><br>Mengelola menu, role, OPD, pengguna, hak akses, parameter, dan master data.</div>
+      <div class="card"><strong>Operator perjalanan dinas</strong><br>Membuat SPT, pelaksana, pemberi tugas, SPD, komponen biaya, serta dokumen pendukung.</div>
+      <div class="card"><strong>Verifikator</strong><br>Memeriksa data SPJ, bukti, status verifikasi, dan kelengkapan laporan sebelum diproses.</div>
+      <div class="card"><strong>Pimpinan/penandatangan</strong><br>Melihat preview dan mencetak dokumen SPT, SPD, laporan, serta kwitansi.</div>
+    </div>
+    <h3>Modul fungsional</h3>
+    <table>
+      <tr><th>Modul</th><th>Fungsi</th><th>Endpoint utama</th></tr>
+      <tr><td>Dashboard</td><td>Beranda dan ringkasan akses</td><td>/dashboard/</td></tr>
+      <tr><td>Master umum</td><td>Pegawai, pangkat, jabatan, penandatangan, OPD</td><td>/umum/, /profiles/</td></tr>
+      <tr><td>Master SPD</td><td>Lokasi, jenis kegiatan, standar biaya, bandara</td><td>/spd/</td></tr>
+      <tr><td>Perintah</td><td>SPT, pemberi tugas, tanda tangan, preview/cetak</td><td>/perintah/spt/, /perintah/pemberi-tugas/</td></tr>
+      <tr><td>SPJ</td><td>Penginapan, pesawat, uang harian, representasi, transport, laporan, kwitansi</td><td>/spj/</td></tr>
+      <tr><td>API</td><td>Opsi pelaksana, perhitungan, dan integrasi sesi</td><td>/api/</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>4. User Interface dan Mockup</h2>
+    <p>Antarmuka menggunakan pola dashboard dengan sidebar, menu dinamis berbasis permission, area konten, tabel CRUD, form modal/halaman, preview dokumen, dan tombol ekspor/cetak.</p>
+    <div class="screen">
+      <div class="screen-head">Perjadin Apps &nbsp; / &nbsp; Dashboard</div>
+      <div class="screen-body">
+        <div class="screen-side"><b>MENU</b><br>Dashboard<br>Manajemen<br>Perintah Dinas<br>SPJ<br>Laporan<br><br>Pengaturan</div>
+        <div class="screen-main"><h3 style="margin-top:0">Ringkasan Perjalanan Dinas</h3><div class="metric"><b>24</b>SPT aktif</div><div class="metric"><b>18</b>SPJ draft</div><div class="metric"><b>12</b>Terverifikasi</div><p><span class="pill">Periode 2026</span><span class="pill">Semua OPD</span></p><div style="height:32px;background:#dbeafe;border-radius:3px"></div></div>
+      </div>
+    </div>
+    <div class="caption">Gambar 1. Mockup dashboard dan navigasi aplikasi</div>
+    <div class="grid">
+      <div>
+        <div class="screen"><div class="screen-head">SPT — Data Perintah Tugas</div><div class="screen-main"><p><b>Form SPT</b></p><p>Dasar kegiatan &nbsp; [________________]</p><p>Tujuan &nbsp; [ Medan ▼ ]</p><p>Tanggal berangkat [01/09/2026] &nbsp; Lama [3 hari]</p><p>Kendaraan [Transportasi Umum ▼]</p><p><span class="pill">Simpan</span><span class="pill">Batal</span></p></div></div>
+        <div class="caption">Gambar 2. Mockup form SPT</div>
+      </div>
+      <div>
+        <div class="screen"><div class="screen-head">Laporan SPJ — Filter dan Cetak</div><div class="screen-main"><p>Periode [01/01/2026] s.d. [31/12/2026]</p><p>OPD [Semua ▼] &nbsp; Status [Terverifikasi ▼]</p><p><span class="pill">Tampilkan</span><span class="pill">Preview PDF</span><span class="pill">Cetak</span></p><div style="height:42px;background:linear-gradient(90deg,#cbd5e1 70%,transparent 70%);border-bottom:4px solid #94a3b8"></div></div></div>
+        <div class="caption">Gambar 3. Mockup laporan dan aksi PDF</div>
+      </div>
+    </div>
+    <h3>Prinsip UI</h3>
+    <ul><li><b>Konsisten:</b> pola list/form/aksi yang sama pada master dan transaksi.</li><li><b>Terarah:</b> menu dinamis hanya menampilkan fitur sesuai permission.</li><li><b>Auditabel:</b> status draft, verified, rejected; waktu dan pengguna verifikasi direkam.</li><li><b>Terukur:</b> kalkulasi biaya menampilkan rincian hari dan total per komponen.</li></ul>
+  </section>
+
+  <section class="page-break">
+    <h2>5. Flowchart Proses Bisnis</h2>
+    <div class="flow">
+      <div class="box">Login<br>dan cek hak akses</div><div class="arrow">→</div>
+      <div class="box">Isi master<br>pegawai & lokasi</div><div class="arrow">→</div>
+      <div class="box">Buat SPT<br>dan pelaksana</div><div class="arrow">→</div>
+      <div class="box">Terbitkan<br>SPT/SPD</div><div class="arrow">→</div>
+      <div class="box">Input komponen<br>SPJ & bukti</div>
+    </div>
+    <div class="flow">
+      <div class="box">Hitung biaya<br>otomatis</div><div class="arrow">→</div><div class="decision">Data<br>lengkap?</div><div class="arrow">Ya →</div><div class="box">Verifikasi<br>SPJ</div><div class="arrow">→</div><div class="box">Preview / cetak<br>PDF</div>
+    </div>
+    <div class="flow"><div class="decision">Tidak</div><div class="arrow">→</div><div class="box">Kembalikan ke<br>operator + catatan</div><div class="arrow">↺ perbaikan</div></div>
+    <div class="caption">Gambar 4. Alur end-to-end perjalanan dinas</div>
+    <h3>Alur status data</h3>
+    <table><tr><th>Status</th><th>Makna</th><th>Aksi berikutnya</th></tr><tr><td>draft</td><td>Data masih disusun operator</td><td>Lengkapi, simpan, dan ajukan pemeriksaan</td></tr><tr><td>verified</td><td>Data telah diperiksa</td><td>Dapat masuk laporan final/cetak</td></tr><tr><td>rejected</td><td>Data dikembalikan karena tidak sesuai</td><td>Perbaiki data dan ajukan ulang</td></tr></table>
+  </section>
+
+  <section>
+    <h2>6. Cara Penggunaan</h2>
+    <h3>A. Persiapan awal (admin)</h3>
+    <ol><li>Masuk ke aplikasi dan pastikan akun memiliki permission admin.</li><li>Isi OPD, role, menu, pegawai, pangkat, jabatan, penandatangan, lokasi, jenis kegiatan, dan standar biaya.</li><li>Uji menu dinamis dengan akun operator dan verifikator.</li></ol>
+    <h3>B. Membuat SPT dan SPD (operator)</h3>
+    <ol><li>Buka <b>Perintah Dinas → SPT</b>, pilih <i>Tambah</i>, isi dasar/berita, tujuan, kegiatan, kendaraan, tanggal berangkat, dan lama perjalanan.</li><li>Simpan. Sistem mengisi tanggal kembali berdasarkan lama perjalanan (1 hari = tanggal yang sama).</li><li>Tambahkan pelaksana dan pemberi tugas. Data penandatangan disinkronkan ke nama, NIP, pangkat, tugas, jabatan, dan OPD.</li><li>Gunakan <i>Preview</i> untuk memeriksa SPT/SPD, lalu <i>Cetak</i> jika sudah benar.</li></ol>
+    <h3>C. Mengisi SPJ</h3>
+    <ol><li>Pilih SPT dan pelaksana yang sesuai.</li><li>Isi uang harian, representasi, pesawat, penginapan, dan transport lokal sesuai bukti.</li><li>Unggah bukti PDF/foto pada field yang tersedia. Untuk hotel, isi lokasi, tipe/nomor kamar, check-in/out, tarif, dan koordinat bila diperlukan.</li><li>Periksa rincian hari, tarif 100%/30%/0%, subtotal, dan total. Simpan sebagai draft.</li></ol>
+    <h3>D. Verifikasi dan laporan</h3>
+    <ol><li>Verifikator membuka data SPJ, memeriksa bukti dan kewajaran perhitungan.</li><li>Ubah status menjadi <b>Diverifikasi</b> atau <b>Ditolak</b> dengan catatan perbaikan.</li><li>Buka <b>SPJ → Laporan</b>, filter periode/status/OPD, pilih <i>Preview PDF</i>, lalu cetak atau simpan PDF.</li></ol>
+    <div class="warning"><b>Catatan operasional:</b> lakukan pemeriksaan hak akses, backup database, dan uji cetak pada printer/format kertas sebelum dipakai untuk dokumen resmi.</div>
+  </section>
+
+  <section class="page-break">
+    <h2>7. Struktur Aplikasi dan Data</h2>
+    <div class="architecture">
+      <div class="layer"><h3>Presentation</h3>templates/<br>static/<br>HTML, CSS, JS</div>
+      <div class="layer"><h3>Application</h3>views.py<br>forms.py<br>tables.py<br>URLs</div>
+      <div class="layer"><h3>Domain</h3>models.py<br>validasi<br>kalkulasi biaya</div>
+      <div class="layer"><h3>Document</h3>components/pdf/<br>spj/report_print.html<br>WeasyPrint</div>
+      <div class="layer"><h3>Persistence</h3>PostgreSQL<br>Django ORM<br>migrations</div>
+      <div class="layer"><h3>Security</h3>Authentication<br>permission<br>CSRF/session timeout</div>
+    </div>
+    <h3>Relasi data inti</h3>
+    <table><tr><th>Entitas</th><th>Relasi/fungsi</th></tr><tr><td>Spt</td><td>Perintah tugas; memiliki tujuan, kegiatan, kendaraan, tanggal, dan lama perjalanan.</td></tr><tr><td>Pelaksana</td><td>Penghubung SPT dengan Pegawai; dipakai oleh seluruh item SPJ.</td></tr><tr><td>PemberiTugas</td><td>Penandatangan dan nomor SPT/SPD; unik per SPT dan penandatangan.</td></tr><tr><td>BaseSPJModel</td><td>Fondasi item SPJ: SPT, pelaksana, created/updated, status verifikasi, user/waktu verifikasi.</td></tr><tr><td>Penginapan / Pesawat / Transport / UangHarian / UangRepresentasi</td><td>Komponen biaya dengan bukti dan kalkulasi subtotal.</td></tr><tr><td>LaporanPerjalanan</td><td>Pelaporan kegiatan/hasil perjalanan dan dokumentasi pendukung.</td></tr></table>
+    <h3>Struktur folder ringkas</h3>
+    <div class="mono">config/             konfigurasi, root URL, WSGI/ASGI
+profiles/           akun, profil, OPD, role
+menus/              menu dan permission dinamis
+umum/               pegawai, jabatan, pangkat, penandatangan
+spd/                lokasi, standar, jenis kegiatan
+perintah/           SPT, pelaksana, pemberi tugas, PDF SPT/SPD
+spj/                item SPJ, laporan, kwitansi, report PDF
+templates/          layout, CRUD, PDF, dashboard
+static/             logo, font, aset antarmuka</div>
+  </section>
+
+  <section>
+    <h2>8. Metadata, Keamanan, dan Operasional</h2>
+    <table><tr><th>Metadata</th><th>Nilai implementasi</th></tr><tr><td>Framework</td><td>Django 5.2.12</td></tr><tr><td>Database</td><td>PostgreSQL melalui Django ORM; migrasi tersimpan per aplikasi</td></tr><tr><td>PDF</td><td>WeasyPrint 69.0, HTML/CSS template, font lokal Arial/Verdana/Courier New</td></tr><tr><td>Frontend</td><td>Template Django, Bootstrap/theme Berry, HTMX, tabel dan form CRUD</td></tr><tr><td>Deployment</td><td>Dockerfile, docker-compose.yml, Gunicorn, WhiteNoise</td></tr><tr><td>Konfigurasi</td><td>SECRET_KEY dan kredensial database dibaca dari Docker secrets atau environment, bukan hard-code</td></tr></table>
+    <h3>Kontrol keamanan yang tersedia</h3>
+    <ul><li>Autentikasi Django dan permission menu/model.</li><li>CSRF middleware, session security, security headers, dan idle timeout/heartbeat pada layout.</li><li>Validasi ekstensi bukti: PDF, JPG, JPEG, PNG, WEBP; foto hotel hanya format gambar.</li><li>Validasi domain: tanggal kembali tidak boleh mendahului tanggal berangkat; pelaksana harus berasal dari SPT terpilih; nomor SPT/SPD tidak boleh duplikat.</li><li>Nilai uang dihitung dengan Decimal dan pembulatan dua desimal.</li></ul>
+    <h3>Backup dan pemeliharaan</h3>
+    <ol><li>Jadwalkan backup PostgreSQL dan media upload secara terpisah.</li><li>Uji restore pada lingkungan non-produksi.</li><li>Setelah perubahan model, jalankan migrasi dan uji cetak PDF.</li><li>Rotasi secret dan batasi ALLOWED_HOSTS/CSRF_TRUSTED_ORIGINS pada deployment HTTPS.</li></ol>
+  </section>
+
+  <section class="page-break">
+    <h2>9. Source Code Kunci</h2>
+    <p>Cuplikan berikut menunjukkan titik implementasi yang dapat ditelusuri langsung pada repository. Source code lengkap tetap berada pada file aplikasi.</p>
+    <h3>9.1 Root URL dan modul</h3>
+    <div class="mono">urlpatterns = [
+    path('', home_redirect),
+    path('dashboard/', include('dashboard.urls')),
+    path('profiles/', include('profiles.urls')),
+    path('umum/', include('umum.urls')),
+    path('spd/', include('spd.urls')),
+    path('perintah/', include('perintah.urls')),
+    path('spj/', include('spj.urls')),
+    path('api/', include('perintah.api_urls')),
+]</div>
+    <h3>9.2 Rendering PDF</h3>
+    <div class="mono">def render_pdf(request, template_name, context, filename):
+    html = render_to_string(template_name, context, request=request)
+    pdf = HTML(
+        string=html,
+        base_url=request.build_absolute_uri("/")
+    ).write_pdf(font_config=FontConfiguration())
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response</div>
+    <h3>9.3 Aturan tanggal SPT</h3>
+    <div class="mono">if self.tgl_berangkat and self.lama_perjalanan:
+    self.tgl_kembali = (
+        self.tgl_berangkat +
+        timedelta(days=self.lama_perjalanan - 1)
+    )
+self.full_clean()
+super().save(*args, **kwargs)</div>
+    <h3>9.4 Status verifikasi SPJ</h3>
+    <div class="mono">VERIF_STATUS_CHOICES = [
+    ("draft", "Belum Diverifikasi"),
+    ("verified", "Diverifikasi"),
+    ("rejected", "Ditolak"),
+]</div>
+    <p class="small">Referensi file: <b>config/urls.py</b>, <b>perintah/utils/pdf.py</b>, <b>perintah/models.py</b>, <b>spj/models.py</b>, <b>spj/urls.py</b>, dan template <b>templates/spj/report_print.html</b>.</p>
+  </section>
+
+  <section>
+    <h2>10. Checklist Implementasi dan Kesimpulan</h2>
+    <table><tr><th>Item penerimaan</th><th>Status</th><th>Keterangan</th></tr><tr><td>Login dan hak akses</td><td class="check">✓</td><td>Autentikasi, session security, menu dinamis</td></tr><tr><td>Master data</td><td class="check">✓</td><td>Profil, umum, SPD, menu</td></tr><tr><td>SPT/SPD</td><td class="check">✓</td><td>CRUD, pelaksana, pemberi tugas, preview/cetak</td></tr><tr><td>SPJ dan kalkulasi</td><td class="check">✓</td><td>Hotel, pesawat, transport, uang harian, representasi</td></tr><tr><td>Verifikasi</td><td class="check">✓</td><td>Draft/verified/rejected, user dan waktu verifikasi</td></tr><tr><td>Laporan PDF</td><td class="check">✓</td><td>Filter laporan, preview, cetak, grand total</td></tr><tr><td>Dokumentasi</td><td class="check">✓</td><td>Dokumen ini dan source HTML regeneratif</td></tr></table>
+    <p>Perjadin Apps telah membentuk alur terintegrasi dari data referensi sampai laporan pertanggungjawaban perjalanan dinas. Pemisahan modul, validasi model, status verifikasi, serta generator PDF membuat proses lebih konsisten dan dapat diaudit. Dokumen ini dapat digunakan sebagai lampiran laporan implementasi, bahan serah terima, dan panduan orientasi pengguna.</p>
+    <div class="note"><b>Artefak yang disertakan:</b> <i>docs/laporan-implementasi-perjadin.html</i> sebagai sumber yang dapat diedit/regenerasi dan <i>docs/laporan-implementasi-perjadin.pdf</i> sebagai keluaran siap cetak.</div>
+  </section>
+</body>
+</html>
