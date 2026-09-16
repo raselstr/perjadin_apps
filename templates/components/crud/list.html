@@ -64,6 +64,27 @@
         setStoredPage(getCurrentPageFromTable());
     }
 
+    function setPasswordVisibility(button, isVisible) {
+        const wrapper = button.closest('.d-inline-flex');
+        const valueElement = wrapper?.querySelector('.pemda-password-value');
+        const icon = button.querySelector('i');
+
+        if (!valueElement) {
+            return;
+        }
+
+        valueElement.textContent = isVisible
+            ? valueElement.dataset.passwordValue
+            : valueElement.dataset.passwordMask;
+        valueElement.classList.toggle('text-muted', !isVisible);
+        button.setAttribute('aria-pressed', isVisible ? 'true' : 'false');
+
+        if (icon) {
+            icon.classList.toggle('ti-eye', !isVisible);
+            icon.classList.toggle('ti-eye-off', isVisible);
+        }
+    }
+
     function buildRequestUrl(page = null) {
         const filterForm = document.getElementById('filter-form');
         const perPageSelect = filterForm?.querySelector('[name="per_page"]');
@@ -144,6 +165,46 @@
 
                 if (pageParam) {
                     setStoredPage(pageParam);
+                }
+            });
+        }
+
+        if (!tableContainer.dataset.passwordToggleHandlerBound) {
+            tableContainer.dataset.passwordToggleHandlerBound = 'true';
+
+            tableContainer.addEventListener('pointerdown', function (event) {
+                const button = event.target.closest('.pemda-password-toggle');
+
+                if (button) {
+                    button.setPointerCapture?.(event.pointerId);
+                    setPasswordVisibility(button, true);
+                }
+            });
+
+            ['pointerup', 'pointercancel', 'pointerleave', 'blur'].forEach(function (eventName) {
+                tableContainer.addEventListener(eventName, function (event) {
+                    const button = event.target.closest('.pemda-password-toggle');
+
+                    if (button) {
+                        setPasswordVisibility(button, false);
+                    }
+                }, true);
+            });
+
+            tableContainer.addEventListener('keydown', function (event) {
+                const button = event.target.closest('.pemda-password-toggle');
+
+                if (button && ['Enter', ' '].includes(event.key) && !event.repeat) {
+                    event.preventDefault();
+                    setPasswordVisibility(button, true);
+                }
+            });
+
+            tableContainer.addEventListener('keyup', function (event) {
+                const button = event.target.closest('.pemda-password-toggle');
+
+                if (button && ['Enter', ' '].includes(event.key)) {
+                    setPasswordVisibility(button, false);
                 }
             });
         }

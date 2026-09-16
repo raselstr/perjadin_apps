@@ -80,7 +80,21 @@ class PemdaTable(BaseTable):
         orderable=False,
         template_code="""
         {% if record.password_standar %}
-            <span class="text-muted">••••••••</span>
+            <span class="d-inline-flex align-items-center gap-2">
+                <span
+                    class="text-muted pemda-password-value"
+                    data-password-value="{{ record.password_standar }}"
+                    data-password-mask="••••••••••••"
+                >••••••••••••</span>
+                <button
+                    type="button"
+                    class="btn btn-sm btn-outline-secondary py-0 px-1 pemda-password-toggle"
+                    aria-label="Lihat password standar"
+                    title="Tahan untuk melihat password"
+                >
+                    <i class="ti ti-eye" aria-hidden="true"></i>
+                </button>
+            </span>
         {% else %}
             -
         {% endif %}
