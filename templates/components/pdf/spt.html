@@ -436,7 +436,7 @@ table {
                                                     {% with nip=pelaksana.nama.nip|meaningful_text %}
                                                         {% if nip %}
                                                         <tr>
-                                                            <td class="person-label">Nip</td>
+                                                            <td class="person-label">NIP</td>
                                                             <td class="person-colon">:</td>
                                                             <td>{{ nip }}</td>
                                                         </tr>
@@ -511,7 +511,7 @@ table {
                                 <div>{{ pemberi_tugas.penandatangan.pangkat }}</div>
                                 {% endif %}
                                 {% if pemberi_tugas.nip %}
-                                <div>Nip. {{ pemberi_tugas.nip}}</div>
+                                <div>NIP {{ pemberi_tugas.nip}}</div>
                                 {% endif %}
                             {% endif %}
                         </div>

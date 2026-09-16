@@ -418,19 +418,19 @@ li {
                         <td colspan="2" class="label-col">Pejabat Pembuat Komitmen</td>
                         <td colspan="2">
                             {{ penandatangan_dokumen.nama|default:"-" }}
-                            {% comment %} {% if penandatangan_dokumen.nip %}<br>Nip. {{ penandatangan_dokumen.nip }}{% endif %}
+                            {% comment %} {% if penandatangan_dokumen.nip %}<br>NIP {{ penandatangan_dokumen.nip }}{% endif %}
                             {% if penandatangan_dokumen.pangkat %}<br>{{ penandatangan_dokumen.pangkat }}{% endif %}
                             <br>{{ signature_title|default:"-" }} {% endcomment %}
                         </td>
                     </tr>
                     <tr>
                         <td class="number-col">2</td>
-                        <td colspan="2" class="label-col">Nama/Nip Pegawai yang melaksanakan perjalanan dinas</td>
+                        <td colspan="2" class="label-col">Nama/NIP Pegawai yang melaksanakan perjalanan dinas</td>
                         <td colspan="2">
                             {% if primary_pelaksana %}
                                 {{ primary_pelaksana.nama.nama|default:"-" }}
                                 {% with nip=primary_pelaksana.nama.nip|meaningful_text %}
-                                    {% if nip %}<br>Nip. {{ nip }}{% endif %}
+                                    {% if nip %}<br>NIP {{ nip }}{% endif %}
                                 {% endwith %}
                             {% else %}
                                 <span class="empty-state">Belum ada pelaksana.</span>
@@ -548,7 +548,7 @@ li {
 
                     <div class="signature-name-no-underline">{{ penandatangan_dokumen.nama|default:"-" }}</div>
                     {% if show_signature_identity_details and penandatangan_dokumen.nip %}
-                        Nip. {{ penandatangan_dokumen.nip}}
+                        NIP {{ penandatangan_dokumen.nip}}
                     {% endif %}
                 </div>
             </div>
