@@ -22,6 +22,7 @@ SPJ_ACTIVE_SUBMENU_MAP = {
     "laporan_perjalanan_delete": "laporan_perjalanan_list",
     "laporan_perjalanan_preview": "laporan_perjalanan_list",
     "laporan_perjalanan_print": "laporan_perjalanan_list",
+    "data_perjalanan_per_orang": "data_perjalanan_per_orang",
     "kwitansi_print": "kwitansi_list",
 }
 

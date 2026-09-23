@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.db.models import Count, Q
+from django.db.models import Count, Exists, OuterRef, Q
 from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 from django.views import View
@@ -1066,6 +1066,129 @@ class SPJReportView(LoginRequiredMixin, View):
             "start_date": start_date,
             "end_date": end_date,
             "nama_pelaksana": nama_pelaksana,
+        })
+
+
+class DataPerjalananPerOrangView(LoginRequiredMixin, View):
+    template_name = "spj/data_perjalanan_per_orang.html"
+    title = "Data Perjalanan Per Orang"
+
+    def _base_queryset(self, request):
+        has_spt = PemberiTugas.objects.filter(
+            spt_id=OuterRef("spt_id"),
+            nomor_spt__isnull=False,
+        ).exclude(nomor_spt="")
+        has_spd = PemberiTugas.objects.filter(
+            spt_id=OuterRef("spt_id"),
+            nomor_spd__isnull=False,
+        ).exclude(nomor_spd="")
+
+        queryset = Pelaksana.objects.select_related(
+            "spt",
+            "spt__kota_tujuan",
+            "spt__jenis_kegiatan",
+            "nama",
+            "nama__pangkat",
+            "nama__tingkat",
+            "nama__eselon",
+            "nama__opd",
+        ).annotate(
+            has_nomor_spt=Exists(has_spt),
+            has_nomor_spd=Exists(has_spd),
+        ).order_by(
+            "nama__nama",
+            "spt__tgl_berangkat",
+            "spt_id",
+        )
+
+        return filter_spj_queryset_for_user(
+            queryset,
+            request,
+            "nama__nip",
+        ).distinct()
+
+    def _build_rows(self, request):
+        start_date = _date_param(request, "tgl1")
+        end_date = _date_param(request, "tgl2")
+        keyword = (request.GET.get("nama") or "").strip()
+        queryset = self._base_queryset(request)
+
+        if start_date:
+            queryset = queryset.filter(spt__tgl_berangkat__gte=start_date)
+        if end_date:
+            queryset = queryset.filter(spt__tgl_berangkat__lte=end_date)
+        if keyword:
+            queryset = queryset.filter(
+                Q(nama__nama__icontains=keyword)
+                | Q(nama__nip__icontains=keyword)
+            )
+
+        rows = list(queryset)
+        documents_by_spt = {}
+        spt_ids = [item.spt_id for item in rows]
+        if spt_ids:
+            for document in PemberiTugas.objects.filter(
+                spt_id__in=spt_ids,
+            ).order_by("spt_id", "id").values(
+                "spt_id",
+                "nomor_spt",
+                "nomor_spd",
+            ):
+                numbers = documents_by_spt.setdefault(
+                    document["spt_id"],
+                    {
+                        "nomor_spt": [],
+                        "nomor_spd": [],
+                    },
+                )
+                nomor_spt = (document["nomor_spt"] or "").strip()
+                nomor_spd = (document["nomor_spd"] or "").strip()
+                if nomor_spt and nomor_spt not in numbers["nomor_spt"]:
+                    numbers["nomor_spt"].append(nomor_spt)
+                if nomor_spd and nomor_spd not in numbers["nomor_spd"]:
+                    numbers["nomor_spd"].append(nomor_spd)
+
+        person_stats = {}
+        grouped_map = {}
+        for item in rows:
+            key = item.nama_id
+            stats = person_stats.setdefault(key, {
+                "spt_count": 0,
+                "spd_count": 0,
+            })
+            stats["spt_count"] += 1
+            if item.has_nomor_spd:
+                stats["spd_count"] += 1
+
+            numbers = documents_by_spt.get(item.spt_id, {})
+            item.nomor_spt_display = ", ".join(numbers.get("nomor_spt", [])) or "-"
+            item.nomor_spd_display = ", ".join(numbers.get("nomor_spd", [])) or "-"
+
+            group = grouped_map.setdefault(key, {
+                "pegawai": item.nama,
+                "stats": stats,
+                "perjalanan": [],
+                "rowspan": 0,
+            })
+            group["perjalanan"].append(item)
+            group["rowspan"] += 1
+
+        grouped_rows = list(grouped_map.values())
+
+        return rows, grouped_rows, person_stats, start_date, end_date, keyword
+
+    def get(self, request):
+        rows, grouped_rows, person_stats, start_date, end_date, keyword = (
+            self._build_rows(request)
+        )
+        return render(request, self.template_name, {
+            "title": self.title,
+            "rows": rows,
+            "grouped_rows": grouped_rows,
+            "person_stats": person_stats,
+            "start_date": start_date,
+            "end_date": end_date,
+            "nama_pelaksana": keyword,
         })
 
 

@@ -2,14 +2,16 @@ from datetime import date
 from decimal import Decimal
 from types import SimpleNamespace
 
+from django.contrib.auth.models import User
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase
 from django.test.client import RequestFactory
+from django.urls import reverse
 
-from perintah.models import Pelaksana, Spt
+from perintah.models import Pelaksana, PemberiTugas, Spt
 from profiles.models import OPD
 from spd.models import DasarPeraturan, JenisKegiatan, Lokasi, StandardPenginapan, StandardUangHarian
-from umum.models import JenisJabatan, Pegawai, Tingkat
+from umum.models import JenisJabatan, Pegawai, Penandatangan, Tingkat, Tugas
 
 from .access import (
     filter_spj_queryset_for_user,
@@ -18,7 +20,7 @@ from .access import (
     is_spj_pengguna_user,
 )
 from .models import Penginapan, UangHarian
-from .views import SPJReportView
+from .views import DataPerjalananPerOrangView, SPJReportView
 
 
 class RecordingQuerySet:
@@ -289,3 +291,98 @@ class SPJCalculationModelTests(TestCase):
             rows[0]["uang_harian_rincian"],
             "1 hari x 100%; 1 hari x 30%; 1 hari x 0%",
         )
+
+
+class DataPerjalananPerOrangViewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser(
+            username="admin",
+            email="admin@example.com",
+            password="secret12345",
+        )
+        self.opd = OPD.objects.create(nama="BKAD")
+        self.tingkat = Tingkat.objects.create(tingkat="C")
+        self.jenis_jabatan = JenisJabatan.objects.create(nama="Definitif")
+        self.tugas = Tugas.objects.create(nama="Kepala OPD")
+        self.kegiatan = JenisKegiatan.objects.create(nama="Koordinasi")
+        self.lokasi = Lokasi.objects.create(lokasi="Medan", kota="Medan")
+        self.pegawai = Pegawai.objects.create(
+            nip="198901012011011001",
+            nama="Rina Pelaksana",
+            jabatan="Analis Anggaran",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd,
+            tingkat=self.tingkat,
+        )
+        self.penandatangan = Penandatangan.objects.create(
+            nama="Pejabat Penanda",
+            nip="197001012000011001",
+            tugas=self.tugas,
+            jabatan="Kepala Badan",
+            jenis_jabatan=self.jenis_jabatan,
+            opd=self.opd,
+        )
+
+    def _create_pelaksana(self, day, nomor_spt="", nomor_spd=""):
+        spt = Spt.objects.create(
+            dasar="Dasar",
+            berita=f"Rapat hari {day}",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Gubernur",
+            lama_perjalanan=2,
+            tgl_berangkat=date(2026, 6, day),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        pelaksana = Pelaksana.objects.create(spt=spt, nama=self.pegawai)
+        if nomor_spt or nomor_spd:
+            PemberiTugas.objects.create(
+                spt=spt,
+                penandatangan=self.penandatangan,
+                nomor_spt=nomor_spt,
+                nomor_spd=nomor_spd,
+                tanggal_spt=date(2026, 6, day - 1),
+            )
+        return pelaksana
+
+    def test_build_rows_counts_spt_and_spd_per_person(self):
+        self._create_pelaksana(10, "001/SPT/2026", "001/SPD/2026")
+        self._create_pelaksana(12, "002/SPT/2026", "")
+
+        request = RequestFactory().get("/spj/laporan/data-perjalanan-per-orang/")
+        request.user = self.user
+        rows, grouped_rows, person_stats, _, _, _ = (
+            DataPerjalananPerOrangView()._build_rows(request)
+        )
+
+        self.assertEqual(len(rows), 2)
+        self.assertEqual(len(grouped_rows), 1)
+        self.assertEqual(grouped_rows[0]["rowspan"], 2)
+        self.assertEqual(person_stats[self.pegawai.id]["spt_count"], 2)
+        self.assertEqual(person_stats[self.pegawai.id]["spd_count"], 1)
+        self.assertTrue(rows[0].has_nomor_spt)
+        self.assertTrue(rows[0].has_nomor_spd)
+        self.assertEqual(rows[0].nomor_spt_display, "001/SPT/2026")
+        self.assertEqual(rows[0].nomor_spd_display, "001/SPD/2026")
+        self.assertTrue(rows[1].has_nomor_spt)
+        self.assertFalse(rows[1].has_nomor_spd)
+        self.assertEqual(rows[1].nomor_spt_display, "002/SPT/2026")
+        self.assertEqual(rows[1].nomor_spd_display, "-")
+
+    def test_page_renders_finished_and_unfinished_status(self):
+        self._create_pelaksana(10, "001/SPT/2026", "001/SPD/2026")
+        self._create_pelaksana(12, "002/SPT/2026", "")
+
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("data_perjalanan_per_orang"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Data Perjalanan Per Orang")
+        self.assertContains(response, "Selesai")
+        self.assertContains(response, "Belum Selesai")
+        self.assertContains(response, "SPT 2 kali")
+        self.assertContains(response, "SPD 1 kali")
+        self.assertContains(response, 'rowspan="2"')
+        self.assertContains(response, "001/SPT/2026")
+        self.assertContains(response, "001/SPD/2026")
+        self.assertContains(response, "002/SPT/2026")

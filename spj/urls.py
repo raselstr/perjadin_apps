@@ -4,6 +4,7 @@ from .views import (
     JenisSPJView,
     KwitansiPrintView,
     KwitansiView,
+    DataPerjalananPerOrangView,
     LaporanPerjalananPreviewView,
     LaporanPerjalananPrintView,
     LaporanPerjalananView,
@@ -162,6 +163,11 @@ urlpatterns = [
     ),
 
     path("laporan/", SPJReportView.as_view(), name="spj_report"),
+    path(
+        "laporan/data-perjalanan-per-orang/",
+        DataPerjalananPerOrangView.as_view(),
+        name="data_perjalanan_per_orang",
+    ),
     path("kwitansi/", KwitansiView.as_view(), name="kwitansi_list"),
     path(
         "kwitansi/cetak/<int:pk>/",

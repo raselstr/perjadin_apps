@@ -133,6 +133,51 @@
           <div class="card-header border-0 pt-4 pb-0">
             <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
               <div>
+                <h5 class="mb-1">Pelaksana Terbanyak</h5>
+                <p class="text-muted mb-0">Lima orang dengan frekuensi perjalanan dinas tertinggi tahun {{ dashboard_year }}.</p>
+              </div>
+              <span class="badge rounded-pill bg-light-primary text-primary px-3 py-2">Top 5</span>
+            </div>
+          </div>
+          <div class="card-body">
+            {% if top_travelers %}
+              <div class="row g-4 align-items-center">
+                <div class="col-xl-7">
+                  <div id="top-travelers-chart" style="min-height: 320px;"></div>
+                </div>
+                <div class="col-xl-5">
+                  <div class="top-travelers-list">
+                    {% for item in top_travelers %}
+                      <div class="top-traveler-row">
+                        <div class="top-traveler-rank">{{ forloop.counter }}</div>
+                        <div class="flex-grow-1">
+                          <div class="fw-semibold">{{ item.nama__nama }}</div>
+                          <div class="text-muted small">{{ item.nama__nip|default:"-" }}{% if item.nama__jabatan %} | {{ item.nama__jabatan }}{% endif %}</div>
+                        </div>
+                        <div class="fw-semibold text-primary">{{ item.total }} kali</div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            {% else %}
+              <div class="empty-dashboard-state">
+                <div class="empty-icon">
+                  <i class="ti ti-chart-bar-off"></i>
+                </div>
+                <h5 class="mb-2">Belum ada data frekuensi</h5>
+                <p class="text-muted mb-0">Data perjalanan tahun {{ dashboard_year }} belum tersedia.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header border-0 pt-4 pb-0">
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+              <div>
                 <h5 class="mb-1">Pelaksana Perjalanan Dinas Hari Ini</h5>
                 <p class="text-muted mb-0">
                   Daftar pegawai yang tanggal perjalanannya mencakup {{ today|date:"d/m/Y" }}.
@@ -390,12 +435,41 @@
   color: #166534;
   font-weight: 700;
 }
+
+.top-travelers-list {
+  display: grid;
+  gap: 12px;
+}
+
+.top-traveler-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid rgba(13, 110, 253, 0.12);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.top-traveler-rank {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  background: #e9f2ff;
+  color: #0d6efd;
+  font-weight: 700;
+}
 </style>
 {% endblock extrastyle %}
 
 {% block extra_js %}
 <script src="{% static 'assets/js/plugins/apexcharts.min.js' %}"></script>
 {{ chart_data|json_script:"dashboard-chart-data" }}
+{{ top_travelers_chart_data|json_script:"top-travelers-chart-data" }}
 <script>
 (function () {
   const chartNode = document.getElementById('dashboard-chart-data');
@@ -451,6 +525,66 @@
       y: {
         formatter: function (value) {
           return value + ' pelaksana';
+        }
+      }
+    },
+  };
+
+  const chart = new ApexCharts(target, options);
+  chart.render();
+})();
+
+(function () {
+  const chartNode = document.getElementById('top-travelers-chart-data');
+  const target = document.getElementById('top-travelers-chart');
+
+  if (!chartNode || !target || typeof ApexCharts === 'undefined') {
+    return;
+  }
+
+  const chartData = JSON.parse(chartNode.textContent);
+
+  const options = {
+    chart: {
+      type: 'bar',
+      height: 320,
+      toolbar: { show: false },
+      fontFamily: 'inherit',
+    },
+    series: [{
+      name: 'Frekuensi',
+      data: chartData.series,
+    }],
+    colors: ['#16a34a'],
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        horizontal: true,
+        barHeight: '54%',
+      },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: function (value) {
+        return value + ' kali';
+      },
+      style: {
+        fontWeight: 600,
+      },
+    },
+    xaxis: {
+      categories: chartData.labels,
+      min: 0,
+      forceNiceScale: true,
+    },
+    grid: {
+      borderColor: '#eef2f6',
+      strokeDashArray: 4,
+    },
+    tooltip: {
+      y: {
+        formatter: function (value) {
+          return value + ' perjalanan';
         }
       }
     },

@@ -1,0 +1,142 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %}{{ title }}{% endblock title %}
+
+{% block content %}
+<div class="pc-container">
+  <div class="pc-content">
+    <div class="page-header">
+      <div class="page-block">
+        <div class="row align-items-center">
+          <div class="col-md-12">
+            <div class="page-header-title">
+              <h5 class="m-b-10">{{ title }}</h5>
+            </div>
+            <ul class="breadcrumb">
+              <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+              <li class="breadcrumb-item" aria-current="page">{{ title }}</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label">Tanggal Mulai</label>
+            <input type="date" name="tgl1" value="{{ start_date|date:'Y-m-d' }}" class="form-control">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">s.d Tanggal Akhir</label>
+            <input type="date" name="tgl2" value="{{ end_date|date:'Y-m-d' }}" class="form-control">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Nama / NIP</label>
+            <input type="text" name="nama" value="{{ nama_pelaksana }}" class="form-control" placeholder="Cari nama atau NIP">
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100"><i class="ti ti-search"></i> Cari</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+      <div class="card-header border-0 pt-4 pb-0">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
+          <div>
+            <h5 class="mb-1">Rekap Pelaksana Perjalanan</h5>
+            <p class="text-muted mb-0">Setiap baris menampilkan satu pelaksana pada satu SPT.</p>
+          </div>
+          <span class="badge rounded-pill bg-light-primary text-primary px-3 py-2">{{ rows|length }} data perjalanan</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive data-perjalanan-table">
+          <table class="table table-bordered table-hover table-sm align-middle mb-0">
+            <thead class="table-light text-center">
+              <tr>
+                <th>No.</th>
+                <th>Nama</th>
+                <th>ID SPT</th>
+                <th>Nomor SPT</th>
+                <th>Nomor SPD</th>
+                <th>Tanggal Perjadin</th>
+                <th>Tempat Tujuan</th>
+                <th>Berita Perjadin</th>
+                <th>Keterangan</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for group in grouped_rows %}
+                {% for item in group.perjalanan %}
+                  {% with pegawai=group.pegawai stats=group.stats %}
+                    <tr>
+                      {% if forloop.first %}
+                        <td class="text-center" rowspan="{{ group.rowspan }}">{{ forloop.parentloop.counter }}</td>
+                        <td rowspan="{{ group.rowspan }}">
+                          <div class="fw-semibold">{{ pegawai.nama }}</div>
+                          <div class="text-muted small">NIP: {{ pegawai.nip|default:"-" }}</div>
+                          <div class="small">{{ pegawai.jabatan|default:"-" }}</div>
+                          <div class="small text-muted">
+                            Tingkat: {{ pegawai.tingkat|default:"-" }} |
+                            Eselon: {{ pegawai.eselon|default:"-" }}
+                          </div>
+                          <div class="d-flex flex-wrap gap-1 mt-2">
+                            <span class="badge bg-light-primary text-primary">SPT {{ stats.spt_count|default:0 }} kali</span>
+                            <span class="badge bg-light-success text-success">SPD {{ stats.spd_count|default:0 }} kali</span>
+                          </div>
+                        </td>
+                      {% endif %}
+                      <td class="text-center">#{{ item.spt_id }}</td>
+                      <td>{{ item.nomor_spt_display }}</td>
+                      <td>{{ item.nomor_spd_display }}</td>
+                      <td>
+                        <div>Berangkat: {{ item.spt.tgl_berangkat|date:"d/m/Y" }}</div>
+                        <div>Kembali: {{ item.spt.tgl_kembali|date:"d/m/Y" }}</div>
+                      </td>
+                      <td>
+                        <div class="fw-medium">{{ item.spt.kota_tujuan_display|default:"-" }}</div>
+                        <div class="text-muted small">{{ item.spt.tempat_tujuan_display|default:"-" }}</div>
+                      </td>
+                      <td>{{ item.spt.berita|default:"-"|linebreaksbr }}</td>
+                      <td class="text-center">
+                        {% if item.has_nomor_spt and item.has_nomor_spd %}
+                          <span class="badge bg-light-success text-success">Selesai</span>
+                        {% else %}
+                          <span class="badge bg-light-warning text-warning">Belum Selesai</span>
+                        {% endif %}
+                      </td>
+                    </tr>
+                  {% endwith %}
+                {% endfor %}
+              {% empty %}
+                <tr>
+                  <td colspan="9" class="text-center text-muted py-4">Belum ada data perjalanan pada filter ini.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extrastyle %}
+<style>
+.data-perjalanan-table table {
+  min-width: 1180px;
+}
+.data-perjalanan-table th {
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.data-perjalanan-table td {
+  vertical-align: top;
+}
+</style>
+{% endblock extrastyle %}

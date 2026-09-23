@@ -116,6 +116,18 @@ def dashboard_view(request):
         "spt__tgl_kembali",
     )
 
+    top_travelers = list(
+        pelaksana_queryset.filter(spt__tgl_berangkat__year=dashboard_year)
+        .values(
+            "nama_id",
+            "nama__nama",
+            "nama__nip",
+            "nama__jabatan",
+        )
+        .annotate(total=Count("id"))
+        .order_by("-total", "nama__nama")[:5]
+    )
+
     birthday_employees = Pegawai.objects.select_related("opd").filter(
         tgl_lahir__month=today.month,
         tgl_lahir__day=today.day,
@@ -148,6 +160,11 @@ def dashboard_view(request):
         "chart_data": {
             "labels": MONTH_LABELS,
             "series": monthly_counts,
+        },
+        "top_travelers": top_travelers,
+        "top_travelers_chart_data": {
+            "labels": [row["nama__nama"] for row in top_travelers],
+            "series": [row["total"] for row in top_travelers],
         },
         "peak_month_total": max(monthly_counts) if monthly_counts else 0,
     }
