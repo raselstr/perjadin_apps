@@ -51,7 +51,6 @@ class SessionSecurityMiddleware:
     def _is_asset_path(self, path):
         asset_prefixes = [
             settings.STATIC_URL,
-            f"{settings.MEDIA_URL}pemda_logos/",
         ]
         return any(path.startswith(prefix) for prefix in asset_prefixes if prefix)
 
