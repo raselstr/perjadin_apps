@@ -22,18 +22,30 @@ urlpatterns = [
     path('api/',include('perintah.api_urls')),
 ]
 
-# Media selalu dilayani
-urlpatterns += [
-    re_path(
-        r'^media/(?P<path>.*)$',
-        serve,
-        {'document_root': settings.MEDIA_ROOT},
-    ),
-]
+# # Media selalu dilayani
+# urlpatterns += [
+#     re_path(
+#         r'^media/(?P<path>.*)$',
+#         serve,
+#         {'document_root': settings.MEDIA_ROOT},
+#     ),
+# ]
 
-# Static hanya saat development
+# # Static hanya saat development
+# if settings.DEBUG:
+#     urlpatterns += static(
+#         settings.STATIC_URL,
+#         document_root=settings.STATICFILES_DIRS[0]
+#     )
+
+# Development only
 if settings.DEBUG:
     urlpatterns += static(
+        settings.MEDIA_URL,
+        document_root=settings.MEDIA_ROOT,
+    )
+
+    urlpatterns += static(
         settings.STATIC_URL,
-        document_root=settings.STATICFILES_DIRS[0]
+        document_root=settings.STATIC_ROOT,
     )

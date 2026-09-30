@@ -14,7 +14,7 @@ services:
 
     volumes:
       - ./staticfiles:/app/staticfiles
-      - ./media:/app/media
+      - perjadin_media:/app/media
 
     secrets:
       - db_name
@@ -35,6 +35,10 @@ services:
 
     networks:
       - production_network
+
+volumes:
+  perjadin_media:
+    name: perjadin_media
 
 networks:
   production_network:
