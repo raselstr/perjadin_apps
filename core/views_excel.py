@@ -49,6 +49,9 @@ class ExcelPermissionMixin(LoginRequiredMixin):
         )
 
     def dispatch(self, request, *args, **kwargs):
+        self.request = request
+        if not getattr(request, 'user', None) or not request.user.is_authenticated:
+            raise PermissionDenied
         if not self.has_excel_permission():
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
@@ -344,3 +347,116 @@ class ExcelMixin:
         app_label = self.model._meta.app_label
         model_name = self.model._meta.model_name
         return reverse('core:generic_pdf_table', kwargs={'app_label': app_label, 'model_name': model_name})
+
+
+class TableDataExcelExportView(View):
+    """
+    Ekspor langsung dari data tabel yang ditampilkan di halaman (DOM).
+    Menerima POST dengan parameter title, headers (JSON), dan rows (JSON).
+    Menghasilkan file Excel (.xlsx) dengan styling identitas visual Kabupaten Asahan.
+    """
+    def post(self, request, *args, **kwargs):
+        if not getattr(request, 'user', None) or not request.user.is_authenticated:
+            raise PermissionDenied
+
+        import io
+        import json
+        import re
+        from openpyxl import Workbook
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+
+        title = request.POST.get('title') or "Data Tabel"
+        headers_raw = request.POST.get('headers') or "[]"
+        rows_raw = request.POST.get('rows') or "[]"
+
+        try:
+            headers = json.loads(headers_raw)
+            rows = json.loads(rows_raw)
+        except Exception:
+            headers = []
+            rows = []
+
+        clean_title = re.sub(r'[*?:/\\\[\]]', '-', str(title))[:31].strip() or "Sheet1"
+        safe_filename = re.sub(r'[^\w\s-]', '', str(title)).strip().replace(' ', '_') or "data_tabel"
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = clean_title
+
+        # Header styling: Hijau Zamrud (Emerald #065F46) dengan aksen garis emas (#D97706)
+        header_fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
+        header_font = Font(name="Arial", size=10, bold=True, color="FFFFFF")
+        header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        header_border = Border(
+            left=Side(style='thin', color="064E3B"),
+            right=Side(style='thin', color="064E3B"),
+            top=Side(style='thin', color="064E3B"),
+            bottom=Side(style='medium', color="D97706")
+        )
+
+        ws.row_dimensions[1].height = 26
+        for col_idx, col_name in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.value = str(col_name).strip()
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = header_alignment
+            cell.border = header_border
+
+        even_fill = PatternFill(start_color="F4FAF6", end_color="F4FAF6", fill_type="solid")
+        odd_fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+        data_font = Font(name="Arial", size=9, color="0F172A")
+        cell_border = Border(
+            left=Side(style='thin', color="E2E8F0"),
+            right=Side(style='thin', color="E2E8F0"),
+            top=Side(style='thin', color="E2E8F0"),
+            bottom=Side(style='thin', color="E2E8F0")
+        )
+        align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        align_center = Alignment(horizontal="center", vertical="center")
+
+        for row_idx, row_data in enumerate(rows, 2):
+            ws.row_dimensions[row_idx].height = 20
+            row_fill = even_fill if row_idx % 2 == 0 else odd_fill
+
+            for col_idx, cell_value in enumerate(row_data, 1):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.fill = row_fill
+                cell.font = data_font
+                cell.border = cell_border
+
+                val_str = str(cell_value).strip() if cell_value is not None else ""
+                # Kolom pertama (No) di-center
+                if col_idx == 1 and val_str.isdigit() and len(val_str) <= 6:
+                    cell.value = int(val_str)
+                    cell.alignment = align_center
+                else:
+                    cell.value = val_str
+                    cell.alignment = align_left
+
+        # Auto-adjust column widths
+        for col_idx in range(1, len(headers) + 1):
+            col_letter = ws.cell(row=1, column=col_idx).column_letter
+            max_len = len(str(headers[col_idx - 1])) if col_idx <= len(headers) else 10
+            for row in range(2, min(ws.max_row + 1, 60)):
+                v = ws.cell(row=row, column=col_idx).value
+                if v:
+                    max_len = max(max_len, len(str(v).split('\n')[0]))
+            ws.column_dimensions[col_letter].width = min(max(max_len + 4, 10), 55)
+
+        ws.freeze_panes = "A2"
+        if ws.max_row > 1 and ws.max_column > 0:
+            ws.auto_filter.ref = ws.dimensions
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        response = HttpResponse(
+            output.getvalue(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        from datetime import datetime
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        response['Content-Disposition'] = f'attachment; filename="{safe_filename}_{timestamp}.xlsx"'
+        return response

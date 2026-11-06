@@ -1,37 +1,27 @@
 <!-- Toolbar Tombol Aksi Ekspor & Cetak Data (Excel + PDF) -->
 <div class="d-inline-flex flex-wrap gap-2 align-items-center table-export-toolbar">
   {% if export_url %}
-  <a href="{{ export_url }}" 
-     class="btn btn-sm btn-export-excel" 
-     title="Unduh seluruh data tabel dalam format Microsoft Excel (.xlsx)"
-     onclick="exportExcelWithSearch(event, this, '{{ export_url }}')">
+  <button type="button"
+          class="btn btn-sm btn-export-excel" 
+          title="Unduh data tabel dalam format Microsoft Excel (.xlsx)"
+          onclick="exportTableToExcel(this, '{{ export_url }}')">
     <i class="ti ti-file-spreadsheet me-1"></i>
     <span class="export-text">Excel</span>
     <span class="export-spinner d-none">
       <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
       Mengunduh...
     </span>
-  </a>
+  </button>
   {% endif %}
 
-  <!-- Tombol Cetak / PDF: buka halaman tabel bersih di popup -->
-  {% if pdf_table_url %}
+  <!-- Tombol Cetak / PDF: mencetak persis data yang tampil di tabel -->
   <button type="button"
           class="btn btn-sm btn-export-pdf"
-          onclick="openPdfTableWindow('{{ pdf_table_url }}')"
+          onclick="printCurrentTableData('{{ pdf_table_url|default:'' }}')"
           title="Cetak tabel atau simpan sebagai berkas PDF">
     <i class="ti ti-printer me-1"></i>
     <span>Cetak / PDF</span>
   </button>
-  {% else %}
-  <button type="button" 
-          class="btn btn-sm btn-export-pdf" 
-          onclick="window.print()"
-          title="Cetak tabel atau simpan sebagai berkas PDF">
-    <i class="ti ti-printer me-1"></i>
-    <span>Cetak / PDF</span>
-  </button>
-  {% endif %}
   
   {% if import_url and user.is_superuser %}
   <button type="button" 
@@ -46,58 +36,123 @@
   {% endif %}
 </div>
 
+<!-- Form tersembunyi untuk submit data tabel ke endpoint Excel -->
+<form id="excel-export-dynamic-form" method="POST" action="{% url 'core:table_to_excel' %}" style="display:none;" target="_blank">
+  {% csrf_token %}
+  <input type="hidden" name="title" id="excel-dyn-title">
+  <input type="hidden" name="headers" id="excel-dyn-headers">
+  <input type="hidden" name="rows" id="excel-dyn-rows">
+</form>
+
 <script>
-function getActiveSearchParam() {
-  const form = document.getElementById('filter-form');
-  const searchInput = form ? form.querySelector('input[name="search"]') : null;
-  const value = searchInput ? searchInput.value.trim() : '';
-  if (value) {
-    return 'search=' + encodeURIComponent(value);
-  }
-  // Alternatif dari query string URL jika form belum siap
-  const params = new URLSearchParams(window.location.search);
-  const searchVal = params.get('search');
-  if (searchVal) {
-    return 'search=' + encodeURIComponent(searchVal);
-  }
-  return '';
+function getCsrfToken() {
+  const input = document.querySelector('[name=csrfmiddlewaretoken]');
+  if (input) return input.value;
+  const cookieMatch = document.cookie.match(/csrftoken=([^;]+)/);
+  return cookieMatch ? cookieMatch[1] : '';
 }
 
-function exportExcelWithSearch(evt, button, baseUrl) {
-  if (evt) evt.preventDefault();
-  showExportLoading(button);
-
-  let url = baseUrl;
-  const searchParam = getActiveSearchParam();
-  if (searchParam) {
-    url += (url.includes('?') ? '&' : '?') + searchParam;
-  }
-  window.location.href = url;
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 }
 
-function showExportLoading(button) {
-  const textSpan = button.querySelector('.export-text');
-  const spinnerSpan = button.querySelector('.export-spinner');
-  
-  if (textSpan && spinnerSpan) {
-    textSpan.classList.add('d-none');
-    spinnerSpan.classList.remove('d-none');
-    
-    setTimeout(() => {
-      textSpan.classList.remove('d-none');
-      spinnerSpan.classList.add('d-none');
-    }, 4000);
+function extractTableDataFromPage() {
+  const container = document.getElementById('table-container') ||
+                    document.querySelector('.card-body .table-responsive') ||
+                    document.querySelector('.card-body');
+  if (!container) return null;
+
+  const table = container.querySelector('table');
+  if (!table) return null;
+
+  // Title dari header halaman
+  const titleEl = document.querySelector('.card-header h3') ||
+                  document.querySelector('.page-header-title h5') ||
+                  document.querySelector('h1, h2, h3, h4, h5');
+  const title = (titleEl ? titleEl.textContent : document.title).trim();
+
+  // Headers (th)
+  const headerCells = table.querySelectorAll('thead th');
+  if (!headerCells || headerCells.length === 0) return null;
+
+  const headers = [];
+  const validColIndices = [];
+
+  headerCells.forEach((th, idx) => {
+    const text = (th.innerText || th.textContent || '').trim();
+    const thClass = (th.className || '').toLowerCase();
+    // Abaikan kolom aksi
+    if (text.toLowerCase() === 'aksi' || thClass.includes('aksi') || thClass.includes('action')) {
+      return;
+    }
+    headers.push(text);
+    validColIndices.push(idx);
+  });
+
+  // Rows (tr > td)
+  const bodyRows = table.querySelectorAll('tbody tr');
+  const rows = [];
+
+  bodyRows.forEach(tr => {
+    // Abaikan baris pesan kosong "tidak ada data"
+    if (tr.querySelector('td[colspan]')) return;
+
+    const cells = tr.querySelectorAll('td');
+    if (!cells || cells.length === 0) return;
+
+    const row = [];
+    validColIndices.forEach(colIdx => {
+      if (colIdx < cells.length) {
+        const cell = cells[colIdx];
+        const clone = cell.cloneNode(true);
+        // Buang tombol aksi dan kontrol form dari teks sel
+        clone.querySelectorAll('button, input, select, .btn, .dropdown, [class*="action"]').forEach(el => el.remove());
+        const cellText = (clone.innerText || clone.textContent || '').trim();
+        row.push(cellText);
+      } else {
+        row.push('');
+      }
+    });
+
+    if (row.length > 0) {
+      rows.push(row);
+    }
+  });
+
+  return { title, headers, rows };
+}
+
+function exportTableToExcel(button, fallbackUrl) {
+  const data = extractTableDataFromPage();
+
+  if (data && data.rows.length > 0) {
+    showExportLoading(button);
+
+    const form = document.getElementById('excel-export-dynamic-form');
+    if (form) {
+      document.getElementById('excel-dyn-title').value = data.title;
+      document.getElementById('excel-dyn-headers').value = JSON.stringify(data.headers);
+      document.getElementById('excel-dyn-rows').value = JSON.stringify(data.rows);
+      form.submit();
+      return;
+    }
+  }
+
+  // Fallback ke generic URL jika tabel belum siap
+  if (fallbackUrl) {
+    showExportLoading(button);
+    window.location.href = fallbackUrl;
   }
 }
 
-function openPdfTableWindow(baseUrl) {
-  if (!baseUrl) return;
-
-  let url = baseUrl;
-  const searchParam = getActiveSearchParam();
-  if (searchParam) {
-    url += (url.includes('?') ? '&' : '?') + searchParam;
-  }
+function printCurrentTableData(fallbackUrl) {
+  const data = extractTableDataFromPage();
 
   const screenWidth  = window.screen?.availWidth  || 1366;
   const screenHeight = window.screen?.availHeight || 900;
@@ -115,13 +170,201 @@ function openPdfTableWindow(baseUrl) {
     `top=${popupTop}`,
   ].join(',');
 
-  const w = window.open('', 'pdf-table-print', features);
-  if (w) {
-    w.location = url;
-    w.focus();
-  } else {
-    // fallback jika popup diblokir browser
-    window.open(url, '_blank', 'noopener,noreferrer');
+  const popup = window.open('', 'pdf-table-print', features);
+  if (!popup) {
+    if (fallbackUrl) window.open(fallbackUrl, '_blank', 'noopener,noreferrer');
+    return;
+  }
+
+  if (data && data.rows.length > 0) {
+    // Bangun header kolom tabel cetak
+    let theadHtml = '<tr>';
+    // Cek apakah kolom pertama sudah bernama 'No'
+    const startIdx = (data.headers[0] && data.headers[0].toLowerCase() === 'no') ? 1 : 0;
+    theadHtml += '<th style="width:40px; text-align:center;">No</th>';
+    for (let i = startIdx; i < data.headers.length; i++) {
+      theadHtml += `<th>${escapeHtml(data.headers[i])}</th>`;
+    }
+    theadHtml += '</tr>';
+
+    // Bangun baris-baris tabel cetak
+    let tbodyHtml = '';
+    data.rows.forEach((r, idx) => {
+      tbodyHtml += '<tr>';
+      tbodyHtml += `<td style="text-align:center; font-weight:600;">${idx + 1}</td>`;
+      for (let i = startIdx; i < r.length; i++) {
+        tbodyHtml += `<td>${escapeHtml(r[i]).replace(/\n/g, '<br>')}</td>`;
+      }
+      tbodyHtml += '</tr>';
+    });
+
+    const nowStr = new Intl.DateTimeFormat('id-ID', {
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    }).format(new Date());
+
+    const totalCols = data.headers.length + (startIdx === 0 ? 1 : 0);
+
+    const printHtml = `<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(data.title)}</title>
+  <style>
+    :root {
+      --emerald-950: #022c22;
+      --emerald-800: #065F46;
+      --emerald-700: #047857;
+      --gold-500: #F59E0B;
+      --gold-600: #D97706;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 11.5px;
+      color: var(--emerald-950);
+      margin: 0;
+      padding: 16px;
+      background: #ECFDF5;
+    }
+    .toolbar {
+      background: #fff;
+      border: 1px solid rgba(5,150,105,0.25);
+      border-top: 3px solid #059669;
+      border-radius: 10px;
+      padding: 12px 18px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(6,78,59,0.08);
+    }
+    .toolbar h1 { margin: 0; font-size: 1.15rem; color: var(--emerald-950); font-weight: 700; }
+    .toolbar .meta { font-size: 0.78rem; color: var(--emerald-800); margin-top: 2px; }
+    .btn-print {
+      background: linear-gradient(180deg, var(--gold-500) 0%, var(--gold-600) 100%);
+      color: var(--emerald-950);
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 7px 18px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      box-shadow: 0 3px 0 #92400E;
+    }
+    .btn-print:hover { background: #FBBF24; }
+    .print-header { display: none; text-align: center; margin-bottom: 10px; }
+    .print-header h2 { font-size: 14px; font-weight: 800; margin: 0 0 2px; text-transform: uppercase; color: var(--emerald-950); }
+    .print-header .meta { font-size: 10px; color: #475569; }
+    .table-card {
+      background: #fff;
+      border: 1px solid rgba(5,150,105,0.2);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(6,78,59,0.06);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead th {
+      background: linear-gradient(180deg, var(--emerald-800) 0%, var(--emerald-700) 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      padding: 6px 8px;
+      border-bottom: 2px solid var(--gold-500);
+      text-align: left;
+      vertical-align: middle;
+    }
+    tbody tr:nth-child(even) { background: #F7FCF9; }
+    tbody tr:nth-child(odd)  { background: #FFFFFF; }
+    tbody td {
+      padding: 5px 8px;
+      border-bottom: 1px solid rgba(5,150,105,0.10);
+      vertical-align: middle;
+      line-height: 1.35;
+      white-space: normal;
+      word-break: normal;
+      overflow-wrap: break-word;
+    }
+    tfoot td {
+      background: #ECFDF5;
+      font-size: 0.78rem;
+      color: var(--emerald-800);
+      padding: 6px 8px;
+      border-top: 1.5px solid #A7F3D0;
+      font-weight: 600;
+    }
+    @media print {
+      @page { size: A4 landscape; margin: 12mm 10mm 12mm 10mm; }
+      body { background: #fff !important; padding: 0 !important; font-size: 9px; }
+      .toolbar { display: none !important; }
+      .print-header { display: block; }
+      .table-card { border: none !important; box-shadow: none !important; border-radius: 0 !important; }
+      table { font-size: 9px; }
+      thead th {
+        background: var(--emerald-800) !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-size: 8.5px;
+        padding: 4px 6px;
+      }
+      tbody td { padding: 3px 6px; font-size: 9px; }
+      tbody tr:nth-child(even) {
+        background: #F7FCF9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <div>
+      <h1>${escapeHtml(data.title)}</h1>
+      <div class="meta">Total: ${data.rows.length} data &nbsp;|&nbsp; Dicetak: ${nowStr}</div>
+    </div>
+    <button class="btn-print" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+  </div>
+  <div class="print-header">
+    <h2>${escapeHtml(data.title)}</h2>
+    <div class="meta">Total: ${data.rows.length} data &nbsp;|&nbsp; Dicetak: ${nowStr}</div>
+  </div>
+  <div class="table-card">
+    <table>
+      <thead>${theadHtml}</thead>
+      <tbody>${tbodyHtml}</tbody>
+      <tfoot><tr><td colspan="${totalCols}">Total: ${data.rows.length} data ditampilkan</td></tr></tfoot>
+    </table>
+  </div>
+</body>
+</html>`;
+
+    popup.document.open();
+    popup.document.write(printHtml);
+    popup.document.close();
+    popup.focus();
+    return;
+  }
+
+  // Fallback jika data DOM belum terbaca
+  if (fallbackUrl) {
+    popup.location = fallbackUrl;
+  }
+}
+
+function showExportLoading(button) {
+  const textSpan = button.querySelector('.export-text');
+  const spinnerSpan = button.querySelector('.export-spinner');
+  
+  if (textSpan && spinnerSpan) {
+    textSpan.classList.add('d-none');
+    spinnerSpan.classList.remove('d-none');
+    
+    setTimeout(() => {
+      textSpan.classList.remove('d-none');
+      spinnerSpan.classList.add('d-none');
+    }, 4000);
   }
 }
 </script>
