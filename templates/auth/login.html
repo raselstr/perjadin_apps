@@ -15,24 +15,69 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <style>
+        :root {
+            --asahan-green-light-50:  #F4FAF4;
+            --asahan-green-light-100: #E8F5E9;
+            --asahan-green-light-200: #DCEDC8;
+            --asahan-green-light-500: #8BC34A;
+            --asahan-green-deep-800:  #2E7D32;
+            --asahan-green-deep-900:  #1B5E20;
+            --asahan-green-deep-950:  #143818;
+            --asahan-gold-500: #FFC107;
+            --asahan-gold-600: #FFA000;
+            --asahan-gold-700: #F57C00;
+            --asahan-gold-bevel: #B45309;
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9;
+            background-color: var(--asahan-green-light-100);
+            background-image: 
+                radial-gradient(circle at 12% 8%, rgba(139, 195, 74, 0.3) 0%, transparent 45%),
+                radial-gradient(circle at 88% 30%, rgba(165, 214, 167, 0.35) 0%, transparent 50%),
+                radial-gradient(circle at 35% 95%, rgba(124, 179, 66, 0.25) 0%, transparent 55%),
+                linear-gradient(145deg, #F4FAF4 0%, #E8F5E9 40%, #E0F2E1 70%, #DCEDC8 100%);
+            background-attachment: fixed;
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.5) 0%, transparent 75%);
+            pointer-events: none;
         }
 
         .login-card {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             padding: 2.5rem;
             background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            box-shadow: 
+                0 4px 6px rgba(46, 125, 50, 0.05),
+                0 15px 35px -5px rgba(46, 125, 50, 0.15),
+                0 30px 60px -10px rgba(46, 125, 50, 0.10),
+                inset 0 1px 0 #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.95);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .login-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 
+                0 6px 10px rgba(46, 125, 50, 0.08),
+                0 20px 45px -5px rgba(46, 125, 50, 0.2),
+                0 40px 75px -10px rgba(46, 125, 50, 0.12),
+                inset 0 1px 0 #ffffff;
         }
 
         .login-header {
@@ -41,63 +86,109 @@
         }
 
         .login-header img {
-            width: 60px;
+            width: 65px;
             margin-bottom: 1rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
         }
 
         .login-header h4 {
             font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 0.5rem;
+            color: var(--asahan-green-deep-950);
+            margin-bottom: 0.35rem;
+            letter-spacing: 0.2px;
+        }
+
+        .login-header p {
+            color: #475569;
+            font-size: 0.9rem;
+            margin-bottom: 0;
+            font-weight: 500;
         }
 
         .form-label {
-            font-weight: 500;
+            font-weight: 600;
             font-size: 0.875rem;
-            color: #475569;
+            color: var(--asahan-green-deep-950);
         }
 
         .form-control, .form-select {
             padding: 0.75rem 1rem;
             border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            background-color: #f8fafc;
+            border: 1.5px solid #cbd5e1;
+            background-color: #ffffff;
+            box-shadow: inset 0 2px 4px rgba(46, 125, 50, 0.05), 0 1px 0 #ffffff;
+            color: #0f172a;
             transition: all 0.2s;
         }
 
         .form-control:focus, .form-select:focus {
-            background-color: #fff;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+            background-color: #ffffff;
+            border-color: var(--asahan-green-light-500);
+            box-shadow: inset 0 1px 2px rgba(46, 125, 50, 0.08), 0 0 0 4px rgba(139, 195, 74, 0.22);
+            outline: none;
         }
 
+        /* Tombol Login: Kuning Emas Pancasila 3D (Teks Gelap Terbaca Jelas) */
         .btn-primary {
-            padding: 0.75rem;
-            font-weight: 600;
+            padding: 0.8rem;
+            font-weight: 700;
             border-radius: 10px;
-            background-color: #3b82f6;
+            background: linear-gradient(180deg, #FFC107 0%, #FFA000 50%, #F57C00 100%);
             border: none;
-            transition: all 0.2s;
+            color: #143818;
+            box-shadow: 
+                0 4px 0 var(--asahan-gold-bevel),
+                0 8px 18px rgba(245, 124, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.7);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+            transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+            cursor: pointer;
         }
 
         .btn-primary:hover {
-            background-color: #2563eb;
-            transform: translateY(-1px);
+            background: linear-gradient(180deg, #FFCA28 0%, #FFB300 50%, #FB8C00 100%);
+            color: #0F290D;
+            transform: translateY(-2px);
+            box-shadow: 
+                0 6px 0 var(--asahan-gold-bevel),
+                0 12px 22px rgba(245, 124, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        .btn-primary:active {
+            transform: translateY(3px);
+            box-shadow: 
+                0 1px 0 var(--asahan-gold-bevel),
+                0 2px 6px rgba(245, 124, 0, 0.3),
+                inset 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
         .copyright {
             text-align: center;
             margin-top: 2rem;
             font-size: 0.85rem;
-            color: #94a3b8;
+            color: var(--asahan-green-deep-900);
+            font-weight: 600;
+        }
+
+        .copyright a {
+            color: #B45309;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .copyright a:hover {
+            color: var(--asahan-green-deep-950);
+            text-decoration: underline;
         }
 
         .alert-danger {
             border-radius: 10px;
             font-size: 0.875rem;
-            border: none;
+            border: 1px solid #fca5a5;
             background-color: #fef2f2;
             color: #991b1b;
+            box-shadow: 0 2px 6px rgba(185, 28, 28, 0.1);
         }
 
         .alert-warning,
@@ -108,10 +199,11 @@
         }
         
         .input-group-text {
-            background-color: #f8fafc;
-            border-color: #e2e8f0;
+            background: linear-gradient(180deg, #F1F8E9 0%, #DCEDC8 100%);
+            border-color: #cbd5e1;
             border-radius: 10px 0 0 10px;
-            color: #64748b;
+            color: var(--asahan-green-deep-900);
+            font-weight: 600;
         }
         
         .has-icon .form-control, .has-icon .form-select {
