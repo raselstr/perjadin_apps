@@ -126,10 +126,10 @@ body {
    ============================================================================ */
 /* Container menggunakan width: auto agar pas menghitung (100% - margin sidebar) */
 .pc-container {
-  min-height: calc(100vh - 130px);
+  min-height: calc(100vh - 80px);
   position: relative;
   top: 0 !important;
-  margin-top: 124px !important; /* kompensasi topbar 80px + footer fixed di atas ~44px */
+  margin-top: 80px !important;
   margin-left: 260px !important;
   margin-right: 20px !important;
   width: auto !important;
@@ -139,7 +139,7 @@ body {
   overflow-x: clip;
   display: flex;
   flex-direction: column;
-  padding-bottom: 20px !important;
+  padding-bottom: 52px !important; /* kompensasi footer fixed di bawah (~42px) */
   transition: margin-left 0.2s ease, max-width 0.2s ease;
 }
 
@@ -176,12 +176,13 @@ body {
 /* Breakpoint Responsif Tablet & Laptop Kecil (<= 1024px) */
 @media (max-width: 1024px) {
   .pc-container {
-    margin-top: 110px !important;
+    margin-top: 70px !important;
     top: 0 !important;
     margin-left: 10px !important;
     margin-right: 10px !important;
     max-width: calc(100% - 20px) !important;
     width: auto !important;
+    padding-bottom: 50px !important;
   }
 
   .pc-content {
@@ -192,12 +193,13 @@ body {
 /* Breakpoint Responsif Handphone (<= 575.98px) */
 @media (max-width: 575.98px) {
   .pc-container {
-    margin-top: 114px !important;
+    margin-top: 60px !important;
     top: 0 !important;
     margin-left: 4px !important;
     margin-right: 4px !important;
     max-width: calc(100% - 8px) !important;
     width: auto !important;
+    padding-bottom: 65px !important;
   }
 
   .pc-content {
@@ -995,22 +997,23 @@ body {
 }
 
 /* ============================================================================
-   12. FOOTER 3D (FIXED DI ATAS KONTEN — TIDAK BERGERAK SAAT SCROLL)
+   12. FOOTER 3D (FIXED DI BAWAH LAYAR — TIDAK BERGERAK SAAT SCROLL)
    ============================================================================ */
 .pc-footer {
   background: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%) !important;
-  border-bottom: 2px solid var(--gold-500) !important;
-  border-top: none !important;
+  border-top: 2px solid var(--gold-500) !important;
+  border-bottom: none !important;
   box-shadow:
-    0 4px 16px rgba(6, 78, 59, 0.25),
-    0 2px 4px rgba(6, 78, 59, 0.12) !important;
+    0 -4px 16px rgba(6, 78, 59, 0.25),
+    0 -2px 4px rgba(6, 78, 59, 0.12) !important;
   color: #FFFFFF !important;
   padding: 6px clamp(10px, 1.8vw, 20px) !important;
   position: fixed !important;
-  top: 80px !important;         /* Tepat di bawah topbar header */
-  left: 260px !important;       /* Sejajar lebar sidebar */
+  bottom: 0 !important;          /* Posisi berada di bawah layar */
+  top: auto !important;
+  left: 260px !important;        /* Sejajar lebar sidebar */
   right: 0 !important;
-  z-index: 1020 !important;     /* Berada di atas konten saat scrolling */
+  z-index: 1020 !important;      /* Tetap fixed di bawah layar */
   margin: 0 !important;
   width: auto !important;
   max-width: calc(100% - 260px) !important;
@@ -1028,7 +1031,8 @@ body {
 /* Breakpoint Tablet */
 @media (max-width: 1024px) {
   .pc-footer {
-    top: 70px !important;
+    bottom: 0 !important;
+    top: auto !important;
     left: 0 !important;
     max-width: 100% !important;
     padding: 6px 12px !important;
@@ -1038,7 +1042,8 @@ body {
 /* Breakpoint Handphone */
 @media (max-width: 575.98px) {
   .pc-footer {
-    top: 60px !important;
+    bottom: 0 !important;
+    top: auto !important;
     left: 0 !important;
     max-width: 100% !important;
     padding: 5px 8px !important;
