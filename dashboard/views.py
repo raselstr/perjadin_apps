@@ -138,7 +138,13 @@ def dashboard_view(request):
         birthday_employees = birthday_employees.filter(opd_id=session_opd_id)
     birthday_employees = birthday_employees.order_by("nama")
 
-    laporan_queryset = LaporanPerjalanan.objects.select_related("spt").filter(
+    laporan_queryset = LaporanPerjalanan.objects.select_related(
+        "spt",
+        "spt__kota_tujuan",
+        "spt__jenis_kegiatan",
+        "pelaksana",
+        "pelaksana__nama",
+    ).filter(
         Q(foto_1__gt="")
         | Q(foto_2__gt="")
         | Q(foto_3__gt="")
@@ -151,13 +157,31 @@ def dashboard_view(request):
 
     laporan_photos = []
     for laporan in laporan_queryset.order_by("-created_at", "-id")[:12]:
-        berita_spt = (laporan.spt.berita or "").strip()
-        judul_laporan = (laporan.judul or "").strip()
-        teks_tampil = berita_spt or judul_laporan or "Perjalanan Dinas"
+        spt = laporan.spt
+        berita_spt = (getattr(spt, "berita", None) or "").strip()
+        maksud_perjalanan = (getattr(laporan, "maksud_perjalanan", None) or "").strip()
+        judul_laporan = (getattr(laporan, "judul", None) or "").strip()
+        tempat_tujuan = (getattr(spt, "tempat_tujuan", None) or "").strip()
+        kota_tujuan = str(getattr(spt, "kota_tujuan", "") or "").strip()
+        kegiatan = str(getattr(spt, "jenis_kegiatan", "") or "").strip()
 
-        tgl_kembali = laporan.spt.tgl_kembali
-        if not tgl_kembali and laporan.spt.tgl_berangkat and laporan.spt.lama_perjalanan:
-            tgl_kembali = laporan.spt.tgl_berangkat + timedelta(days=laporan.spt.lama_perjalanan - 1)
+        # Prioritaskan isi berita / maksud tujuan perjalanan agar tidak kosong
+        teks_utama = berita_spt or maksud_perjalanan
+        if not teks_utama:
+            if judul_laporan and judul_laporan != f"{tempat_tujuan} - {kota_tujuan}":
+                teks_utama = judul_laporan
+            elif kegiatan:
+                teks_utama = f"Kegiatan {kegiatan}"
+            elif tempat_tujuan or kota_tujuan:
+                teks_utama = f"Perjalanan Dinas ke {tempat_tujuan or kota_tujuan}"
+            else:
+                teks_utama = "Perjalanan Dinas"
+
+        lokasi_display = " - ".join(p for p in [tempat_tujuan, kota_tujuan] if p)
+
+        tgl_kembali = spt.tgl_kembali if spt else None
+        if not tgl_kembali and spt and spt.tgl_berangkat and spt.lama_perjalanan:
+            tgl_kembali = spt.tgl_berangkat + timedelta(days=spt.lama_perjalanan - 1)
 
         for field_name in ("foto_1", "foto_2", "foto_3", "foto_4"):
             photo = getattr(laporan, field_name)
@@ -165,9 +189,11 @@ def dashboard_view(request):
                 laporan_photos.append({
                     "url": photo.url,
                     "berita": berita_spt,
+                    "maksud_perjalanan": maksud_perjalanan,
                     "judul": judul_laporan,
-                    "teks": teks_tampil,
-                    "tgl_berangkat": laporan.spt.tgl_berangkat,
+                    "lokasi": lokasi_display,
+                    "teks": teks_utama,
+                    "tgl_berangkat": spt.tgl_berangkat if spt else None,
                     "tgl_kembali": tgl_kembali,
                 })
                 if len(laporan_photos) == 12:
