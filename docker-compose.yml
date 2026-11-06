@@ -6,6 +6,7 @@ services:
     container_name: perjadin_apps
     expose:
       - "80"
+      - "8085"
     
     ports:
       - "8085:80"
@@ -13,7 +14,7 @@ services:
     restart: always
 
     volumes:
-      - ./staticfiles:/app/staticfiles
+      - perjadin_static:/app/staticfiles
       - perjadin_media:/app/media
 
     secrets:
@@ -31,12 +32,15 @@ services:
       USE_HTTPS: "False"
       SECURE_SSL_REDIRECT: "False"
 
-      ALLOWED_HOSTS: "103.188.249.54,perjadin.bkadasahan.dedyn.io,192.168.66.5,192.168.66.167,127.0.0.1,localhost"
+      ALLOWED_HOSTS: "103.188.249.54,perjadin.bkadasahan.dedyn.io,perjadin.bkadasahan.ddns.net,192.168.66.5,192.168.66.167,127.0.0.1,localhost,perjadin_apps,web"
 
     networks:
       - production_network
 
 volumes:
+  perjadin_static:
+    name: perjadin_static
+
   perjadin_media:
     name: perjadin_media
 

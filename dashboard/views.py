@@ -1,13 +1,15 @@
+from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
+from django.db.models import Count, Q
 from django.db.models.functions import ExtractMonth
 from django.shortcuts import redirect, render
 from django.utils import timezone
 
 from perintah.models import Pelaksana, Spt
 from profiles.utils import get_active_opd_id
+from spj.models import LaporanPerjalanan
 from umum.models import Pegawai
 
 
@@ -136,6 +138,43 @@ def dashboard_view(request):
         birthday_employees = birthday_employees.filter(opd_id=session_opd_id)
     birthday_employees = birthday_employees.order_by("nama")
 
+    laporan_queryset = LaporanPerjalanan.objects.select_related("spt").filter(
+        Q(foto_1__gt="")
+        | Q(foto_2__gt="")
+        | Q(foto_3__gt="")
+        | Q(foto_4__gt="")
+    )
+    if session_opd_id and not request.user.is_superuser:
+        laporan_queryset = laporan_queryset.filter(
+            pelaksana__nama__opd_id=session_opd_id
+        )
+
+    laporan_photos = []
+    for laporan in laporan_queryset.order_by("-created_at", "-id")[:12]:
+        berita_spt = (laporan.spt.berita or "").strip()
+        judul_laporan = (laporan.judul or "").strip()
+        teks_tampil = berita_spt or judul_laporan or "Perjalanan Dinas"
+
+        tgl_kembali = laporan.spt.tgl_kembali
+        if not tgl_kembali and laporan.spt.tgl_berangkat and laporan.spt.lama_perjalanan:
+            tgl_kembali = laporan.spt.tgl_berangkat + timedelta(days=laporan.spt.lama_perjalanan - 1)
+
+        for field_name in ("foto_1", "foto_2", "foto_3", "foto_4"):
+            photo = getattr(laporan, field_name)
+            if photo:
+                laporan_photos.append({
+                    "url": photo.url,
+                    "berita": berita_spt,
+                    "judul": judul_laporan,
+                    "teks": teks_tampil,
+                    "tgl_berangkat": laporan.spt.tgl_berangkat,
+                    "tgl_kembali": tgl_kembali,
+                })
+                if len(laporan_photos) == 12:
+                    break
+        if len(laporan_photos) == 12:
+            break
+
     stats = {
         "total_spt_year": spt_queryset.filter(
             tgl_berangkat__year=dashboard_year
@@ -156,6 +195,7 @@ def dashboard_view(request):
         "today": today,
         "today_travelers": today_travelers,
         "birthday_employees": birthday_employees,
+        "laporan_photos": laporan_photos,
         "stats": stats,
         "chart_data": {
             "labels": MONTH_LABELS,

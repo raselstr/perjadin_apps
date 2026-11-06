@@ -22,14 +22,13 @@ urlpatterns = [
     path('api/',include('perintah.api_urls')),
 ]
 
-# # Media selalu dilayani
-# urlpatterns += [
-#     re_path(
-#         r'^media/(?P<path>.*)$',
-#         serve,
-#         {'document_root': settings.MEDIA_ROOT},
-#     ),
-# ]
+urlpatterns += [
+    re_path(
+        r'^media/(?P<path>.+)$',
+        serve,
+        {'document_root': settings.MEDIA_ROOT},
+    ),
+]
 
 # # Static hanya saat development
 # if settings.DEBUG:

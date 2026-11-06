@@ -8,6 +8,7 @@ from django.utils import timezone
 
 from perintah.models import Spt
 from profiles.models import OPD
+from spj.models import LaporanPerjalanan
 from spd.models import JenisKegiatan, Lokasi
 from umum.models import JenisJabatan, Pangkat, Pegawai
 
@@ -64,6 +65,58 @@ class DashboardViewTests(TestCase):
         self.assertContains(response, "Pelaksana Perjalanan Dinas Hari Ini")
         self.assertContains(response, self.pegawai.nama)
         self.assertEqual(response.context["stats"]["total_today"], 1)
+
+    def test_dashboard_shows_report_photos_with_spt_dates(self):
+        departure = date(2026, 5, 12)
+        spt = Spt.objects.create(
+            berita="Koordinasi pembangunan daerah",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Jakarta",
+            lama_perjalanan=3,
+            tgl_berangkat=departure,
+            jenis_kegiatan=self.kegiatan,
+        )
+        pelaksana = spt.pelaksana.create(nama=self.pegawai)
+        LaporanPerjalanan.objects.create(
+            spt=spt,
+            pelaksana=pelaksana,
+            foto_1="spj/laporan/koordinasi.jpg",
+        )
+
+        self.client.force_login(self.superuser)
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Berita SPT")
+        self.assertContains(response, "Koordinasi pembangunan daerah")
+        self.assertContains(response, "12/05/2026 - 14/05/2026")
+        self.assertEqual(len(response.context["laporan_photos"]), 1)
+
+    def test_dashboard_shows_report_photos_with_judul_when_berita_empty(self):
+        departure = date(2026, 6, 1)
+        spt = Spt.objects.create(
+            berita="",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Medan",
+            lama_perjalanan=2,
+            tgl_berangkat=departure,
+            jenis_kegiatan=self.kegiatan,
+        )
+        pelaksana = spt.pelaksana.create(nama=self.pegawai)
+        LaporanPerjalanan.objects.create(
+            spt=spt,
+            pelaksana=pelaksana,
+            foto_1="spj/laporan/konsultasi.jpg",
+        )
+
+        self.client.force_login(self.superuser)
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Laporan Perjalanan")
+        self.assertContains(response, "Medan - Jakarta")
+        self.assertContains(response, "01/06/2026 - 02/06/2026")
+        self.assertEqual(len(response.context["laporan_photos"]), 1)
 
     def test_dashboard_shows_top_five_frequent_travelers(self):
         other_people = [
