@@ -560,7 +560,7 @@ body {
   width: 100% !important;
   max-width: 100% !important;
   overflow-x: auto !important;
-  overflow-y: hidden !important;
+  overflow-y: auto !important;         /* Izinkan scrollbar vertikal bila konten melebihi batas tinggi */
   -webkit-overflow-scrolling: touch !important;
   position: relative !important;
   border: 1px solid var(--emerald-200) !important;
@@ -568,6 +568,13 @@ body {
   background: #FFFFFF !important;
   box-shadow: 0 4px 12px rgba(6, 78, 59, 0.05) !important;
   margin-bottom: 1rem !important;
+}
+
+/* Khusus Laporan Pengawas: batas tinggi agar scrollbar vertikal dan horizontal aktif bersamaan */
+.laporan-pengawas-table {
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+  overflow-x: auto !important;
 }
 
 /* Custom Scrollbar Horizontal Lebar & Jelas */
