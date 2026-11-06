@@ -649,12 +649,8 @@
       return;
     }
 
-    const shouldShowToolbar = isAndroidDevice();
-    toolbar.classList.toggle('d-none', !shouldShowToolbar);
-
-    if (!shouldShowToolbar) {
-      return;
-    }
+    // Tampilkan selalu toolbar pengaturan skala dan margin di modal preview (HP maupun Desktop)
+    toolbar.classList.remove('d-none');
 
     const frameId = toolbar.dataset.frameId;
     const frame = document.getElementById(frameId);
