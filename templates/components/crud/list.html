@@ -3,12 +3,12 @@
   <!-- 🔥 FORM (HTMX ENABLED) -->
   <form id="filter-form"
       method="get"
-      class="d-flex align-items-center gap-2 flex-nowrap w-100">
+      class="d-flex align-items-center gap-2 flex-wrap w-100 pb-1 mb-1 border-bottom">
 
     <!-- per page -->
     <select name="per_page"
         class="form-select form-select-sm"
-        style="width:90px;">
+        style="width:80px;">
       <option value="10" {% if request.GET.per_page == "10" %}selected{% endif %}>10</option>
       <option value="25" {% if request.GET.per_page == "25" or request.GET.per_page == "all" %}selected{% endif %}>25</option>
       <option value="50" {% if request.GET.per_page == "50" %}selected{% endif %}>50</option>
@@ -16,12 +16,11 @@
 
     <!-- search -->
     <input type="text" name="search"
-       class="form-control form-control-sm"
+       class="form-control form-control-sm flex-grow-1"
        placeholder="Cari Data..."
        value="{{ request.GET.search }}">
 
   </form>
-  <hr>
 
   <!-- TABLE -->
   <div class="table-responsive" hx-boost="true" hx-target="#table-container" hx-swap="innerHTML">
