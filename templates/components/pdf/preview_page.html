@@ -168,6 +168,13 @@
       color: var(--green-deep-950);
     }
 
+    /* Hanya tampil saat mencetak menggunakan dimensi kecil / Handphone (< 992px) */
+    @media (min-width: 992px) {
+      .print-scale-toolbar {
+        display: none !important;
+      }
+    }
+
     .print-scale-toolbar .form-range {
       accent-color: var(--gold-700);
     }
@@ -250,7 +257,7 @@
       </div>
 
       <div
-        class="print-scale-toolbar"
+        class="print-scale-toolbar d-block d-lg-none"
         data-print-scale-toolbar
         data-frame-id="{{ frame_id }}"
         role="status">

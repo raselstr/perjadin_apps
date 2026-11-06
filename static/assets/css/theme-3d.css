@@ -126,10 +126,10 @@ body {
    ============================================================================ */
 /* Container menggunakan width: auto agar pas menghitung (100% - margin sidebar) */
 .pc-container {
-  min-height: calc(100vh - 160px);
+  min-height: calc(100vh - 130px);
   position: relative;
   top: 0 !important;
-  margin-top: 80px !important;
+  margin-top: 124px !important; /* kompensasi topbar 80px + footer fixed di atas ~44px */
   margin-left: 260px !important;
   margin-right: 20px !important;
   width: auto !important;
@@ -139,7 +139,7 @@ body {
   overflow-x: clip;
   display: flex;
   flex-direction: column;
-  padding-bottom: 0 !important;
+  padding-bottom: 20px !important;
   transition: margin-left 0.2s ease, max-width 0.2s ease;
 }
 
@@ -176,7 +176,7 @@ body {
 /* Breakpoint Responsif Tablet & Laptop Kecil (<= 1024px) */
 @media (max-width: 1024px) {
   .pc-container {
-    margin-top: 70px !important;
+    margin-top: 110px !important;
     top: 0 !important;
     margin-left: 10px !important;
     margin-right: 10px !important;
@@ -192,7 +192,7 @@ body {
 /* Breakpoint Responsif Handphone (<= 575.98px) */
 @media (max-width: 575.98px) {
   .pc-container {
-    margin-top: 60px !important;
+    margin-top: 114px !important;
     top: 0 !important;
     margin-left: 4px !important;
     margin-right: 4px !important;
@@ -376,10 +376,20 @@ body {
 }
 
 .pc-sidebar .pc-submenu .pc-link {
-  padding-left: 28px !important;
-  font-size: 0.9rem;
+  padding-left: 52px !important;      /* Tulisan sub menu agak lebih masuk kedalam dari menu utama */
+  font-size: 0.85rem !important;
   color: var(--emerald-950) !important;
   font-weight: 600;
+  border-radius: 8px !important;
+  margin: 1px 8px !important;
+  transition: all 0.15s ease;
+}
+
+.pc-sidebar .pc-submenu .pc-link:hover {
+  background: var(--emerald-100) !important;
+  color: var(--emerald-950) !important;
+  padding-left: 56px !important;
+  transform: none !important;
 }
 
 .pc-sidebar .pc-submenu .pc-item.active > .pc-link {
@@ -388,6 +398,7 @@ body {
   border: none !important;
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25) !important;
+  padding-left: 54px !important;
 }
 
 /* ============================================================================
@@ -984,60 +995,60 @@ body {
 }
 
 /* ============================================================================
-   12. FOOTER 3D (BERADA DI BAWAH KONTEN)
+   12. FOOTER 3D (FIXED DI ATAS KONTEN — TIDAK BERGERAK SAAT SCROLL)
    ============================================================================ */
 .pc-footer {
   background: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%) !important;
-  border-top: 2px solid var(--gold-500) !important;
-  border-bottom: none !important;
+  border-bottom: 2px solid var(--gold-500) !important;
+  border-top: none !important;
   box-shadow:
-    0 -4px 18px rgba(6, 78, 59, 0.15),
-    0 -1px 4px rgba(6, 78, 59, 0.08) !important;
+    0 4px 16px rgba(6, 78, 59, 0.25),
+    0 2px 4px rgba(6, 78, 59, 0.12) !important;
   color: #FFFFFF !important;
-  padding: 8px clamp(10px, 1.8vw, 20px) !important;
-  position: relative !important;
-  top: 0 !important;
-  z-index: 100 !important;
-  margin: 15px 20px 20px 260px !important;
+  padding: 6px clamp(10px, 1.8vw, 20px) !important;
+  position: fixed !important;
+  top: 80px !important;         /* Tepat di bawah topbar header */
+  left: 260px !important;       /* Sejajar lebar sidebar */
+  right: 0 !important;
+  z-index: 1020 !important;     /* Berada di atas konten saat scrolling */
+  margin: 0 !important;
   width: auto !important;
-  max-width: calc(100% - 280px) !important;
+  max-width: calc(100% - 260px) !important;
   box-sizing: border-box !important;
-  border-radius: 8px !important;
-  transition: margin-left 0.2s ease, max-width 0.2s ease;
+  border-radius: 0 !important;
+  transition: left 0.2s ease, max-width 0.2s ease;
 }
 
 /* Ketika sidebar disembunyikan */
 .pc-sidebar.pc-sidebar-hide ~ .pc-footer {
-  margin-left: 20px !important;
-  margin-right: 20px !important;
-  max-width: calc(100% - 40px) !important;
-  width: auto !important;
+  left: 0 !important;
+  max-width: 100% !important;
 }
 
 /* Breakpoint Tablet */
 @media (max-width: 1024px) {
   .pc-footer {
-    margin: 12px 10px 18px 10px !important;
-    max-width: calc(100% - 20px) !important;
-    width: auto !important;
-    padding: 7px 12px !important;
+    top: 70px !important;
+    left: 0 !important;
+    max-width: 100% !important;
+    padding: 6px 12px !important;
   }
 }
 
 /* Breakpoint Handphone */
 @media (max-width: 575.98px) {
   .pc-footer {
-    margin: 10px 4px 16px 4px !important;
-    max-width: calc(100% - 8px) !important;
-    width: auto !important;
-    padding: 6px 8px !important;
+    top: 60px !important;
+    left: 0 !important;
+    max-width: 100% !important;
+    padding: 5px 8px !important;
   }
 
   .pc-footer .footer-wrapper {
     flex-direction: column !important;
     align-items: center !important;
     text-align: center !important;
-    gap: 4px !important;
+    gap: 3px !important;
   }
 }
 
@@ -1131,6 +1142,21 @@ body {
 /* ============================================================================
    14. PENGATURAN MEDIA CETAK & PDF RESMI (CLEAN DOCUMENT PRINT)
    ============================================================================ */
+/* Pengaturan Skala & Margin Cetak: Sembunyikan pada Desktop (>= 992px), hanya tampil pada dimensi kecil / Handphone */
+@media (min-width: 992px) {
+  .print-scale-toolbar,
+  [data-print-scale-toolbar] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .print-scale-toolbar,
+  [data-print-scale-toolbar] {
+    display: block !important;
+  }
+}
+
 @media print {
   body {
     background: #FFFFFF !important;

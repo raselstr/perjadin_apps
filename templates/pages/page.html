@@ -649,8 +649,13 @@
       return;
     }
 
-    // Tampilkan selalu toolbar pengaturan skala dan margin di modal preview (HP maupun Desktop)
-    toolbar.classList.remove('d-none');
+    // Tampilkan toolbar pengaturan skala dan margin hanya pada dimensi kecil (Handphone / layar < 992px)
+    // Sembunyikan pada dimensi desktop (layar >= 992px)
+    if (window.innerWidth < 992) {
+      toolbar.classList.remove('d-none');
+    } else {
+      toolbar.classList.add('d-none');
+    }
 
     const frameId = toolbar.dataset.frameId;
     const frame = document.getElementById(frameId);
