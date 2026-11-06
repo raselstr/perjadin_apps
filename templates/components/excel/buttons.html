@@ -4,7 +4,7 @@
   <a href="{{ export_url }}" 
      class="btn btn-sm btn-export-excel" 
      title="Unduh seluruh data tabel dalam format Microsoft Excel (.xlsx)"
-     onclick="showExportLoading(this)">
+     onclick="exportExcelWithSearch(event, this, '{{ export_url }}')">
     <i class="ti ti-file-spreadsheet me-1"></i>
     <span class="export-text">Excel</span>
     <span class="export-spinner d-none">
@@ -47,6 +47,34 @@
 </div>
 
 <script>
+function getActiveSearchParam() {
+  const form = document.getElementById('filter-form');
+  const searchInput = form ? form.querySelector('input[name="search"]') : null;
+  const value = searchInput ? searchInput.value.trim() : '';
+  if (value) {
+    return 'search=' + encodeURIComponent(value);
+  }
+  // Alternatif dari query string URL jika form belum siap
+  const params = new URLSearchParams(window.location.search);
+  const searchVal = params.get('search');
+  if (searchVal) {
+    return 'search=' + encodeURIComponent(searchVal);
+  }
+  return '';
+}
+
+function exportExcelWithSearch(evt, button, baseUrl) {
+  if (evt) evt.preventDefault();
+  showExportLoading(button);
+
+  let url = baseUrl;
+  const searchParam = getActiveSearchParam();
+  if (searchParam) {
+    url += (url.includes('?') ? '&' : '?') + searchParam;
+  }
+  window.location.href = url;
+}
+
 function showExportLoading(button) {
   const textSpan = button.querySelector('.export-text');
   const spinnerSpan = button.querySelector('.export-spinner');
@@ -62,8 +90,14 @@ function showExportLoading(button) {
   }
 }
 
-function openPdfTableWindow(url) {
-  if (!url) return;
+function openPdfTableWindow(baseUrl) {
+  if (!baseUrl) return;
+
+  let url = baseUrl;
+  const searchParam = getActiveSearchParam();
+  if (searchParam) {
+    url += (url.includes('?') ? '&' : '?') + searchParam;
+  }
 
   const screenWidth  = window.screen?.availWidth  || 1366;
   const screenHeight = window.screen?.availHeight || 900;
@@ -86,7 +120,7 @@ function openPdfTableWindow(url) {
     w.location = url;
     w.focus();
   } else {
-    // fallback jika popup diblokir
+    // fallback jika popup diblokir browser
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 }

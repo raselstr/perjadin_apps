@@ -96,8 +96,8 @@ class ExcelExportView(ExcelPermissionMixin, View):
         """Download Excel dengan opsi yang dipilih"""
         queryset = self.get_queryset()
         
-        # Filter berdasarkan q
-        q = request.GET.get('q')
+        # Filter berdasarkan search / q
+        q = request.GET.get('q') or request.GET.get('search')
         if q:
             # Simple search, bisa di-override
             search_fields = []
@@ -261,7 +261,7 @@ class GenericExcelExportView(ExcelExportView):
             if hasattr(self.model, 'opd') or hasattr(self.model, 'opd_id'):
                 qs = qs.filter(opd_id=active_opd_id)
             elif hasattr(self.model, 'pelaksana'):
-                qs = qs.filter(pelaksana__nama__opd_id=active_opd_id)
+                qs = qs.filter(pelaksana__nama__opd_id=active_opd_id).distinct()
 
         return qs
 

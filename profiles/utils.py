@@ -66,7 +66,8 @@ def get_active_opd_id(request):
     if not user or not user.is_authenticated or user.is_superuser:
         return None
 
-    session_opd_id = request.session.get("session_opd_id")
+    session = getattr(request, "session", None)
+    session_opd_id = session.get("session_opd_id") if session else None
     if session_opd_id:
         return session_opd_id
 

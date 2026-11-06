@@ -16,6 +16,7 @@ class GenericPdfTableView(LoginRequiredMixin, View):
     """
 
     def dispatch(self, request, app_label, model_name, *args, **kwargs):
+        self.request = request
         if not request.user.is_authenticated:
             raise PermissionDenied
 
@@ -23,12 +24,14 @@ class GenericPdfTableView(LoginRequiredMixin, View):
         self.model = apps.get_model(app_label, model_name)
         self.app_label = app_label
         self.model_name = model_name
-        return super(View, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     # ------------------------------------------------------------------ #
     #  Queryset — identik dengan GenericExcelExportView                   #
     # ------------------------------------------------------------------ #
     def get_queryset(self):
+        from django.db.models import Q
+
         qs = self.model.objects.all()
         user = self.request.user
 
@@ -40,7 +43,17 @@ class GenericPdfTableView(LoginRequiredMixin, View):
                 if hasattr(self.model, 'opd') or hasattr(self.model, 'opd_id'):
                     qs = qs.filter(opd_id=active_opd_id)
                 elif hasattr(self.model, 'pelaksana'):
-                    qs = qs.filter(pelaksana__nama__opd_id=active_opd_id)
+                    qs = qs.filter(pelaksana__nama__opd_id=active_opd_id).distinct()
+
+        # Filter pencarian jika ada
+        search = self.request.GET.get('search') or self.request.GET.get('q')
+        if search:
+            query = Q()
+            for field in self.model._meta.get_fields():
+                if not field.is_relation and not field.many_to_many and field.__class__.__name__ in ['CharField', 'TextField']:
+                    query |= Q(**{f"{field.name}__icontains": search})
+            if query:
+                qs = qs.filter(query)
 
         return qs
 
@@ -59,12 +72,17 @@ class GenericPdfTableView(LoginRequiredMixin, View):
 
             if field.many_to_one:
                 field_name = f"{field.name}_id"
-                label = f"{getattr(field, 'verbose_name', field.name).title()} (ID)"
+                label = getattr(field, 'verbose_name', field.name).title()
             else:
                 field_name = field.name
                 label = getattr(field, 'verbose_name', field.name).title()
 
             columns.append((field_name, label))
+
+        # Khusus model SPT: tambahkan kolom Pelaksana agar data lengkap
+        if self.model._meta.model_name == 'spt' and hasattr(self.model, 'pelaksana'):
+            columns.append(('pelaksana_names', 'Pelaksana'))
+
         return columns
 
     # ------------------------------------------------------------------ #
@@ -73,9 +91,12 @@ class GenericPdfTableView(LoginRequiredMixin, View):
     def _render_value(self, obj, field_name):
         from decimal import Decimal
         from datetime import date, datetime
-        from core.utils.excel_handler import ExcelExporter  # hanya untuk money_keywords
 
         money_keywords = {"biaya", "tarif", "harga", "total", "uang", "jumlah", "subtotal"}
+
+        # Khusus kolom pelaksana (ManyToMany/Reverse FK)
+        if field_name == 'pelaksana_names' and hasattr(obj, 'pelaksana'):
+            return ", ".join(str(getattr(p, 'nama', p)) for p in obj.pelaksana.all()) or "-"
 
         # FK → tampilkan label (bukan id)
         if field_name.endswith("_id") and hasattr(obj, field_name[:-3]):

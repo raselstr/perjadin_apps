@@ -14,6 +14,7 @@ services:
     restart: always
 
     volumes:
+      - ./:/app
       - perjadin_static:/app/staticfiles
       - perjadin_media:/app/media
 

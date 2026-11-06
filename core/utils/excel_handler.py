@@ -48,12 +48,17 @@ class ExcelExporter:
             # Untuk FK, gunakan field_id agar bisa di-import dengan ID
             if field.many_to_one:
                 field_name = f"{field.name}_id"
-                label = f"{getattr(field, 'verbose_name', field.name).title()} (ID)"
+                label = getattr(field, 'verbose_name', field.name).title()
             else:
                 field_name = field.name
                 label = getattr(field, 'verbose_name', field.name).title()
             
             columns.append((field_name, label))
+
+        # Khusus model SPT: tambahkan kolom Pelaksana agar data lengkap
+        if self.model._meta.model_name == 'spt' and hasattr(self.model, 'pelaksana'):
+            columns.append(('pelaksana_names', 'Pelaksana'))
+
         return columns
     
     def export(self):
@@ -63,7 +68,8 @@ class ExcelExporter:
 
         wb = Workbook()
         ws = wb.active
-        ws.title = self.title[:31]  # Sheet name max 31 chars
+        clean_title = re.sub(r'[*?:/\\\[\]]', '-', str(self.title))[:31].strip() or "Sheet1"
+        ws.title = clean_title
         
         # Header styling Hijau Zamrud (Emerald #065F46) dengan aksen emas (#D97706)
         header_fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
@@ -107,8 +113,11 @@ class ExcelExporter:
             row_fill = even_fill if row_idx % 2 == 0 else odd_fill
 
             for col_idx, (field_name, _) in enumerate(self.columns, 1):
+                # Khusus kolom pelaksana (ManyToMany/Reverse FK)
+                if field_name == 'pelaksana_names' and hasattr(obj, 'pelaksana'):
+                    value = ", ".join(str(getattr(p, 'nama', p)) for p in obj.pelaksana.all()) or "-"
                 # Resolusi nilai yang manusiawi untuk Foreign Key
-                if field_name.endswith("_id") and hasattr(obj, field_name[:-3]):
+                elif field_name.endswith("_id") and hasattr(obj, field_name[:-3]):
                     rel_obj = getattr(obj, field_name[:-3], None)
                     value = str(rel_obj) if rel_obj is not None else "-"
                 else:
