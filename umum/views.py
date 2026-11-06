@@ -151,7 +151,7 @@ class PemdaView(BaseCRUDView):
     model = Pemda
     form_class = PemdaForm
     table_class = PemdaTable
-    enable_excel = False
+    enable_excel = True
 
     title = "Daftar Pemda"
     url_list = "pemda_list"
@@ -173,7 +173,7 @@ class KopSuratView(BaseCRUDView):
     model = KopSurat
     form_class = KopSuratForm
     table_class = KopSuratTable
-    enable_excel = False
+    enable_excel = True
 
     title = "Daftar Kop Surat"
     url_list = "kop_surat_list"

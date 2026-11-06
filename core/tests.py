@@ -87,10 +87,10 @@ class SecurityHardeningTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn("/profiles/masuk/", response["Location"])
 
-    def test_generic_excel_export_requires_superuser(self):
-        user = User.objects.create_user("operator", password="secret")
+    def test_generic_excel_export_requires_authentication(self):
+        from django.contrib.auth.models import AnonymousUser
         request = RequestFactory().get("/core/excel/umum/pegawai/export/")
-        request.user = user
+        request.user = AnonymousUser()
 
         view = GenericExcelExportView()
 
@@ -211,7 +211,7 @@ class ExcelImportCoverageTests(TestCase):
         )
         cls.base_eselon = Eselon.objects.create(
             eselon="III",
-            keterangan="Administrator",
+            peringkat="a",
         )
         cls.base_jenis_jabatan = JenisJabatan.objects.create(
             nama="Struktural",
@@ -267,7 +267,7 @@ class ExcelImportCoverageTests(TestCase):
         scenarios = {
             umum_views.PangkatImportView: ["Penata", "III", "c"],
             umum_views.JenisJabatanImportView: ["Fungsional", "Jabatan ahli", "Teknis"],
-            umum_views.EselonImportView: ["II", "Pimpinan Tinggi Pratama"],
+            umum_views.EselonImportView: ["II", "a", "Pusat", "Daerah"],
             umum_views.StatusASNImportView: ["PPPK"],
             umum_views.TingkatImportView: ["B", "Pelaksana", "Ekonomi", "Kelas 1", "Bisnis", "Sesuai kebutuhan"],
             umum_views.PegawaiImportView: [
@@ -299,7 +299,7 @@ class ExcelImportCoverageTests(TestCase):
             spd_views.StandardUangHarianImportView: ["PMK 1", "Jakarta", "Rapat", "OH", 500000],
             spd_views.JenisTransportasiImportView: ["Sewa"],
             spd_views.StandardTransportasiImportView: ["PMK 1", "Taksi", "Medan", "Sekali jalan", 350000],
-            spd_views.StandardRepresentasiImportView: ["PMK 1", "Struktural", "Luar Daerah", 750000],
+            spd_views.StandardRepresentasiImportView: ["PMK 1", "A", "Luar Daerah", 750000],
         }
 
         expected_counts = {
@@ -362,8 +362,8 @@ class ExcelImportCoverageTests(TestCase):
             ),
             (
                 spd_views.StandardRepresentasiImportView,
-                ["PMK 1", "Struktural", "Luar Daerah", 750000],
-                ["PMK 1", "Struktural", "Luar Daerah", 900000],
+                ["PMK 1", "A", "Luar Daerah", 750000],
+                ["PMK 1", "A", "Luar Daerah", 900000],
                 StandardRepresentasi,
             ),
         ]

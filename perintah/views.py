@@ -136,7 +136,7 @@ class SptView(BaseMasterDetailCRUDView):
     form_class = SptForm
     formset_class = PelaksanaFormSet
     table_class = SptTable
-    enable_excel = False
+    enable_excel = True
 
     title = "Daftar SPT"
 
@@ -214,7 +214,7 @@ class PemberiTugasView(BaseCRUDView):
     model = PemberiTugas
     form_class = PemberiTugasForm
     table_class = PemberiTugasTable
-    enable_excel = False
+    enable_excel = True
 
     title = "Daftar Pemberi Tugas"
 
@@ -276,7 +276,7 @@ class PemberiTugasView(BaseCRUDView):
 class TtdSptSpdView(BaseCRUDView):
     model = TtdSptSpd
     form_class = TtdSptSpdForm
-    enable_excel = False
+    enable_excel = True
 
     title = "Berkas Tanda Tangan SPT/SPD"
 

@@ -243,14 +243,36 @@ class ExcelImportView(ExcelPermissionMixin, TemplateView):
 
 class GenericExcelExportView(ExcelExportView):
     """Generic view untuk export berdasarkan app.model"""
-    
+
+    def has_excel_permission(self):
+        user = self.request.user
+        return bool(user and user.is_authenticated)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not user.is_authenticated or user.is_superuser:
+            return qs
+
+        from profiles.utils import get_active_opd_id
+        active_opd_id = get_active_opd_id(self.request)
+
+        if active_opd_id:
+            if hasattr(self.model, 'opd') or hasattr(self.model, 'opd_id'):
+                qs = qs.filter(opd_id=active_opd_id)
+            elif hasattr(self.model, 'pelaksana'):
+                qs = qs.filter(pelaksana__nama__opd_id=active_opd_id)
+
+        return qs
+
     def dispatch(self, request, app_label, model_name, *args, **kwargs):
-        if not request.user.is_superuser:
+        self.request = request
+        if not request.user.is_authenticated:
             raise PermissionDenied
         # Set model dynamically
         from django.apps import apps
         self.model = apps.get_model(app_label, model_name)
-        return super().dispatch(request, *args, **kwargs)
+        return super(ExcelPermissionMixin, self).dispatch(request, *args, **kwargs)
 
 
 class GenericExcelImportView(ExcelImportView):

@@ -687,7 +687,7 @@ class JenisSPJView(BaseCRUDView):
     model = JenisSPJ
     form_class = JenisSPJForm
     table_class = JenisSPJTable
-    enable_excel = False
+    enable_excel = True
 
     title = "Jenis SPJ"
     url_list = "jenis_spj_list"
@@ -700,7 +700,7 @@ class PenginapanView(SPJQuerysetMixin, BaseCRUDView):
     form_class = PenginapanForm
     media_form_class = PenginapanMediaForm
     table_class = PenginapanTable
-    enable_excel = False
+    enable_excel = True
 
     title = "SPJ Penginapan"
     url_list = "penginapan_list"
@@ -712,7 +712,7 @@ class PesawatView(SPJQuerysetMixin, BaseCRUDView):
     model = Pesawat
     form_class = PesawatForm
     table_class = PesawatTable
-    enable_excel = False
+    enable_excel = True
 
     title = "SPJ Pesawat"
     url_list = "pesawat_list"
@@ -733,7 +733,7 @@ class UangHarianView(SPJQuerysetMixin, BaseCRUDView):
     model = UangHarian
     form_class = UangHarianForm
     table_class = UangHarianTable
-    enable_excel = False
+    enable_excel = True
 
     title = "SPJ Uang Harian"
     url_list = "uang_harian_list"
@@ -745,7 +745,7 @@ class TransportView(SPJQuerysetMixin, BaseCRUDView):
     model = Transport
     form_class = TransportForm
     table_class = TransportTable
-    enable_excel = False
+    enable_excel = True
 
     title = "SPJ Transport"
     url_list = "transport_list"
@@ -765,7 +765,7 @@ class UangRepresentasiView(SPJQuerysetMixin, BaseCRUDView):
     model = UangRepresentasi
     form_class = UangRepresentasiForm
     table_class = UangRepresentasiTable
-    enable_excel = False
+    enable_excel = True
 
     title = "SPJ Uang Representasi"
     url_list = "uang_representasi_list"
@@ -778,7 +778,7 @@ class LaporanPerjalananView(SPJQuerysetMixin, BaseCRUDView):
     form_class = LaporanPerjalananForm
     media_form_class = LaporanPerjalananMediaForm
     table_class = LaporanPerjalananTable
-    enable_excel = False
+    enable_excel = True
 
     title = "Laporan Perjalanan Dinas"
     url_list = "laporan_perjalanan_list"
@@ -1177,10 +1177,121 @@ class DataPerjalananPerOrangView(LoginRequiredMixin, View):
 
         return rows, grouped_rows, person_stats, start_date, end_date, keyword
 
+    def _excel_response(self, rows):
+        import io
+        from openpyxl import Workbook
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Rekap Perjalanan"
+
+        header_fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
+        header_font = Font(name="Arial", size=11, bold=True, color="FFFFFF")
+        header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        header_border = Border(
+            left=Side(style='thin', color="064E3B"),
+            right=Side(style='thin', color="064E3B"),
+            top=Side(style='thin', color="064E3B"),
+            bottom=Side(style='medium', color="D97706")
+        )
+
+        headers = [
+            "No", "Nama Pelaksana", "NIP", "Pangkat/Gol", "OPD",
+            "ID SPT", "Nomor SPT", "Nomor SPD",
+            "Tgl Berangkat", "Tgl Kembali", "Tempat Tujuan",
+            "Berita Perjadin", "Keterangan"
+        ]
+
+        ws.row_dimensions[1].height = 28
+        for col_idx, h in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_idx)
+            cell.value = h
+            cell.fill = header_fill
+            cell.font = header_font
+            cell.alignment = header_alignment
+            cell.border = header_border
+
+        even_fill = PatternFill(start_color="F4FAF6", end_color="F4FAF6", fill_type="solid")
+        odd_fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+        cell_border = Border(
+            left=Side(style='thin', color="E2E8F0"),
+            right=Side(style='thin', color="E2E8F0"),
+            top=Side(style='thin', color="E2E8F0"),
+            bottom=Side(style='thin', color="E2E8F0")
+        )
+        data_font = Font(name="Arial", size=10, color="0F172A")
+        align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        align_center = Alignment(horizontal="center", vertical="center")
+
+        for idx, item in enumerate(rows, 1):
+            row_num = idx + 1
+            ws.row_dimensions[row_num].height = 22
+            row_fill = even_fill if row_num % 2 == 0 else odd_fill
+
+            pegawai = item.nama
+            spt = item.spt
+
+            tgl_brk = spt.tgl_berangkat.strftime("%d/%m/%Y") if spt and spt.tgl_berangkat else "-"
+            tgl_kmb = spt.tgl_kembali.strftime("%d/%m/%Y") if spt and spt.tgl_kembali else "-"
+
+            pangkat_display = str(pegawai.pangkat) if pegawai and pegawai.pangkat else "-"
+            opd_display = str(pegawai.opd) if pegawai and pegawai.opd else "-"
+
+            ket = "Ada Nomor SPD" if item.has_nomor_spd else "Belum Ada Nomor SPD"
+
+            row_values = [
+                idx,
+                pegawai.nama if pegawai else "-",
+                pegawai.nip if pegawai else "-",
+                pangkat_display,
+                opd_display,
+                item.spt_id,
+                item.nomor_spt_display,
+                item.nomor_spd_display,
+                tgl_brk,
+                tgl_kmb,
+                spt.tempat_tujuan_display or spt.tempat_tujuan if spt else "-",
+                spt.berita if spt else "-",
+                ket,
+            ]
+
+            for col_idx, val in enumerate(row_values, 1):
+                cell = ws.cell(row=row_num, column=col_idx)
+                cell.value = val
+                cell.fill = row_fill
+                cell.font = data_font
+                cell.border = cell_border
+                cell.alignment = align_center if col_idx in [1, 3, 6, 9, 10] else align_left
+
+        for col in ws.columns:
+            max_len = max(len(str(cell.value or '')) for cell in col)
+            col_letter = col[0].column_letter
+            ws.column_dimensions[col_letter].width = min(max(max_len + 4, 12), 50)
+
+        ws.freeze_panes = "A2"
+        if ws.max_row > 1:
+            ws.auto_filter.ref = ws.dimensions
+
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+
+        response = HttpResponse(
+            output.getvalue(),
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
+        response["Content-Disposition"] = 'attachment; filename="rekap_perjalanan_per_orang.xlsx"'
+        return response
+
     def get(self, request):
         rows, grouped_rows, person_stats, start_date, end_date, keyword = (
             self._build_rows(request)
         )
+
+        if request.GET.get("export") == "excel":
+            return self._excel_response(rows)
+
         return render(request, self.template_name, {
             "title": self.title,
             "rows": rows,

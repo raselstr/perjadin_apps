@@ -1,929 +1,837 @@
-/**
- * ============================================================================
- * TEMA 3D VISUAL IDENTITAS KABUPATEN ASAHAN (HIJAU MUDA & HARMONI 3 DIMENSI)
- * ============================================================================
- * Dominan Hijau Muda (#8BC34A / #DCEDC8 / #E8F5E9): Nuansa segar, bersih, 
- *     dan elegan dengan tekstur 3 dimensi yang sejuk dan menenangkan.
- * Konten Putih (#FFFFFF): Latar kartu melayang (floating 3D) dengan kontras prima.
- * Teks Gelap (#143818 / #0F172A): Disesuaikan agar teks terbaca tajam dan jelas.
- * Aksen Kuning Emas (#FFC107 / #F57C00): Mewakili sudut bersegi lima Pancasila.
- * Pendukung Hijau Tua (#2E7D32 / #1B5E20): Kemakmuran dan kerukunan.
- * Submenu Sidebar: Garis vertikal dan pembatas sub menu dihilangkan secara total.
- * ============================================================================
- */
+/* ============================================================================
+   TEMA 3D VISUAL IDENTITAS KABUPATEN ASAHAN (KOMPOSISI HIJAU ZAMRUD, EMAS & MERAH)
+   Aturan Komposisi Warna:
+   - 60% Hijau Zamrud (Emerald): Latar kanvas, sidebar, header, table headers, stat cards
+   - 30% Putih & Netral Bersih: Kartu konten melayang, sel tabel, input, keterbacaan tinggi
+   - 10% Kuning Emas: Tombol utama, aksen aktif, ranking, badge highlight
+   - Aksen Merah (Ruby): Tombol hapus/bahaya, notifikasi, badge status ditolak/batal
+   ============================================================================ */
 
 :root {
-  /* Palet Warna Hijau Muda & Identitas Asahan */
-  --asahan-green-light-50:  #F4FAF4; /* Kanvas Latar Belakang Segar */
-  --asahan-green-light-100: #E8F5E9; /* Hijau Muda Lembut */
-  --asahan-green-light-200: #DCEDC8; /* Hijau Muda Pastel */
-  --asahan-green-light-300: #C5E1A5;
-  --asahan-green-light-400: #A5D6A7;
-  --asahan-green-light-500: #8BC34A; /* Hijau Muda Utama */
-  --asahan-green-light-600: #7CB342;
-  --asahan-green-light-700: #689F38;
+  /* ===================== 60% HIJAU ZAMRUD (EMERALD) ===================== */
+  --emerald-950: #022c22; /* Teks sangat gelap untuk kontras maksimal */
+  --emerald-900: #064E3B; /* Zamrud tua berwibawa */
+  --emerald-800: #065F46; /* Zamrud pekat elegan */
+  --emerald-700: #047857; /* Zamrud klasik */
+  --emerald-600: #059669; /* Zamrud terang dinamis */
+  --emerald-500: #10B981; /* Zamrud highlight */
+  --emerald-400: #34D399; /* Zamrud cerah */
+  --emerald-300: #6EE7B7; /* Zamrud aksen garis */
+  --emerald-200: #A7F3D0; /* Zamrud pastel border */
+  --emerald-100: #D1FAE5; /* Zamrud lembut */
+  --emerald-50:  #ECFDF5; /* Kanvas dasar sangat lembut */
 
-  --asahan-green-deep-800:  #2E7D32; /* Hijau Tua */
-  --asahan-green-deep-900:  #1B5E20; /* Hijau Hutan Pekat */
-  --asahan-green-deep-950:  #143818; /* Hijau Gelap untuk Keterbacaan Teks Prima */
+  /* ===================== 10% KUNING EMAS (GOLD) ===================== */
+  --gold-800: #92400E;
+  --gold-700: #B45309;
+  --gold-600: #D97706;
+  --gold-500: #F59E0B;
+  --gold-400: #FBBF24;
+  --gold-300: #FCD34D;
+  --gold-100: #FEF3C7;
+  --gold-50:  #FFFBEB;
 
-  --asahan-white: #FFFFFF;     /* Putih Murni untuk Kartu Konten */
-  --asahan-card-bg: #FFFFFF;
-  --asahan-text-dark: #0F172A; /* Teks Utama Kontras Tinggi */
-  --asahan-text-muted: #475569;
+  /* ===================== AKSEN MERAH (RUBY / CRIMSON) ===================== */
+  --ruby-950: #450A0A;
+  --ruby-900: #7F1D1D;
+  --ruby-800: #991B1B;
+  --ruby-700: #B91C1C;
+  --ruby-600: #DC2626;
+  --ruby-500: #EF4444;
+  --ruby-400: #F87171;
+  --ruby-100: #FEE2E2;
+  --ruby-50:  #FEF2F2;
 
-  --asahan-gold-400: #FFD54F;
-  --asahan-gold-500: #FFC107; /* Kuning Emas Pancasila */
-  --asahan-gold-600: #FFA000;
-  --asahan-gold-700: #F57C00;
-  --asahan-gold-bevel: #B45309;
-
-  --asahan-green-bevel: #144917;
-
-  /* Efek 3D / Layered Neumorphic Depths */
-  --elev-3d-card: 0 2px 4px rgba(46, 125, 50, 0.04), 
-                  0 8px 18px -2px rgba(46, 125, 50, 0.10), 
-                  0 18px 32px -6px rgba(46, 125, 50, 0.08), 
-                  inset 0 1px 0 rgba(255, 255, 255, 0.95);
-
-  --elev-3d-card-hover: 0 6px 12px -2px rgba(46, 125, 50, 0.08), 
-                        0 16px 28px -4px rgba(46, 125, 50, 0.15), 
-                        0 26px 44px -8px rgba(46, 125, 50, 0.10), 
-                        inset 0 1px 0 #FFFFFF;
-
-  --elev-3d-modal: 0 15px 35px -8px rgba(20, 56, 24, 0.25), 
-                   0 30px 60px -12px rgba(46, 125, 50, 0.20),
-                   inset 0 1px 0 rgba(255, 255, 255, 0.95);
-
-  --elev-3d-btn-gold: 0 4px 0 var(--asahan-gold-bevel), 
-                      0 8px 16px rgba(245, 124, 0, 0.35), 
-                      inset 0 1px 0 rgba(255, 255, 255, 0.7);
-
-  --elev-3d-btn-gold-active: 0 1px 0 var(--asahan-gold-bevel), 
-                             0 2px 6px rgba(245, 124, 0, 0.25), 
-                             inset 0 2px 4px rgba(0, 0, 0, 0.18);
-
-  --elev-3d-btn-green: 0 4px 0 #144917, 
-                       0 8px 16px rgba(46, 125, 50, 0.35), 
-                       inset 0 1px 0 rgba(255, 255, 255, 0.5);
-
-  --elev-3d-btn-green-active: 0 1px 0 #144917, 
-                              0 2px 6px rgba(46, 125, 50, 0.25), 
-                              inset 0 2px 4px rgba(0, 0, 0, 0.2);
-
-  --inset-3d-field: inset 0 2px 4px rgba(46, 125, 50, 0.06), 
-                    0 1px 0 #FFFFFF;
+  /* ===================== 30% PUTIH & NETRAL BERSIH ===================== */
+  --surface-white: #FFFFFF;
+  --surface-card:  #FFFFFF;
+  --surface-muted: #F8FAFC;
+  --text-dark:     #022c22;
+  --text-body:     #1E293B;
+  --text-muted:    #475569;
+  --border-subtle: rgba(5, 150, 105, 0.20);
 }
 
 /* ============================================================================
-   1. LATAR BELAKANG KANVAS UTAMA (HIJAU MUDA DENGAN GELOMBANG 3D ELEGAN)
+   1. DASAR KANVAS & RESPONSIVE SCALING (ZOOM IN / ZOOM OUT FULL ADAPTIVE)
    ============================================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  max-width: 100vw;
+  min-width: 320px;
+  overflow-x: hidden;
+  background-color: var(--emerald-50) !important;
+  color: var(--text-body) !important;
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+}
+
 body {
-  background-color: var(--asahan-green-light-100) !important;
-  background-image: 
-    /* Gelombang 1: Dataran Tinggi (Atas Kiri) - Hijau Muda */
-    radial-gradient(circle at 12% 8%, rgba(139, 195, 74, 0.28) 0%, transparent 45%),
-    /* Gelombang 2: Dataran Rendah (Pusat & Kanan) - Mint Lembut */
-    radial-gradient(circle at 88% 30%, rgba(165, 214, 167, 0.32) 0%, transparent 50%),
-    /* Gelombang 3: Pesisir (Bawah Kiri) - Hijau Daun */
-    radial-gradient(circle at 35% 95%, rgba(124, 179, 66, 0.22) 0%, transparent 55%),
-    /* Lapisan Gradien Kanvas Hijau Muda */
-    linear-gradient(145deg, #F4FAF4 0%, #E8F5E9 40%, #E0F2E1 70%, #DCEDC8 100%) !important;
-  background-attachment: fixed !important;
-  color: var(--asahan-text-dark) !important;
+  /* Latar Bertema 3 Gelombang Ombak Zamrud & Gradasi Halus */
+  background-image:
+    radial-gradient(circle at 10% 12%, rgba(5, 150, 105, 0.18) 0%, transparent 45%),
+    radial-gradient(circle at 90% 88%, rgba(16, 185, 129, 0.14) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(245, 158, 11, 0.05) 0%, transparent 60%),
+    linear-gradient(145deg, #F0FDF4 0%, #ECFDF5 50%, #D1FAE5 100%) !important;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
   min-height: 100vh;
-  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Tekstur Halus Kanvas 3D */
-body::before {
-  content: "";
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4) 0%, transparent 75%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Container Transparan agar Latar Hijau Muda Membingkai Kartu Putih */
+/* Penyesuaian Dimensi Container saat Zoom */
 .pc-container {
-  background: transparent !important;
-  position: relative;
-  z-index: 1;
+  min-height: calc(100vh - 74px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 100%;
+  transition: all 0.25s ease;
 }
 
-/* ============================================================================
-   2. HEADER TOPBAR 3D (PUTIH & AKSEN HIJAU MUDA, TEKS GELAP SANGAT JELAS)
-   ============================================================================ */
-.pc-header {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F4FAF4 60%, #E8F5E9 100%) !important;
-  border-bottom: 2px solid var(--asahan-green-light-500) !important;
-  box-shadow: 0 4px 18px rgba(46, 125, 50, 0.12), inset 0 1px 0 #FFFFFF !important;
-  color: var(--asahan-green-deep-950) !important;
-  z-index: 1025;
+.pc-content {
+  padding: clamp(12px, 1.8vw, 24px) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  flex: 1 0 auto;
 }
 
-.pc-header .m-header {
-  background: linear-gradient(180deg, #F1F8E9 0%, #E8F5E9 100%) !important;
-  border-right: 1px solid rgba(139, 195, 74, 0.3) !important;
-  box-shadow: inset -2px 0 5px rgba(46, 125, 50, 0.05);
-}
-
-.pc-header .brand-text .fw-bold {
-  color: var(--asahan-green-deep-950) !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.5px;
-}
-
-.pc-header .brand-text .text-muted {
-  color: var(--asahan-green-deep-800) !important;
-  font-weight: 700 !important;
-  letter-spacing: 1.5px;
-}
-
-.pc-header h3.text-dark {
-  color: var(--asahan-green-deep-950) !important;
-  font-weight: 700 !important;
-}
-
-.pc-header label.text-muted {
-  color: #475569 !important;
-  font-weight: 600;
-}
-
-/* Tombol Ikon Header 3D */
-.pc-header .head-link-secondary,
-.pc-header .head-link-primary {
-  background: #FFFFFF !important;
-  color: var(--asahan-green-deep-800) !important;
-  border: 1.5px solid var(--asahan-green-light-300) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 2px 5px rgba(46, 125, 50, 0.08), inset 0 1px 0 #FFFFFF !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-}
-
-.pc-header .head-link-secondary:hover,
-.pc-header .head-link-primary:hover {
-  background: var(--asahan-green-light-100) !important;
-  border-color: var(--asahan-green-light-500) !important;
-  color: var(--asahan-green-deep-900) !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.15) !important;
-}
-
-.pc-header .head-link-secondary:active,
-.pc-header .head-link-primary:active {
-  transform: translateY(1px);
-}
-
-/* Badge Tahun Anggaran di Header */
-.pc-header .header-user-profile .fw-semibold.text-dark {
-  color: var(--asahan-green-deep-900) !important;
-  font-weight: 700 !important;
-}
-
-/* ============================================================================
-   3. SIDEBAR NAVIGATION 3D (HIJAU MUDA, SUBMENU TANPA GARIS SAMA SEKALI)
-   ============================================================================ */
-.pc-sidebar {
-  background: linear-gradient(180deg, #FFFFFF 0%, #F4FAF4 40%, #E8F5E9 100%) !important;
-  border-right: 1px solid rgba(139, 195, 74, 0.3) !important;
-  box-shadow: 4px 0 20px rgba(46, 125, 50, 0.08) !important;
-}
-
-.pc-sidebar .navbar-wrapper {
-  background: transparent !important;
-}
-
-.pc-sidebar .m-header {
-  background: linear-gradient(180deg, #F1F8E9 0%, #E8F5E9 100%) !important;
-  border-bottom: 1px solid rgba(139, 195, 74, 0.3) !important;
-  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.06) !important;
-}
-
-.pc-sidebar .m-header .brand-text .fw-bold {
-  color: var(--asahan-green-deep-950) !important;
-  letter-spacing: 0.5px;
-  font-weight: 700;
-}
-
-.pc-sidebar .m-header .brand-text .text-muted {
-  color: var(--asahan-green-deep-800) !important;
-  font-weight: 700 !important;
-  letter-spacing: 1.5px;
-}
-
-/* Section Caption */
-.pc-sidebar .pc-caption {
-  color: var(--asahan-green-deep-800) !important;
-  text-transform: uppercase !important;
-  font-size: 11px !important;
-  letter-spacing: 1.2px !important;
-  font-weight: 700 !important;
-  padding: 20px 20px 8px !important;
-}
-
-.pc-sidebar .pc-caption:not(:first-child):after {
-  border-top: 1px solid rgba(139, 195, 74, 0.2) !important;
-}
-
-/* Menu Items */
-.pc-sidebar .pc-link {
-  color: #1E293B !important; /* Teks abu-abu gelap sangat jelas terbaca */
-  border-radius: 10px !important;
-  margin: 3px 12px !important;
-  padding: 10px 14px !important;
-  font-weight: 600 !important;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  position: relative;
-}
-
-.pc-sidebar .pc-micon i {
-  color: var(--asahan-green-deep-800) !important;
-  font-size: 18px !important;
-  transition: all 0.2s ease !important;
-}
-
-/* Hover Menu Item 3D */
-.pc-sidebar .pc-link:hover {
-  background: rgba(139, 195, 74, 0.22) !important;
-  color: var(--asahan-green-deep-950) !important;
-  transform: translateX(4px);
-  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.12), inset 0 1px 0 #FFFFFF !important;
-}
-
-.pc-sidebar .pc-link:hover .pc-micon i {
-  color: var(--asahan-green-deep-900) !important;
-}
-
-/* Menu Aktif 3D */
-.pc-sidebar .pc-item.active > .pc-link {
-  background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%) !important;
-  color: #FFFFFF !important;
-  font-weight: 700 !important;
-  border-radius: 10px !important;
-  border: none !important;
-  box-shadow: 0 4px 12px rgba(104, 159, 56, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-  transform: translateX(4px);
-}
-
-.pc-sidebar .pc-item.active > .pc-link .pc-micon i {
-  color: #FFFFFF !important;
-}
-
-/* ============================================================================
-   SUBMENU SIDEBAR (SEMUA GARIS DIHILANGKAN SECARA TOTAL SESUAI PERMINTAAN)
-   ============================================================================ */
-.pc-sidebar .pc-submenu,
-.pc-sidebar .pc-submenu .pc-submenu {
-  background: rgba(220, 237, 200, 0.45) !important;
-  border-radius: 10px !important;
-  margin: 3px 12px !important;
-  padding: 4px 0 !important;
-  border: none !important;
-  box-shadow: none !important;
-  position: relative;
-}
-
-/* Hilangkan garis vertikal, garis penghubung, titik, dan semua pseudo-element */
-.pc-sidebar .pc-navbar > li > .pc-submenu::before,
-.pc-sidebar .pc-navbar > li > .pc-submenu::after,
-.pc-sidebar .pc-submenu::before,
-.pc-sidebar .pc-submenu::after,
-.pc-sidebar .pc-submenu .pc-item::before,
-.pc-sidebar .pc-submenu .pc-item::after,
-.pc-sidebar .pc-submenu .pc-submenu > .pc-item::before,
-.pc-sidebar .pc-submenu .pc-submenu .pc-submenu > .pc-item::before {
-  display: none !important;
-  content: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  border: none !important;
-  background: transparent !important;
-}
-
-.pc-sidebar .pc-submenu .pc-item {
-  border: none !important;
-}
-
-.pc-sidebar .pc-submenu .pc-link {
-  padding: 8px 16px 8px 36px !important;
-  font-size: 13px !important;
-  color: #1E293B !important;
-  border: none !important;
-  border-left: none !important;
-  border-radius: 8px !important;
-  margin: 2px 6px !important;
-  font-weight: 500 !important;
-}
-
-.pc-sidebar .pc-submenu .pc-link:hover {
-  background: rgba(139, 195, 74, 0.3) !important;
-  color: var(--asahan-green-deep-950) !important;
-  transform: translateX(3px);
-  border: none !important;
-  border-left: none !important;
-}
-
-.pc-sidebar .pc-submenu .pc-link.active {
-  color: #FFFFFF !important;
-  font-weight: 700 !important;
-  background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%) !important;
-  border: none !important;
-  border-left: none !important;
-  box-shadow: 0 2px 6px rgba(104, 159, 56, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-}
-
-/* ============================================================================
-   4. KONTEN & KARTU 3D (PUTIH BERSIH DENGAN TEKS GELAP SANGAT JELAS)
-   ============================================================================ */
-
-/* Page Header Titles & Breadcrumbs di Atas Kanvas Hijau Muda (Kontras Tajam) */
 .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: clamp(12px, 1.5vw, 20px) !important;
 }
 
-.page-header .page-header-title h5,
-.page-header .page-header-title h4,
-.page-header .page-header-title h3 {
-  color: var(--asahan-green-deep-950) !important;
+.page-header-title h5 {
+  font-size: clamp(1.1rem, 1.4vw, 1.5rem) !important;
   font-weight: 700 !important;
-  letter-spacing: 0.3px;
-  text-shadow: none !important;
+  color: var(--emerald-950) !important;
+  letter-spacing: -0.01em;
 }
 
-.breadcrumb-item, 
 .breadcrumb-item a {
-  color: #335337 !important;
-  text-decoration: none !important;
+  color: var(--emerald-700) !important;
   font-weight: 600;
-}
-
-.breadcrumb-item a:hover {
-  color: var(--asahan-green-deep-950) !important;
+  text-decoration: none;
 }
 
 .breadcrumb-item.active,
 .breadcrumb-item[aria-current="page"] {
-  color: #B45309 !important; /* Emas hangat kontras */
-  font-weight: 700 !important;
+  color: var(--emerald-950) !important;
+  font-weight: 700;
 }
 
-.breadcrumb-item + .breadcrumb-item::before {
-  color: #68856c !important;
+/* ============================================================================
+   2. HEADER ATAS (NAVBAR 3D DENGAN AKSEN ZAMRUD & EMAS)
+   ============================================================================ */
+.pc-header {
+  background: rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(12px);
+  border-bottom: 2px solid var(--emerald-500) !important;
+  box-shadow:
+    0 2px 4px rgba(6, 78, 59, 0.04),
+    0 8px 20px -2px rgba(6, 78, 59, 0.10) !important;
+  transition: all 0.25s ease;
 }
 
-/* KARTU 3D PUTIH MELAYANG (FLOATING CARD) */
+.pc-header .header-wrapper {
+  padding: 0 clamp(10px, 1.5vw, 20px);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pc-header .pc-head-link {
+  color: var(--emerald-900) !important;
+  font-weight: 600;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.pc-header .pc-head-link:hover {
+  background: var(--emerald-100) !important;
+  color: var(--emerald-950) !important;
+  transform: translateY(-1px);
+}
+
+.pc-header .pc-h-item.active .pc-head-link {
+  background: var(--emerald-50) !important;
+  color: var(--emerald-900) !important;
+  border: 1px solid var(--emerald-200);
+}
+
+/* Dropdown profil di header */
+.pc-header .dropdown-menu {
+  background: #FFFFFF !important;
+  border: 1px solid var(--emerald-200) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 16px 36px -4px rgba(6, 78, 59, 0.16) !important;
+}
+
+.pc-header .dropdown-item {
+  color: var(--emerald-950) !important;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.pc-header .dropdown-item:hover {
+  background: var(--emerald-50) !important;
+  color: var(--emerald-800) !important;
+}
+
+/* ============================================================================
+   3. SIDEBAR 3D (HIJAU ZAMRUD ELEGAN TANPA GARIS PADA SUBMENU)
+   ============================================================================ */
+.pc-sidebar {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
+  border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
+  box-shadow: 4px 0 24px rgba(6, 78, 59, 0.08) !important;
+}
+
+.pc-sidebar .m-header {
+  background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
+  border-bottom: 2px solid var(--gold-500) !important;
+  box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25) !important;
+  padding: 16px 20px;
+}
+
+.pc-sidebar .m-header .b-brand img {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.pc-sidebar .pc-caption label {
+  color: var(--emerald-800) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  margin-top: 14px;
+}
+
+.pc-sidebar .pc-link {
+  color: #1E293B !important;
+  font-weight: 600;
+  border-radius: 10px;
+  margin: 2px 8px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pc-sidebar .pc-link:hover {
+  background: var(--emerald-100) !important;
+  color: var(--emerald-950) !important;
+  transform: translateX(4px);
+}
+
+.pc-sidebar .pc-link .pc-micon {
+  color: var(--emerald-700) !important;
+}
+
+/* Menu Aktif: Pill 3D Emas & Zamrud */
+.pc-sidebar .pc-item.active > .pc-link {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%) !important;
+  color: #FFFFFF !important;
+  border-left: 4px solid var(--gold-500) !important;
+  box-shadow:
+    0 4px 12px rgba(6, 78, 59, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transform: translateX(3px);
+}
+
+.pc-sidebar .pc-item.active > .pc-link .pc-micon {
+  color: var(--gold-400) !important;
+}
+
+/* ============================================================================
+   PENGHILANGAN TOTAL GARIS & DOT PADA SUBMENU SIDEBAR (USER REQUIREMENT)
+   ============================================================================ */
+.pc-sidebar .pc-submenu,
+.pc-sidebar .pc-navbar > li > .pc-submenu,
+.pc-sidebar .pc-submenu .pc-item {
+  border: none !important;
+  background: transparent !important;
+}
+
+.pc-sidebar .pc-submenu::before,
+.pc-sidebar .pc-submenu::after,
+.pc-sidebar .pc-navbar > li > .pc-submenu::before,
+.pc-sidebar .pc-navbar > li > .pc-submenu::after,
+.pc-sidebar .pc-submenu .pc-item::before,
+.pc-sidebar .pc-submenu .pc-item::after,
+.pc-sidebar .pc-submenu .pc-link::before,
+.pc-sidebar .pc-submenu .pc-link::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+.pc-sidebar .pc-submenu .pc-link {
+  padding-left: 28px !important;
+  font-size: 0.9rem;
+  color: var(--emerald-950) !important;
+  font-weight: 600;
+}
+
+.pc-sidebar .pc-submenu .pc-item.active > .pc-link {
+  background: var(--gold-400) !important;
+  color: var(--emerald-950) !important;
+  border: none !important;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25) !important;
+}
+
+/* ============================================================================
+   4. KARTU KONTEN 3D MELAYANG (FLOATING 3D WHITE CARDS)
+   ============================================================================ */
 .card {
   background: #FFFFFF !important;
-  border: 1px solid rgba(255, 255, 255, 0.95) !important;
-  border-radius: 16px !important;
-  box-shadow: var(--elev-3d-card) !important;
-  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
-              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  position: relative;
-  overflow: hidden;
+  border: 1px solid rgba(5, 150, 105, 0.22) !important;
+  border-top: 3px solid var(--emerald-600) !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 2px 4px rgba(6, 78, 59, 0.04),
+    0 10px 24px -2px rgba(6, 78, 59, 0.10),
+    inset 0 1px 0 #FFFFFF !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  margin-bottom: clamp(14px, 1.8vw, 24px);
+  min-width: 0;
 }
 
-/* Efek Floating Mengambang pada Hover */
 .card:hover {
-  box-shadow: var(--elev-3d-card-hover) !important;
-  transform: translateY(-4px) translateZ(0);
+  box-shadow:
+    0 4px 8px rgba(6, 78, 59, 0.06),
+    0 16px 32px -4px rgba(6, 78, 59, 0.14),
+    inset 0 1px 0 #FFFFFF !important;
 }
 
 .card-header {
-  background: transparent !important;
-  border-bottom: 1px solid rgba(46, 125, 50, 0.1) !important;
-  padding: 1.15rem 1.4rem !important;
+  background: #FFFFFF !important;
+  border-bottom: 1.5px solid var(--emerald-100) !important;
+  padding: clamp(12px, 1.5vw, 18px) clamp(14px, 2vw, 22px) !important;
+  border-top-left-radius: 14px !important;
+  border-top-right-radius: 14px !important;
 }
 
 .card-header h3,
 .card-header h4,
-.card-header h5,
-.card-header h6 {
-  color: var(--asahan-green-deep-950) !important;
+.card-header h5 {
+  color: var(--emerald-950) !important;
   font-weight: 700 !important;
-  letter-spacing: 0.2px;
+  margin-bottom: 0;
 }
 
 .card-body {
-  padding: 1.35rem 1.5rem !important;
-  color: var(--asahan-text-dark) !important;
-}
-
-.card-footer {
-  background: rgba(139, 195, 74, 0.05) !important;
-  border-top: 1px solid rgba(46, 125, 50, 0.1) !important;
-  padding: 1rem 1.4rem !important;
+  padding: clamp(14px, 2vw, 22px) !important;
 }
 
 /* ============================================================================
-   5. STAT CARD DASHBOARD 3D (HIJAU MUDA, HIJAU TUA, EMAS, HIJAU HUTAN)
+   5. DASHBOARD STAT CARDS 3D (ZAMRUD, EMAS, MERAH & DEEP FOREST)
    ============================================================================ */
 .dashboard-stat-card {
+  border-radius: 14px !important;
+  padding: 16px 18px !important;
+  min-height: 105px !important;
+  display: flex !important;
+  align-items: center !important;
+  position: relative !important;
   overflow: hidden !important;
-  border-radius: 16px !important;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  position: relative;
   border: none !important;
-}
-
-/* Stat Card 1: Hijau Muda 3D Tile (Menggantikan Biru Tua) */
-.dashboard-stat-card.bg-primary {
-  background: linear-gradient(135deg, #8BC34A 0%, #689F38 100%) !important;
-  box-shadow: 0 4px 6px rgba(104, 159, 56, 0.2), 
-              0 12px 24px -4px rgba(104, 159, 56, 0.38), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-}
-
-.dashboard-stat-card.bg-primary h4,
-.dashboard-stat-card.bg-primary p,
-.dashboard-stat-card.bg-primary .stat-card-label {
-  color: #FFFFFF !important;
-  font-weight: 700;
-}
-
-/* Stat Card 2: Hijau Tua Kemakmuran 3D Tile */
-.dashboard-stat-card.bg-success {
-  background: linear-gradient(135deg, #388E3C 0%, #1B5E20 100%) !important;
-  box-shadow: 0 4px 6px rgba(27, 94, 32, 0.2), 
-              0 12px 24px -4px rgba(27, 94, 32, 0.45), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-}
-
-/* Stat Card 3: Kuning Emas Pancasila 3D Tile (Teks Gelap agar Terbaca Jelas) */
-.dashboard-stat-card.bg-warning {
-  background: linear-gradient(135deg, #FFC107 0%, #FFA000 50%, #F57C00 100%) !important;
-  box-shadow: 0 4px 6px rgba(245, 124, 0, 0.2), 
-              0 12px 24px -4px rgba(245, 124, 0, 0.45), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
-}
-
-.dashboard-stat-card.bg-warning h4,
-.dashboard-stat-card.bg-warning p,
-.dashboard-stat-card.bg-warning .stat-card-label {
-  color: #143818 !important; /* Hijau Gelap Kontras di atas Emas agar sangat jelas */
-  font-weight: 700;
-}
-
-/* Stat Card 4: Hijau Hutan Gelap 3D Tile */
-.dashboard-stat-card.bg-dark {
-  background: linear-gradient(135deg, #1B5E20 0%, #0F3A14 100%) !important;
-  box-shadow: 0 4px 6px rgba(15, 58, 20, 0.2), 
-              0 12px 24px -4px rgba(15, 58, 20, 0.5), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 .dashboard-stat-card:hover {
-  transform: translateY(-5px) scale(1.01) !important;
-  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.15), 
-              0 20px 35px -4px rgba(0, 0, 0, 0.25), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-4px) scale(1.01) !important;
 }
 
-.dashboard-stat-card .stat-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+/* Kartu 1: Hijau Zamrud Primer */
+.dashboard-stat-card.bg-primary {
+  background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
+  box-shadow:
+    0 4px 0 #022c22,
+    0 10px 22px rgba(6, 78, 59, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
 }
 
-/* Panel Overview Ruang Pantau 3D */
-.overview-panel {
-  border: 1px solid rgba(139, 195, 74, 0.25) !important;
-  border-radius: 14px !important;
-  padding: 16px 18px !important;
-  background: linear-gradient(135deg, #FFFFFF 0%, #F1F8E9 100%) !important;
-  box-shadow: 0 2px 6px rgba(46, 125, 50, 0.05), inset 0 1px 0 #FFFFFF !important;
-  transition: all 0.2s ease !important;
+/* Kartu 2: Kuning Emas Prestisius */
+.dashboard-stat-card.bg-warning {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 60%, #B45309 100%) !important;
+  box-shadow:
+    0 4px 0 #92400E,
+    0 10px 22px rgba(217, 119, 6, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
 }
 
-.overview-panel:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(46, 125, 50, 0.12), inset 0 1px 0 #FFFFFF !important;
+.dashboard-stat-card.bg-warning * {
+  color: #022c22 !important;
 }
 
-.overview-panel .fw-semibold {
-  color: var(--asahan-green-deep-950) !important;
+/* Kartu 3: Merah Ruby Berani */
+.dashboard-stat-card.bg-danger {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 55%, #B91C1C 100%) !important;
+  box-shadow:
+    0 4px 0 #7F1D1D,
+    0 10px 22px rgba(220, 38, 38, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
 }
 
-.overview-panel .text-muted {
-  color: #475569 !important;
+/* Kartu 4: Deep Forest Zamrud Tua */
+.dashboard-stat-card.bg-dark,
+.dashboard-stat-card.bg-success {
+  background: linear-gradient(135deg, #022c22 0%, #064E3B 60%, #065F46 100%) !important;
+  box-shadow:
+    0 4px 0 #011a14,
+    0 10px 22px rgba(2, 44, 34, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
 }
 
-/* Carousel Dokumentasi 3D */
-.report-carousel-card {
-  box-shadow: var(--elev-3d-card) !important;
-  border-radius: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+.dashboard-stat-card .stat-value {
+  font-size: clamp(1.4rem, 2vw, 1.85rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em;
+}
+
+.dashboard-stat-card .stat-label {
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  opacity: 0.95;
 }
 
 /* ============================================================================
-   6. TOMBOL 3D (EMAS PANCASILA, HIJAU KEMAKMURAN & HIJAU MUDA)
+   6. TABEL DATA 3D & SCROLLBAR HORIZONTAL OTOMATIS (USER REQUIREMENT)
    ============================================================================ */
+.table-responsive,
+#table-container .table-responsive,
+.data-perjalanan-table,
+.laporan-pengawas-table {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  position: relative !important;
+  border: 1px solid var(--emerald-200) !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(6, 78, 59, 0.05) !important;
+  margin-bottom: 1rem !important;
+}
 
-/* TOMBOL UTAMA: KUNING EMAS PANCASILA (TEKS HIJAU GELAP SANGAT JELAS) */
-.btn-primary {
-  background: linear-gradient(180deg, #FFC107 0%, #FFA000 50%, #F57C00 100%) !important;
-  border: none !important;
-  color: #143818 !important; /* Teks Hijau Gelap Kontras Tinggi */
+/* Custom Scrollbar Horizontal Lebar & Jelas */
+.table-responsive::-webkit-scrollbar,
+#table-container .table-responsive::-webkit-scrollbar,
+.data-perjalanan-table::-webkit-scrollbar,
+.laporan-pengawas-table::-webkit-scrollbar {
+  height: 10px !important;
+  width: 10px !important;
+}
+
+.table-responsive::-webkit-scrollbar-track,
+#table-container .table-responsive::-webkit-scrollbar-track,
+.data-perjalanan-table::-webkit-scrollbar-track,
+.laporan-pengawas-table::-webkit-scrollbar-track {
+  background: #ECFDF5 !important;
+  border-radius: 6px !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb,
+#table-container .table-responsive::-webkit-scrollbar-thumb,
+.data-perjalanan-table::-webkit-scrollbar-thumb,
+.laporan-pengawas-table::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #059669 0%, #047857 50%, #064E3B 100%) !important;
+  border-radius: 6px !important;
+  border: 2px solid #ECFDF5 !important;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover,
+#table-container .table-responsive::-webkit-scrollbar-thumb:hover {
+  background: #022c22 !important;
+}
+
+/* Tabel di dalam Wrapper */
+.table-responsive > .table,
+#table-container table,
+.data-perjalanan-table table,
+.laporan-pengawas-table table {
+  width: 100% !important;
+  min-width: max-content !important;
+  margin-bottom: 0 !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.table thead th {
+  background: linear-gradient(180deg, #065F46 0%, #047857 100%) !important;
+  color: #FFFFFF !important;
   font-weight: 700 !important;
-  border-radius: 10px !important;
-  padding: 0.55rem 1.25rem !important;
-  box-shadow: var(--elev-3d-btn-gold) !important;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) !important;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
-  cursor: pointer;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 12px 14px !important;
+  border-bottom: 3px solid var(--gold-500) !important;
+  border-top: none !important;
+  white-space: nowrap !important;
+  vertical-align: middle !important;
+}
+
+.table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.table tbody tr:nth-of-type(even) {
+  background-color: #F7FCF9 !important;
+}
+
+.table tbody tr:hover {
+  background-color: #E6F7EF !important;
+}
+
+.table tbody td {
+  padding: 11px 14px !important;
+  border-bottom: 1px solid rgba(5, 150, 105, 0.12) !important;
+  color: #0F172A !important;
+  font-size: 0.9rem !important;
+  vertical-align: middle !important;
+}
+
+/* ============================================================================
+   7. TOMBOL-TOMBOL 3D (EMAS PRIMER, ZAMRUD SUKSES, MERAH BAHAYA/PDF)
+   ============================================================================ */
+.btn {
+  font-weight: 700 !important;
+  border-radius: 9px !important;
+  padding: 0.5rem 1.15rem !important;
+  font-size: 0.88rem !important;
+  letter-spacing: 0.01em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
+  gap: 6px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: pointer;
+}
+
+/* Tombol Primer: Kuning Emas Mewah 3D */
+.btn-primary {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%) !important;
+  border: none !important;
+  color: #022c22 !important;
+  box-shadow:
+    0 4px 0 #92400E,
+    0 6px 14px rgba(217, 119, 6, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .btn-primary:hover {
-  background: linear-gradient(180deg, #FFCA28 0%, #FFB300 50%, #FB8C00 100%) !important;
-  color: #0F290D !important;
+  background: linear-gradient(180deg, #FBBF24 0%, #F59E0B 100%) !important;
+  color: #000000 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 0 var(--asahan-gold-bevel), 
-              0 12px 20px rgba(245, 124, 0, 0.45), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  box-shadow:
+    0 6px 0 #92400E,
+    0 10px 18px rgba(217, 119, 6, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
 }
 
 .btn-primary:active {
-  transform: translateY(3px) !important;
-  box-shadow: var(--elev-3d-btn-gold-active) !important;
+  transform: translateY(2px) !important;
+  box-shadow:
+    0 1px 0 #92400E,
+    0 2px 6px rgba(217, 119, 6, 0.3),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* TOMBOL HIJAU KEMAKMURAN 3D */
-.btn-success {
-  background: linear-gradient(180deg, #43A047 0%, #388E3C 50%, #2E7D32 100%) !important;
+/* Tombol Sukses & Ekspor Excel: Hijau Zamrud 3D */
+.btn-success,
+.btn-export-excel {
+  background: linear-gradient(180deg, #059669 0%, #047857 100%) !important;
   border: none !important;
   color: #FFFFFF !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  padding: 0.55rem 1.25rem !important;
-  box-shadow: var(--elev-3d-btn-green) !important;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
-  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow:
+    0 4px 0 #064E3B,
+    0 6px 14px rgba(5, 150, 105, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
 }
 
-.btn-success:hover {
-  background: linear-gradient(180deg, #4CAF50 0%, #43A047 50%, #388E3C 100%) !important;
+.btn-success:hover,
+.btn-export-excel:hover {
+  background: linear-gradient(180deg, #10B981 0%, #059669 100%) !important;
   color: #FFFFFF !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 0 var(--asahan-green-bevel), 
-              0 12px 20px rgba(46, 125, 50, 0.45), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  box-shadow:
+    0 6px 0 #064E3B,
+    0 10px 18px rgba(5, 150, 105, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
 }
 
-.btn-success:active {
-  transform: translateY(3px) !important;
-  box-shadow: var(--elev-3d-btn-green-active) !important;
+.btn-success:active,
+.btn-export-excel:active {
+  transform: translateY(2px) !important;
+  box-shadow:
+    0 1px 0 #064E3B,
+    0 2px 6px rgba(5, 150, 105, 0.25),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Tombol Hijau Muda / Info 3D */
-.btn-info {
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 100%) !important;
+/* Tombol Bahaya / Hapus & Cetak PDF: Merah Ruby 3D */
+.btn-danger,
+.btn-export-pdf {
+  background: linear-gradient(180deg, #EF4444 0%, #DC2626 50%, #B91C1C 100%) !important;
   border: none !important;
   color: #FFFFFF !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 0 #4B7923, 0 6px 14px rgba(104, 159, 56, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  box-shadow:
+    0 4px 0 #7F1D1D,
+    0 6px 14px rgba(220, 38, 38, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
 }
 
-.btn-info:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 0 #4B7923, 0 10px 18px rgba(104, 159, 56, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
-}
-
-.btn-info:active {
-  transform: translateY(3px) !important;
-  box-shadow: 0 1px 0 #4B7923, 0 2px 6px rgba(104, 159, 56, 0.25) !important;
-}
-
-/* Tombol Secondary 3D */
-.btn-secondary {
-  background: linear-gradient(180deg, #64748b 0%, #475569 100%) !important;
-  border: none !important;
+.btn-danger:hover,
+.btn-export-pdf:hover {
+  background: linear-gradient(180deg, #F87171 0%, #EF4444 50%, #DC2626 100%) !important;
   color: #FFFFFF !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 0 #334155, 0 6px 12px rgba(71, 85, 105, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-}
-
-.btn-secondary:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 0 #334155, 0 10px 16px rgba(71, 85, 105, 0.4) !important;
+  box-shadow:
+    0 6px 0 #7F1D1D,
+    0 10px 18px rgba(220, 38, 38, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
 }
 
-.btn-secondary:active {
-  transform: translateY(3px) !important;
-  box-shadow: 0 1px 0 #334155, 0 2px 5px rgba(71, 85, 105, 0.2) !important;
+.btn-danger:active,
+.btn-export-pdf:active {
+  transform: translateY(2px) !important;
+  box-shadow:
+    0 1px 0 #7F1D1D,
+    0 2px 6px rgba(220, 38, 38, 0.25),
+    inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Tombol Danger / Hapus 3D */
-.btn-danger {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 50%, #b91c1c 100%) !important;
-  border: none !important;
-  color: #FFFFFF !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 4px 0 #991b1b, 0 6px 14px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-}
-
-.btn-danger:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 0 #991b1b, 0 10px 18px rgba(220, 38, 38, 0.45) !important;
-}
-
-.btn-danger:active {
-  transform: translateY(3px) !important;
-  box-shadow: 0 1px 0 #991b1b, 0 2px 6px rgba(220, 38, 38, 0.25) !important;
-}
-
-/* Tombol Outline 3D */
+/* Tombol Outline (Zamrud, Emas, Ruby) */
 .btn-outline-primary {
-  color: var(--asahan-green-deep-800) !important;
-  border: 1.5px solid var(--asahan-green-light-600) !important;
+  color: var(--emerald-800) !important;
+  border: 1.5px solid var(--emerald-600) !important;
   background: #FFFFFF !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 2px 5px rgba(46, 125, 50, 0.08), inset 0 1px 0 #FFFFFF !important;
-  transition: all 0.15s ease !important;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.08), inset 0 1px 0 #FFFFFF !important;
 }
 
 .btn-outline-primary:hover {
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 100%) !important;
+  background: var(--emerald-600) !important;
   color: #FFFFFF !important;
-  border-color: #689F38 !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(104, 159, 56, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-}
-
-.btn-outline-warning {
-  color: #B45309 !important;
-  border: 1.5px solid var(--asahan-gold-500) !important;
-  background: #FFFFFF !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 2px 5px rgba(245, 124, 0, 0.1), inset 0 1px 0 #FFFFFF !important;
-  transition: all 0.15s ease !important;
-}
-
-.btn-outline-warning:hover {
-  background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%) !important;
-  color: #143818 !important;
-  border-color: #F57C00 !important;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(245, 124, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
 .btn-outline-danger {
-  color: #dc2626 !important;
-  border: 1.5px solid #ef4444 !important;
+  color: var(--ruby-700) !important;
+  border: 1.5px solid var(--ruby-600) !important;
   background: #FFFFFF !important;
-  font-weight: 600 !important;
-  border-radius: 10px !important;
-  box-shadow: 0 2px 5px rgba(220, 38, 38, 0.1), inset 0 1px 0 #FFFFFF !important;
-  transition: all 0.15s ease !important;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.08), inset 0 1px 0 #FFFFFF !important;
 }
 
 .btn-outline-danger:hover {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%) !important;
+  background: var(--ruby-600) !important;
   color: #FFFFFF !important;
   transform: translateY(-2px);
-  box-shadow: 0 4px 10px rgba(220, 38, 38, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
-}
-
-.btn-sm {
-  padding: 0.35rem 0.75rem !important;
-  font-size: 0.82rem !important;
-  border-radius: 8px !important;
 }
 
 /* ============================================================================
-   7. FORMULIR & INPUT 3D (INSET DEPTH EMBOSSED)
+   8. FORM INPUT & KONTROL 3D INSET
    ============================================================================ */
 .form-control,
 .form-select {
-  background-color: #FFFFFF !important;
-  border: 1.5px solid #CBD5E1 !important;
-  border-radius: 10px !important;
-  box-shadow: var(--inset-3d-field) !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid rgba(5, 150, 105, 0.3) !important;
+  border-radius: 9px !important;
   color: #0F172A !important;
-  font-size: 0.92rem !important;
-  padding: 0.65rem 0.95rem !important;
+  padding: 0.55rem 0.85rem !important;
+  font-size: 0.9rem !important;
+  box-shadow: inset 0 1px 3px rgba(6, 78, 59, 0.08) !important;
   transition: all 0.2s ease !important;
 }
 
 .form-control:focus,
 .form-select:focus {
-  background-color: #FFFFFF !important;
-  border-color: var(--asahan-green-light-500) !important;
-  box-shadow: inset 0 1px 3px rgba(46, 125, 50, 0.08), 
-              0 0 0 4px rgba(139, 195, 74, 0.22) !important;
+  border-color: var(--emerald-600) !important;
+  box-shadow:
+    inset 0 1px 2px rgba(6, 78, 59, 0.1),
+    0 0 0 3px rgba(5, 150, 105, 0.22) !important;
   outline: none !important;
 }
 
 .form-label {
-  color: var(--asahan-green-deep-950) !important;
-  font-weight: 600 !important;
-  font-size: 0.88rem !important;
-  margin-bottom: 0.4rem !important;
-}
-
-/* ============================================================================
-   8. TABEL DATA 3D (LATAR PUTIH BERSIH & HEADER HIJAU MUDA)
-   ============================================================================ */
-.table-responsive {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(46, 125, 50, 0.08);
-}
-
-.table {
-  background-color: #FFFFFF !important;
-  margin-bottom: 0;
-  color: #1E293B !important;
-}
-
-.table thead th {
-  background: linear-gradient(180deg, #F1F8E9 0%, #DCEDC8 100%) !important;
-  color: var(--asahan-green-deep-950) !important;
+  color: var(--emerald-950) !important;
   font-weight: 700 !important;
-  font-size: 0.85rem !important;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 2px solid var(--asahan-green-light-500) !important;
-  padding: 12px 14px !important;
-  white-space: nowrap;
-}
-
-.table tbody tr {
-  transition: background-color 0.15s ease;
-  border-bottom: 1px solid #E2E8F0;
-}
-
-.table tbody tr:hover {
-  background-color: rgba(139, 195, 74, 0.08) !important;
-}
-
-.table td {
-  padding: 12px 14px !important;
-  vertical-align: middle;
+  font-size: 0.88rem !important;
+  margin-bottom: 5px !important;
 }
 
 /* ============================================================================
-   9. MODAL & DROPDOWN 3D (FLOATING HIGH ELEVATION)
+   9. MODAL 3D (HEADER ZAMRUD DENGAN GARIS EMAS & BODY PUTIH ELEGAN)
    ============================================================================ */
 .modal-content {
   background: #FFFFFF !important;
-  border-radius: 20px !important;
-  border: 1px solid rgba(255, 255, 255, 0.95) !important;
-  box-shadow: var(--elev-3d-modal) !important;
+  border: 1px solid rgba(5, 150, 105, 0.3) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 48px -4px rgba(6, 78, 59, 0.25) !important;
   overflow: hidden;
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #2E7D32 0%, #1B5E20 100%) !important;
-  color: #FFFFFF !important;
-  border-bottom: 3px solid var(--asahan-green-light-500) !important;
-  padding: 1.25rem 1.5rem !important;
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%) !important;
+  border-bottom: 2px solid var(--gold-500) !important;
+  padding: 16px 22px !important;
 }
 
 .modal-header .modal-title {
   color: #FFFFFF !important;
   font-weight: 700 !important;
-  letter-spacing: 0.3px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  letter-spacing: 0.01em;
 }
 
 .modal-header .btn-close {
-  filter: brightness(0) invert(1);
-  opacity: 0.85;
-}
-
-.modal-header .btn-close:hover {
-  opacity: 1;
-}
-
-.modal-footer {
-  background: #F8FAFC !important;
-  border-top: 1px solid #E2E8F0 !important;
-  padding: 1rem 1.5rem !important;
-}
-
-.dropdown-menu {
-  background: #FFFFFF !important;
-  border: 1px solid rgba(46, 125, 50, 0.15) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 10px 30px -5px rgba(46, 125, 50, 0.18), 0 20px 45px -10px rgba(46, 125, 50, 0.12) !important;
-  padding: 8px !important;
-  overflow: hidden;
-}
-
-.dropdown-item {
-  border-radius: 8px !important;
-  padding: 8px 14px !important;
-  color: #1E293B !important;
-  font-weight: 500 !important;
-  transition: all 0.15s ease !important;
-}
-
-.dropdown-item:hover {
-  background: linear-gradient(90deg, rgba(139, 195, 74, 0.15) 0%, rgba(255, 193, 7, 0.1) 100%) !important;
-  color: var(--asahan-green-deep-950) !important;
-  transform: translateX(3px);
+  filter: brightness(0) invert(1) !important;
 }
 
 /* ============================================================================
-   10. PAGINATION 3D (GOLD / GREEN ACTIVE PILL)
+   10. PAGINATION 3D (AKTIF EMAS DENGAN TEKS GELAP)
    ============================================================================ */
 .pagination {
-  gap: 5px;
+  gap: 4px;
 }
 
-.page-item .page-link {
+.pagination .page-link {
+  color: var(--emerald-900) !important;
+  background: #FFFFFF !important;
+  border: 1px solid var(--emerald-200) !important;
   border-radius: 8px !important;
-  border: 1px solid #CBD5E1 !important;
-  color: var(--asahan-green-deep-900) !important;
   font-weight: 600 !important;
-  padding: 0.45rem 0.85rem !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05), inset 0 1px 0 #FFFFFF !important;
+  padding: 6px 12px !important;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.06), inset 0 1px 0 #FFFFFF !important;
   transition: all 0.15s ease !important;
 }
 
-.page-item .page-link:hover {
-  background: var(--asahan-green-light-100) !important;
-  border-color: var(--asahan-green-light-500) !important;
-  color: var(--asahan-green-deep-950) !important;
+.pagination .page-link:hover {
+  background: var(--emerald-100) !important;
+  border-color: var(--emerald-500) !important;
+  transform: translateY(-1px);
+}
+
+.pagination .page-item.active .page-link {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%) !important;
+  border-color: #B45309 !important;
+  color: #022c22 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 3px 0 #92400E, 0 4px 10px rgba(217, 119, 6, 0.35) !important;
+}
+
+/* ============================================================================
+   11. BADGE & STATUS INDICATORS 3D
+   ============================================================================ */
+.badge {
+  font-weight: 700 !important;
+  padding: 6px 10px !important;
+  border-radius: 7px !important;
+  letter-spacing: 0.02em;
+}
+
+.badge.bg-light-success,
+.badge.text-success {
+  background: var(--emerald-100) !important;
+  color: var(--emerald-900) !important;
+  border: 1px solid var(--emerald-300) !important;
+}
+
+.badge.bg-light-warning,
+.badge.text-warning {
+  background: var(--gold-100) !important;
+  color: var(--gold-800) !important;
+  border: 1px solid var(--gold-300) !important;
+}
+
+.badge.bg-light-danger,
+.badge.text-danger {
+  background: var(--ruby-100) !important;
+  color: var(--ruby-800) !important;
+  border: 1px solid var(--ruby-400) !important;
+}
+
+/* ============================================================================
+   12. FOOTER 3D (STICKY DI BAWAH, ELEVATED DI ATAS LAYER DENGAN TOMBOL 3D)
+   ============================================================================ */
+.pc-footer {
+  background: linear-gradient(180deg, #F0FDF4 0%, #ECFDF5 100%) !important;
+  border-top: 2px solid rgba(5, 150, 105, 0.35) !important;
+  box-shadow:
+    0 -4px 18px rgba(6, 78, 59, 0.08),
+    0 -1px 3px rgba(6, 78, 59, 0.04) !important;
+  color: var(--emerald-950) !important;
+  padding: 14px clamp(14px, 2vw, 24px) !important;
+  position: relative !important;
+  z-index: 1020 !important;
+  margin-top: auto !important;
+  width: 100% !important;
+}
+
+.footer-brand-text {
+  color: var(--emerald-900) !important;
+  font-size: 0.88rem !important;
+  font-weight: 500 !important;
+}
+
+.footer-brand-text strong {
+  color: var(--emerald-950) !important;
+  font-weight: 700 !important;
+}
+
+/* Tombol di Footer */
+.btn-footer-doc {
+  background: #FFFFFF !important;
+  color: var(--emerald-800) !important;
+  border: 1.5px solid var(--emerald-600) !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 4px rgba(6, 78, 59, 0.08), inset 0 1px 0 #FFF !important;
+}
+
+.btn-footer-doc:hover {
+  background: var(--emerald-600) !important;
+  color: #FFFFFF !important;
   transform: translateY(-2px);
 }
 
-.page-item.active .page-link {
-  background: linear-gradient(180deg, #FFC107 0%, #F57C00 100%) !important;
-  border-color: #F57C00 !important;
-  color: #143818 !important;
-  font-weight: 700 !important;
-  box-shadow: 0 3px 0 var(--asahan-gold-bevel), 
-              0 6px 12px rgba(245, 124, 0, 0.35), 
-              inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
-}
-
-/* ============================================================================
-   11. BADGES & STATUS PILLS 3D
-   ============================================================================ */
-.badge {
-  font-weight: 600 !important;
-  padding: 0.4em 0.75em !important;
+.btn-footer-download {
+  background: linear-gradient(180deg, #F59E0B 0%, #D97706 100%) !important;
+  color: #022c22 !important;
+  border: none !important;
   border-radius: 8px !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.35);
-}
-
-.badge.bg-warning,
-.badge.text-bg-warning {
-  background: linear-gradient(180deg, #FFC107 0%, #FFA000 100%) !important;
-  color: #143818 !important;
   font-weight: 700 !important;
+  box-shadow: 0 3px 0 #92400E, 0 4px 8px rgba(217, 119, 6, 0.25) !important;
 }
 
-.badge.bg-success,
-.badge.text-bg-success {
-  background: linear-gradient(180deg, #388E3C 0%, #2E7D32 100%) !important;
-  color: #FFFFFF !important;
+.btn-footer-download:hover {
+  background: linear-gradient(180deg, #FBBF24 0%, #F59E0B 100%) !important;
+  transform: translateY(-2px);
 }
 
-.badge.bg-primary,
-.badge.text-bg-primary {
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 100%) !important;
+.btn-footer-html {
+  background: #FFFFFF !important;
+  color: var(--ruby-700) !important;
+  border: 1.5px solid var(--ruby-600) !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 4px rgba(220, 38, 38, 0.08) !important;
+}
+
+.btn-footer-html:hover {
+  background: var(--ruby-600) !important;
   color: #FFFFFF !important;
+  transform: translateY(-2px);
 }
 
 /* ============================================================================
-   12. FOOTER 3D (HIJAU MUDA LEMBUT & TEKS JELAS)
-   ============================================================================ */
-.pc-footer {
-  background: linear-gradient(180deg, #F1F8E9 0%, #E8F5E9 100%) !important;
-  border-top: 1px solid rgba(139, 195, 74, 0.3) !important;
-  box-shadow: 0 -4px 15px rgba(46, 125, 50, 0.06) !important;
-  color: #334155 !important;
-  padding: 18px 24px !important;
-  position: relative;
-  z-index: 10;
-}
-
-.pc-footer a {
-  color: var(--asahan-green-deep-900) !important;
-  text-decoration: none;
-  font-weight: 700;
-  transition: all 0.2s ease;
-}
-
-.pc-footer a:hover {
-  color: #B45309 !important;
-}
-
-/* ============================================================================
-   13. CUSTOM SCROLLBAR (HIJAU MUDA & HIJAU DAUN)
+   13. CUSTOM SCROLLBAR (HIJAU ZAMRUD ELEGAN)
    ============================================================================ */
 ::-webkit-scrollbar {
   width: 9px;
@@ -931,176 +839,122 @@ body::before {
 }
 
 ::-webkit-scrollbar-track {
-  background: #E8F5E9;
+  background: var(--emerald-50);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8BC34A 0%, #689F38 100%);
+  background: linear-gradient(180deg, #059669 0%, #047857 100%);
   border-radius: 6px;
-  border: 2px solid #E8F5E9;
+  border: 2px solid var(--emerald-50);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #2E7D32;
+  background: var(--emerald-900);
 }
 
 /* ============================================================================
-   14. PENGATURAN MEDIA CETAK (PRINT CLEAN SHEET)
+   14. PENGATURAN MEDIA CETAK & PDF RESMI (CLEAN DOCUMENT PRINT)
    ============================================================================ */
 @media print {
-  body, .pc-container, .card, .table {
+  body {
     background: #FFFFFF !important;
     color: #000000 !important;
-    box-shadow: none !important;
-    border: none !important;
+    font-size: 10pt !important;
   }
-  .pc-header, .pc-sidebar, .pc-footer, .breadcrumb, .btn {
+
+  .pc-header,
+  .pc-sidebar,
+  .pc-footer,
+  .breadcrumb,
+  .table-export-toolbar,
+  #filter-form,
+  .btn,
+  .print-controls,
+  form button[type="submit"] {
     display: none !important;
+  }
+
+  .pc-container {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    min-height: auto !important;
+  }
+
+  .pc-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .table-responsive,
+  #table-container .table-responsive,
+  .data-perjalanan-table,
+  .laporan-pengawas-table {
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .table,
+  .table-responsive > .table {
+    min-width: 100% !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .table thead th {
+    background: #E2E8F0 !important;
+    color: #000000 !important;
+    border: 1px solid #334155 !important;
+  }
+
+  .table tbody td {
+    border: 1px solid #64748B !important;
+    color: #000000 !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
   }
 }
 
 /* ============================================================================
-   15. KETERBACAAN TEKS GLOBAL (SEMUA TEKS JELAS DI ATAS LATAR HIJAU MUDA)
+   15. KETERBACAAN TEKS GLOBAL (KONTRAS TINGGI DI ATAS KANVAS ZAMRUD)
    ============================================================================ */
-
-/* Judul & heading di luar kartu (di atas kanvas hijau muda) */
 h1:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *),
 h2:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *),
 h3:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *),
 h4:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *),
 h5:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *),
 h6:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *) {
-  color: var(--asahan-green-deep-950) !important;
+  color: var(--emerald-950) !important;
 }
 
-/* text-muted di dalam kartu putih — lebih gelap agar terbaca */
 .card .text-muted,
-.card-body .text-muted,
-.card-header .text-muted,
-.modal-body .text-muted,
-.modal-content .text-muted {
-  color: #475569 !important; /* Abu-abu gelap — kontras tinggi di atas putih */
-}
-
-/* text-muted di luar kartu (di atas kanvas hijau muda) — harus lebih gelap */
-.text-muted:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *),
-.pc-content > * .text-muted,
-.page-header .text-muted,
-.breadcrumb .text-muted {
-  color: #334155 !important; /* Slate gelap — terbaca di atas hijau muda */
-}
-
-/* text-secondary di semua area konten */
-.card .text-secondary,
-.card-body .text-secondary,
-.modal-body .text-secondary {
-  color: #475569 !important;
-}
-
-/* text-dark di dalam kartu (tidak perlu override — hitam di atas putih sudah sempurna) */
-.card .text-dark,
-.card-body .text-dark {
-  color: #0F172A !important;
-}
-
-/* Sub-teks deskripsi kecil (small, .small) di dalam kartu */
-.card .small,
-.card small,
-.card-body .small,
-.card-body small,
-.modal-body .small,
-.modal-body small {
-  color: #475569 !important;
-}
-
-/* Badge bg-light atau text-secondary di atas kartu */
-.badge.bg-light,
-.badge.text-bg-light {
-  background: linear-gradient(180deg, #F1F8E9 0%, #DCEDC8 100%) !important;
-  color: var(--asahan-green-deep-950) !important;
-  border: 1px solid rgba(139, 195, 74, 0.35) !important;
-  font-weight: 700 !important;
-}
-
-.badge.bg-secondary,
-.badge.text-bg-secondary {
-  background: linear-gradient(180deg, #64748b 0%, #475569 100%) !important;
-  color: #FFFFFF !important;
-  font-weight: 600 !important;
-}
-
-/* text-primary di dalam kartu — hijau tua bukan Bootstrap biru */
-.card .text-primary,
-.card-body .text-primary,
-.top-traveler-row .text-primary {
-  color: var(--asahan-green-deep-800) !important;
-  font-weight: 700 !important;
-}
-
-/* bg-light-primary — ganti ke hijau muda pastel */
-.bg-light-primary {
-  background: rgba(139, 195, 74, 0.15) !important;
-}
-
-/* Teks informasi/keterangan di luar kartu (helper text, caption) */
-.form-text {
+.card [class*="text-muted"],
+.modal .text-muted {
   color: #334155 !important;
-  font-weight: 500 !important;
+  font-weight: 500;
 }
 
-/* Teks pada section kosong (empty state) */
-.empty-dashboard-state,
-.empty-dashboard-state p,
-.empty-dashboard-state small {
-  color: var(--asahan-green-deep-800) !important;
+.text-muted:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *) {
+  color: var(--emerald-900) !important;
+  font-weight: 600;
 }
 
-.empty-icon {
-  background: rgba(139, 195, 74, 0.18) !important;
-  color: var(--asahan-green-deep-800) !important;
-}
-
-/* bg-light-secondary badge */
-.badge.bg-light-secondary,
-.text-secondary {
-  color: #475569 !important;
-}
-
-/* Teks SPJ detail label & value */
 .spj-detail-label {
-  background: linear-gradient(180deg, #F1F8E9 0%, #DCEDC8 100%) !important;
-  color: var(--asahan-green-deep-950) !important;
-  font-weight: 600 !important;
-  border-color: rgba(139, 195, 74, 0.3) !important;
+  background: var(--emerald-50) !important;
+  color: var(--emerald-950) !important;
+  font-weight: 700 !important;
 }
 
 .spj-detail-value {
   color: #0F172A !important;
-  border-color: rgba(139, 195, 74, 0.2) !important;
-}
-
-/* Teks stat-icon-mini header kartu */
-.stat-icon-mini {
-  background-color: rgba(139, 195, 74, 0.18) !important;
-  color: var(--asahan-green-deep-900) !important;
-}
-
-/* Teks birthday / ulang tahun hijau */
-.birthday-card {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F1F8E9 100%) !important;
-}
-
-.birthday-initial,
-.birthday-greeting-person span {
-  background: rgba(139, 195, 74, 0.25) !important;
-  color: var(--asahan-green-deep-950) !important;
-}
-
-/* Top traveler stat text */
-.top-traveler-row .fw-semibold {
-  color: var(--asahan-green-deep-950) !important;
-}
-
-.top-traveler-row .text-muted {
-  color: #475569 !important;
 }

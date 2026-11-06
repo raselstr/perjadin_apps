@@ -1,27 +1,37 @@
-<!-- Excel Export/Import Buttons -->
-<!-- Digunakan di CRUD list view -->
-
-<div class="d-flex gap-2">
+<!-- Toolbar Tombol Aksi Ekspor & Cetak Data (Excel + PDF) -->
+<div class="d-inline-flex flex-wrap gap-2 align-items-center table-export-toolbar">
   {% if export_url %}
   <a href="{{ export_url }}" 
-     class="btn btn-sm btn-outline-primary" 
-     title="Download data sebagai Excel"
+     class="btn btn-sm btn-export-excel" 
+     title="Unduh seluruh data tabel dalam format Microsoft Excel (.xlsx)"
      onclick="showExportLoading(this)">
-    <span class="export-text">📥 Download Excel</span>
+    <i class="ti ti-file-spreadsheet me-1"></i>
+    <span class="export-text">Excel</span>
     <span class="export-spinner d-none">
-      <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-      Downloading...
+      <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+      Mengunduh...
     </span>
   </a>
   {% endif %}
+
+  <!-- Tombol Cetak / PDF untuk semua tabel data -->
+  <button type="button" 
+          class="btn btn-sm btn-export-pdf" 
+          onclick="window.print()"
+          title="Cetak tabel atau simpan sebagai berkas PDF">
+    <i class="ti ti-printer me-1"></i>
+    <span>Cetak / PDF</span>
+  </button>
   
-  {% if import_url %}
-  <button type="button" class="btn btn-sm btn-outline-success" 
+  {% if import_url and user.is_superuser %}
+  <button type="button" 
+          class="btn btn-sm btn-outline-secondary" 
           hx-get="{{ import_url }}"
           hx-target="#modal-body"
           hx-trigger="click"
-          title="Upload dan import data dari Excel">
-    📤 Upload Excel
+          title="Unggah dan impor data dari berkas Excel">
+    <i class="ti ti-upload me-1"></i>
+    <span>Impor Excel</span>
   </button>
   {% endif %}
 </div>
@@ -31,15 +41,14 @@ function showExportLoading(button) {
   const textSpan = button.querySelector('.export-text');
   const spinnerSpan = button.querySelector('.export-spinner');
   
-  textSpan.classList.add('d-none');
-  spinnerSpan.classList.remove('d-none');
-  
-  // Re-enable after 5 seconds (in case download doesn't start)
-  setTimeout(() => {
-    textSpan.classList.remove('d-none');
-    spinnerSpan.classList.add('d-none');
-  }, 5000);
+  if (textSpan && spinnerSpan) {
+    textSpan.classList.add('d-none');
+    spinnerSpan.classList.remove('d-none');
+    
+    setTimeout(() => {
+      textSpan.classList.remove('d-none');
+      spinnerSpan.classList.add('d-none');
+    }, 4000);
+  }
 }
 </script>
-
-<!-- Modal akan diisi oleh HTMX -->

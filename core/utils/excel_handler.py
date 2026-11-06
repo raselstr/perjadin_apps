@@ -57,54 +57,104 @@ class ExcelExporter:
         return columns
     
     def export(self):
-        """Export ke Excel dan return file bytes"""
+        """Export ke Excel dengan styling profesional Hijau Zamrud & Emas"""
+        from decimal import Decimal
+        from datetime import date
+
         wb = Workbook()
         ws = wb.active
         ws.title = self.title[:31]  # Sheet name max 31 chars
         
-        # Header styling
-        header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-        header_font = Font(bold=True, color="FFFFFF")
+        # Header styling Hijau Zamrud (Emerald #065F46) dengan aksen emas (#D97706)
+        header_fill = PatternFill(start_color="065F46", end_color="065F46", fill_type="solid")
+        header_font = Font(name="Arial", size=11, bold=True, color="FFFFFF")
         header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        border = Border(
-            left=Side(style='thin'),
-            right=Side(style='thin'),
-            top=Side(style='thin'),
-            bottom=Side(style='thin')
+        header_border = Border(
+            left=Side(style='thin', color="064E3B"),
+            right=Side(style='thin', color="064E3B"),
+            top=Side(style='thin', color="064E3B"),
+            bottom=Side(style='medium', color="D97706")
         )
         
-        # Write headers
+        # Row 1: Header Table
+        ws.row_dimensions[1].height = 28
         for col_idx, (field_name, display_name) in enumerate(self.columns, 1):
             cell = ws.cell(row=1, column=col_idx)
             cell.value = display_name
             cell.fill = header_fill
             cell.font = header_font
             cell.alignment = header_alignment
-            cell.border = border
-        
-        # Write data
-        data_alignment = Alignment(horizontal="left", vertical="center", wrap_text=True)
+            cell.border = header_border
+
+        # Data styling
+        even_fill = PatternFill(start_color="F4FAF6", end_color="F4FAF6", fill_type="solid")
+        odd_fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+        data_font = Font(name="Arial", size=10, color="0F172A")
+        cell_border = Border(
+            left=Side(style='thin', color="E2E8F0"),
+            right=Side(style='thin', color="E2E8F0"),
+            top=Side(style='thin', color="E2E8F0"),
+            bottom=Side(style='thin', color="E2E8F0")
+        )
+        align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        align_center = Alignment(horizontal="center", vertical="center")
+        align_right = Alignment(horizontal="right", vertical="center")
+
+        money_keywords = {"biaya", "tarif", "harga", "total", "uang", "jumlah", "subtotal"}
         
         for row_idx, obj in enumerate(self.queryset, 2):
+            ws.row_dimensions[row_idx].height = 22
+            row_fill = even_fill if row_idx % 2 == 0 else odd_fill
+
             for col_idx, (field_name, _) in enumerate(self.columns, 1):
-                value = getattr(obj, field_name, None)
-                
-                # Format datetime
-                if isinstance(value, datetime):
-                    value = value.strftime('%d/%m/%Y %H:%M')
-                elif isinstance(value, models.Model):
-                    # Jangan sampai terjadi, karena sudah gunakan field_id
-                    value = str(value)
-                
+                # Resolusi nilai yang manusiawi untuk Foreign Key
+                if field_name.endswith("_id") and hasattr(obj, field_name[:-3]):
+                    rel_obj = getattr(obj, field_name[:-3], None)
+                    value = str(rel_obj) if rel_obj is not None else "-"
+                else:
+                    value = getattr(obj, field_name, None)
+
                 cell = ws.cell(row=row_idx, column=col_idx)
-                cell.value = value
-                cell.alignment = data_alignment
-                cell.border = border
+                cell.fill = row_fill
+                cell.font = data_font
+                cell.border = cell_border
+
+                # Pemformatan nilai sesuai tipe data
+                if isinstance(value, datetime):
+                    cell.value = value.strftime('%d/%m/%Y %H:%M')
+                    cell.alignment = align_center
+                elif isinstance(value, date):
+                    cell.value = value.strftime('%d/%m/%Y')
+                    cell.alignment = align_center
+                elif isinstance(value, Decimal):
+                    cell.value = float(value)
+                    cell.number_format = '#,##0.00'
+                    cell.alignment = align_right
+                elif isinstance(value, (int, float)) and any(kw in field_name.lower() for kw in money_keywords):
+                    cell.value = value
+                    cell.number_format = '#,##0'
+                    cell.alignment = align_right
+                elif isinstance(value, models.Model):
+                    cell.value = str(value)
+                    cell.alignment = align_left
+                else:
+                    cell.value = "" if value is None else str(value)
+                    cell.alignment = align_left
         
-        # Auto-adjust column widths
+        # Auto-adjust column widths dengan batas wajar
         for col_idx, (_, display_name) in enumerate(self.columns, 1):
-            max_length = max(len(str(display_name)), 20)
-            ws.column_dimensions[ws.cell(row=1, column=col_idx).column_letter].width = min(max_length + 2, 50)
+            col_letter = ws.cell(row=1, column=col_idx).column_letter
+            max_len = len(str(display_name))
+            for row in range(2, min(ws.max_row + 1, 100)):
+                val = ws.cell(row=row, column=col_idx).value
+                if val:
+                    max_len = max(max_len, len(str(val)))
+            ws.column_dimensions[col_letter].width = min(max(max_len + 4, 14), 55)
+
+        # Aktifkan Freeze Panes (Header tetap diam saat scroll) & Auto Filter
+        ws.freeze_panes = "A2"
+        if ws.max_row > 1 and ws.max_column > 0:
+            ws.auto_filter.ref = ws.dimensions
         
         # Return as bytes
         output = io.BytesIO()
