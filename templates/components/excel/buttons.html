@@ -14,7 +14,16 @@
   </a>
   {% endif %}
 
-  <!-- Tombol Cetak / PDF untuk semua tabel data -->
+  <!-- Tombol Cetak / PDF: buka halaman tabel bersih di popup -->
+  {% if pdf_table_url %}
+  <button type="button"
+          class="btn btn-sm btn-export-pdf"
+          onclick="openPdfTableWindow('{{ pdf_table_url }}')"
+          title="Cetak tabel atau simpan sebagai berkas PDF">
+    <i class="ti ti-printer me-1"></i>
+    <span>Cetak / PDF</span>
+  </button>
+  {% else %}
   <button type="button" 
           class="btn btn-sm btn-export-pdf" 
           onclick="window.print()"
@@ -22,6 +31,7 @@
     <i class="ti ti-printer me-1"></i>
     <span>Cetak / PDF</span>
   </button>
+  {% endif %}
   
   {% if import_url and user.is_superuser %}
   <button type="button" 
@@ -51,4 +61,34 @@ function showExportLoading(button) {
     }, 4000);
   }
 }
+
+function openPdfTableWindow(url) {
+  if (!url) return;
+
+  const screenWidth  = window.screen?.availWidth  || 1366;
+  const screenHeight = window.screen?.availHeight || 900;
+  const popupWidth   = Math.min(screenWidth,  Math.max(900, screenWidth  - 80));
+  const popupHeight  = Math.min(screenHeight, Math.max(640, screenHeight - 80));
+  const popupLeft    = Math.max(0, Math.round((screenWidth  - popupWidth)  / 2));
+  const popupTop     = Math.max(0, Math.round((screenHeight - popupHeight) / 2));
+
+  const features = [
+    'popup=yes', 'noopener', 'noreferrer',
+    'resizable=yes', 'scrollbars=yes',
+    `width=${popupWidth}`,
+    `height=${popupHeight}`,
+    `left=${popupLeft}`,
+    `top=${popupTop}`,
+  ].join(',');
+
+  const w = window.open('', 'pdf-table-print', features);
+  if (w) {
+    w.location = url;
+    w.focus();
+  } else {
+    // fallback jika popup diblokir
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+}
 </script>
+

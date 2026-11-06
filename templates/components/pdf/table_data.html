@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <style>
+    /* ============================================================
+       HALAMAN CETAK DATA – Tema Hijau Zamrud & Emas
+       Digunakan oleh GenericPdfTableView (core/views_pdf.py)
+       ============================================================ */
+    :root {
+      --emerald-950: #022c22;
+      --emerald-900: #064E3B;
+      --emerald-800: #065F46;
+      --emerald-700: #047857;
+      --emerald-600: #059669;
+      --emerald-100: #D1FAE5;
+      --emerald-50:  #ECFDF5;
+      --gold-500: #F59E0B;
+      --gold-600: #D97706;
+    }
+
+    /* ---- Reset & Base ---- */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 12px;
+      color: var(--emerald-950);
+      background: var(--emerald-50);
+    }
+
+    /* ---- Layar (non-print) ---- */
+    @media screen {
+      body { padding: 16px; }
+
+      .print-toolbar {
+        background: #fff;
+        border: 1px solid rgba(5,150,105,0.25);
+        border-top: 3px solid var(--emerald-600);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        box-shadow: 0 4px 16px rgba(6,78,59,0.09);
+      }
+
+      .print-toolbar h1 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: var(--emerald-950);
+        font-weight: 700;
+      }
+
+      .print-toolbar .meta {
+        font-size: 0.78rem;
+        color: var(--emerald-800);
+        margin-top: 2px;
+      }
+
+      .btn-cetak {
+        background: linear-gradient(180deg, var(--gold-500) 0%, var(--gold-600) 100%);
+        color: var(--emerald-950);
+        font-weight: 700;
+        border: none;
+        border-radius: 8px;
+        padding: 7px 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #92400E, 0 6px 14px rgba(217,119,6,0.3);
+        transition: all 0.15s ease;
+      }
+
+      .btn-cetak:hover {
+        background: linear-gradient(180deg, #FBBF24 0%, var(--gold-500) 100%);
+        transform: translateY(-2px);
+      }
+
+      .btn-cetak:active {
+        transform: translateY(1px);
+        box-shadow: 0 1px 0 #92400E;
+      }
+
+      .table-wrapper {
+        background: #fff;
+        border: 1px solid rgba(5,150,105,0.2);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(6,78,59,0.07);
+      }
+    }
+
+    /* ---- Tabel ---- */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+
+    thead th {
+      background: linear-gradient(180deg, var(--emerald-800) 0%, var(--emerald-700) 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 6px 8px;
+      border-bottom: 2px solid var(--gold-500);
+      white-space: normal;
+      vertical-align: middle;
+      text-align: left;
+    }
+
+    thead th:first-child {
+      width: 36px;
+      text-align: center;
+    }
+
+    tbody tr:nth-child(even) { background: #F7FCF9; }
+    tbody tr:nth-child(odd)  { background: #FFFFFF; }
+
+    tbody tr:hover { background: #E6F7EF; }
+
+    tbody td {
+      padding: 5px 8px;
+      border-bottom: 1px solid rgba(5,150,105,0.10);
+      vertical-align: middle;
+      word-break: normal;
+      overflow-wrap: break-word;
+      white-space: normal;
+      line-height: 1.35;
+    }
+
+    tbody td:first-child {
+      text-align: center;
+      color: var(--emerald-900);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tfoot td {
+      background: var(--emerald-50);
+      font-size: 0.78rem;
+      color: var(--emerald-800);
+      padding: 6px 8px;
+      border-top: 1.5px solid var(--emerald-200);
+      font-weight: 600;
+    }
+
+    /* ---- Header cetak (judul di atas halaman) ---- */
+    .print-header {
+      display: none; /* sembunyikan di layar — tampil saat cetak */
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .print-header h2 {
+      font-size: 14px;
+      font-weight: 800;
+      margin: 0 0 2px;
+      color: var(--emerald-950);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .print-header .print-meta {
+      font-size: 10px;
+      color: #475569;
+    }
+
+    /* ---- @print ---- */
+    @media print {
+      @page {
+        size: A4 landscape;
+        margin: 15mm 12mm 15mm 12mm;
+      }
+
+      html, body {
+        background: #fff !important;
+        padding: 0 !important;
+        font-size: 10px;
+      }
+
+      .print-toolbar,
+      .btn-cetak {
+        display: none !important;
+      }
+
+      .table-wrapper {
+        border: none !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+      }
+
+      .print-header {
+        display: block;
+      }
+
+      table {
+        font-size: 9px;
+        page-break-inside: auto;
+      }
+
+      thead {
+        display: table-header-group;
+      }
+
+      thead th {
+        background: var(--emerald-800) !important;
+        color: #fff !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-size: 8px;
+        padding: 4px 6px;
+      }
+
+      tbody tr {
+        page-break-inside: avoid;
+      }
+
+      tbody td {
+        padding: 3px 6px;
+        font-size: 9px;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #F7FCF9 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      tfoot { display: table-footer-group; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar hanya tampil di layar -->
+  <div class="print-toolbar">
+    <div>
+      <h1>{{ title }}</h1>
+      <div class="meta">Total: {{ total }} data &nbsp;|&nbsp; Dicetak: {% now "d/m/Y H:i" %}</div>
+    </div>
+    <button class="btn-cetak" onclick="window.print()">
+      🖨️ Cetak / Simpan PDF
+    </button>
+  </div>
+
+  <!-- Header yang tampil saat cetak (tersembunyi di layar) -->
+  <div class="print-header">
+    <h2>{{ title }}</h2>
+    <div class="print-meta">Total: {{ total }} data &nbsp;|&nbsp; Dicetak: {% now "d/m/Y H:i" %}</div>
+  </div>
+
+  <!-- Tabel data -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          {% for header in headers %}
+          <th>{{ header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          {% for cell in row %}
+          <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{{ headers|length|add:1 }}" style="text-align:center; padding:20px; color:#64748b;">
+            Tidak ada data untuk dicetak.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="{{ headers|length|add:1 }}">Total: {{ total }} data</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+</body>
+</html>

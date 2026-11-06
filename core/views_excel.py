@@ -308,10 +308,12 @@ class ExcelMixin:
         if not self.enable_excel:
             context['export_url'] = None
             context['import_url'] = None
+            context['pdf_table_url'] = None
             return context
 
         context['export_url'] = self.get_export_url()
         context['import_url'] = self.get_import_url()
+        context['pdf_table_url'] = self.get_pdf_table_url()
         return context
     
     def get_export_url(self):
@@ -335,3 +337,10 @@ class ExcelMixin:
         app_label = self.model._meta.app_label
         model_name = self.model._meta.model_name
         return reverse('core:generic_excel_import', kwargs={'app_label': app_label, 'model_name': model_name})
+
+    def get_pdf_table_url(self):
+        """URL ke halaman cetak tabel (konsisten kolom & data dengan Excel)"""
+        from django.urls import reverse
+        app_label = self.model._meta.app_label
+        model_name = self.model._meta.model_name
+        return reverse('core:generic_pdf_table', kwargs={'app_label': app_label, 'model_name': model_name})
