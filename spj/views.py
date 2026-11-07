@@ -1,6 +1,7 @@
 from decimal import Decimal
 from datetime import datetime
 from io import BytesIO
+from PIL import Image, ImageOps
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
@@ -1486,9 +1487,18 @@ class LaporanPerjalananPrintView(LoginRequiredMixin, View):
         for index in range(1, 5):
             image = getattr(laporan, f"foto_{index}", None)
             if image:
+                is_portrait = False
+                try:
+                    with Image.open(image.path) as img:
+                        transposed = ImageOps.exif_transpose(img)
+                        target_img = transposed if transposed is not None else img
+                        is_portrait = target_img.height > target_img.width
+                except Exception:
+                    pass
                 photos.append({
                     "image": image,
                     "caption": f"Foto kegiatan {index}",
+                    "is_portrait": is_portrait,
                 })
         return photos
 

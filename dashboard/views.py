@@ -1,5 +1,6 @@
 from datetime import timedelta
 from zoneinfo import ZoneInfo
+from PIL import Image, ImageOps
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count, Q
@@ -156,7 +157,7 @@ def dashboard_view(request):
         )
 
     laporan_photos = []
-    for laporan in laporan_queryset.order_by("-created_at", "-id")[:12]:
+    for laporan in laporan_queryset.order_by("-created_at", "-id"):
         spt = laporan.spt
         berita_spt = (getattr(spt, "berita", None) or "").strip()
         maksud_perjalanan = (getattr(laporan, "maksud_perjalanan", None) or "").strip()
@@ -186,6 +187,14 @@ def dashboard_view(request):
         for field_name in ("foto_1", "foto_2", "foto_3", "foto_4"):
             photo = getattr(laporan, field_name)
             if photo:
+                is_portrait = False
+                try:
+                    with Image.open(photo.path) as img:
+                        transposed = ImageOps.exif_transpose(img)
+                        target_img = transposed if transposed is not None else img
+                        is_portrait = target_img.height > target_img.width
+                except Exception:
+                    pass
                 laporan_photos.append({
                     "url": photo.url,
                     "berita": berita_spt,
@@ -195,11 +204,8 @@ def dashboard_view(request):
                     "teks": teks_utama,
                     "tgl_berangkat": spt.tgl_berangkat if spt else None,
                     "tgl_kembali": tgl_kembali,
+                    "is_portrait": is_portrait,
                 })
-                if len(laporan_photos) == 12:
-                    break
-        if len(laporan_photos) == 12:
-            break
 
     stats = {
         "total_spt_year": spt_queryset.filter(
