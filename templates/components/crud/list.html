@@ -38,7 +38,7 @@
          value="{{ request.GET.search|default:'' }}"
          autocomplete="off"
          hx-get="{{ request.path }}"
-         hx-trigger="input changed delay:350ms, search, keyup[key=='Enter']"
+         hx-trigger="input changed delay:800ms, search, keyup[key=='Enter']"
          hx-target="#table-container"
          hx-swap="outerHTML"
          hx-push-url="true"

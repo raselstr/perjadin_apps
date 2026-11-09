@@ -130,6 +130,11 @@ def dashboard_view(request):
         .annotate(total=Count("id"))
         .order_by("-total", "nama__nama")[:5]
     )
+    for traveler in top_travelers:
+        if traveler.get("nama__nama"):
+            traveler["nama__nama"] = traveler["nama__nama"].strip()
+        if traveler.get("nama__jabatan"):
+            traveler["nama__jabatan"] = traveler["nama__jabatan"].strip()
 
     birthday_employees = Pegawai.objects.select_related("opd").filter(
         tgl_lahir__month=today.month,

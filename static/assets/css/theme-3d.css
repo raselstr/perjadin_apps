@@ -130,10 +130,10 @@ body {
   position: relative;
   top: 0 !important;
   margin-top: 80px !important;
-  margin-left: 260px !important;
+  margin-left: 230px !important;
   margin-right: 20px !important;
   width: auto !important;
-  max-width: calc(100% - 280px) !important;
+  max-width: calc(100% - 250px) !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   overflow-x: clip;
@@ -297,58 +297,115 @@ body {
    3. SIDEBAR 3D (HIJAU ZAMRUD ELEGAN TANPA GARIS PADA SUBMENU)
    ============================================================================ */
 .pc-sidebar {
+  width: 230px !important;
   background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
   border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
   box-shadow: 4px 0 24px rgba(6, 78, 59, 0.08) !important;
 }
 
 .pc-sidebar .m-header {
+  width: 230px !important;
+  height: 56px !important;
+  min-height: 56px !important;
   background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
   border-bottom: 2px solid var(--gold-500) !important;
   box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25) !important;
-  padding: 16px 20px;
+  padding: 8px 14px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
 .pc-sidebar .m-header .b-brand img {
+  max-height: 36px !important;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+}
+
+.pc-sidebar .m-header .brand-text {
+  line-height: 1.15;
+}
+
+.pc-sidebar .m-header .brand-text .fw-bold {
+  font-size: 13px !important;
+}
+
+.pc-sidebar .m-header .brand-text .text-muted {
+  font-size: 10px !important;
+}
+
+/* Jarak Antara Menu Lebih Rapat, Padat & Elegan */
+.pc-sidebar .pc-caption {
+  padding: 8px 14px 2px !important;
+  margin-top: 2px !important;
 }
 
 .pc-sidebar .pc-caption label {
   color: var(--emerald-800) !important;
   font-weight: 800 !important;
-  letter-spacing: 0.08em;
-  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  font-size: 0.68rem !important;
   text-transform: uppercase;
-  margin-top: 14px;
+  margin-top: 4px !important;
+  margin-bottom: 2px !important;
+}
+
+.pc-sidebar .pc-item {
+  padding-bottom: 1px !important;
+}
+
+.pc-sidebar .pc-item > .pc-link {
+  margin-left: 6px !important;
+  margin-right: 6px !important;
 }
 
 .pc-sidebar .pc-link {
   color: #1E293B !important;
   font-weight: 600;
-  border-radius: 10px;
-  margin: 2px 8px;
+  border-radius: 8px !important;
+  margin: 1px 6px !important;
+  padding: 6px 10px !important;
+  font-size: 0.82rem !important;
+  line-height: 1.35 !important;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pc-sidebar .pc-link:hover {
   background: var(--emerald-100) !important;
   color: var(--emerald-950) !important;
-  transform: translateX(4px);
+  transform: translateX(2px);
 }
 
 .pc-sidebar .pc-link .pc-micon {
   color: var(--emerald-700) !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin-right: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.pc-sidebar .pc-link .pc-micon i,
+.pc-sidebar .pc-link .pc-micon svg {
+  font-size: 16px !important;
+}
+
+.pc-sidebar .pc-link .pc-mtext {
+  font-size: 0.82rem !important;
+}
+
+.pc-sidebar .pc-link .pc-arrow {
+  font-size: 12px !important;
 }
 
 /* Menu Aktif: Pill 3D Emas & Zamrud */
 .pc-sidebar .pc-item.active > .pc-link {
   background: linear-gradient(135deg, #065F46 0%, #047857 100%) !important;
   color: #FFFFFF !important;
-  border-left: 4px solid var(--gold-500) !important;
+  border-left: 3px solid var(--gold-500) !important;
   box-shadow:
-    0 4px 12px rgba(6, 78, 59, 0.25),
+    0 4px 10px rgba(6, 78, 59, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
-  transform: translateX(3px);
+  transform: translateX(2px);
 }
 
 .pc-sidebar .pc-item.active > .pc-link .pc-micon {
@@ -363,6 +420,8 @@ body {
 .pc-sidebar .pc-submenu .pc-item {
   border: none !important;
   background: transparent !important;
+  padding: 1px 0 !important;
+  margin: 0 !important;
 }
 
 .pc-sidebar .pc-submenu::before,
@@ -381,20 +440,25 @@ body {
   opacity: 0 !important;
 }
 
+.pc-sidebar .pc-submenu .pc-item {
+  padding-bottom: 0px !important;
+}
+
 .pc-sidebar .pc-submenu .pc-link {
-  padding-left: 52px !important;      /* Tulisan sub menu agak lebih masuk kedalam dari menu utama */
-  font-size: 0.85rem !important;
+  padding: 4px 10px 4px 34px !important;      /* Rapat dan proporsional */
+  font-size: 0.78rem !important;
   color: var(--emerald-950) !important;
   font-weight: 600;
-  border-radius: 8px !important;
-  margin: 1px 8px !important;
+  border-radius: 6px !important;
+  margin: 1px 6px !important;
+  line-height: 1.3 !important;
   transition: all 0.15s ease;
 }
 
 .pc-sidebar .pc-submenu .pc-link:hover {
   background: var(--emerald-100) !important;
   color: var(--emerald-950) !important;
-  padding-left: 56px !important;
+  padding-left: 37px !important;
   transform: none !important;
 }
 
@@ -404,7 +468,18 @@ body {
   border: none !important;
   font-weight: 700;
   box-shadow: 0 2px 6px rgba(217, 119, 6, 0.25) !important;
-  padding-left: 54px !important;
+  padding-left: 36px !important;
+}
+
+@media (min-width: 1025px) {
+  .pc-header {
+    left: 230px !important;
+    width: calc(100% - 230px) !important;
+  }
+}
+.pc-sidebar.pc-sidebar-hide ~ .pc-header {
+  left: 0 !important;
+  width: 100% !important;
 }
 
 /* ============================================================================
