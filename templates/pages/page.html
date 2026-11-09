@@ -26,55 +26,49 @@
 
 
       <!-- [ Main Content ] start -->
-      <div class="row">
-        <!-- [ sample-page ] start -->
-        <div class="col-sm-12">
-          <div class="card">
-            <div class="card-header">
-              <div class="d-flex justify-content-between align-items-center mb-0">
-                <h3 class="mb-0">{{ title }}</h3>
-                <div class="d-flex gap-2">
-                  {% if create_user_url %}
-                  <button class="btn btn-success"
-                          hx-get="{% url create_user_url %}"
-                          hx-target="#modal-body"
-                          hx-trigger="click">
-                    + Tambah User Baru
-                  </button>
-                  {% endif %}
+      <div class="card">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center mb-0">
+            <h3 class="mb-0">{{ title }}</h3>
+            <div class="d-flex gap-2">
+              {% if create_user_url %}
+              <button class="btn btn-success"
+                      hx-get="{% url create_user_url %}"
+                      hx-target="#modal-body"
+                      hx-trigger="click">
+                + Tambah User Baru
+              </button>
+              {% endif %}
 
-                  {% block add_button %}
-                    <button class="btn btn-primary"
-                            hx-get="{% url url_action %}"
-                            hx-target="#modal-body"
-                            hx-trigger="click">
-                      + Tambah
-                    </button>
-                  {% endblock add_button %}
-                  
-                  {% include "components/excel/buttons.html" %}
-                  
-                </div>
-              </div>
-            </div>
-            <div class="card-body">
-              <div id="main-content">
-                {% block main_content %}
-                  {% if table %}
-                    {% include "components/crud/list.html" %}
-                  {% elif initial_url %}
-                    <div hx-get="{% url initial_url %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"
-                         hx-trigger="load"
-                         hx-target="this"
-                         hx-swap="outerHTML">
-                    </div>
-                  {% endif %}
-                {% endblock main_content %}
-              </div>
+              {% block add_button %}
+                <button class="btn btn-primary"
+                        hx-get="{% url url_action %}"
+                        hx-target="#modal-body"
+                        hx-trigger="click">
+                  + Tambah
+                </button>
+              {% endblock add_button %}
+              
+              {% include "components/excel/buttons.html" %}
+              
             </div>
           </div>
         </div>
-        <!-- [ sample-page ] end -->
+        <div class="card-body">
+          <div id="main-content">
+            {% block main_content %}
+              {% if table %}
+                {% include "components/crud/list.html" %}
+              {% elif initial_url %}
+                <div hx-get="{% url initial_url %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"
+                     hx-trigger="load"
+                     hx-target="this"
+                     hx-swap="outerHTML">
+                </div>
+              {% endif %}
+            {% endblock main_content %}
+          </div>
+        </div>
       </div>
       <!-- [ Main Content ] end -->
     </div>
