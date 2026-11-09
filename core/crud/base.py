@@ -177,8 +177,12 @@ class BaseCRUDView(ExcelMixin, ListView):
 
     def get_queryset(self):
         qs = self.get_base_queryset()
-        search = self.request.GET.get("search")
+        raw_search = self.request.GET.get("search")
 
+        if not raw_search:
+            return qs
+
+        search = raw_search.strip()
         if not search:
             return qs
 
@@ -190,70 +194,94 @@ class BaseCRUDView(ExcelMixin, ListView):
         field_names = set(model_fields.keys())
         filters = Q()
 
+        # 1. Direct text fields on model (CharField, TextField)
+        for field in self.model._meta.fields:
+            if isinstance(field, (models.CharField, models.TextField)):
+                filters |= Q(**{f"{field.name}__icontains": search})
+
+        # 2. Key related lookups for foreign keys and relationships
+        related_lookups = {
+            'opd': ['opd__nama__icontains'],
+            'role': ['role__nama__icontains'],
+            'user': [
+                'user__username__icontains',
+                'user__first_name__icontains',
+                'user__last_name__icontains',
+                'user__email__icontains',
+            ],
+            'pangkat': ['pangkat__pangkat__icontains', 'pangkat__golongan__icontains'],
+            'eselon': ['eselon__eselon__icontains'],
+            'jenis_jabatan': ['jenis_jabatan__nama__icontains'],
+            'status': ['status__nama__icontains'],
+            'tingkat': ['tingkat__tingkat__icontains'],
+            'tingkat_spd': ['tingkat_spd__tingkat__icontains'],
+            'tugas': ['tugas__nama__icontains'],
+            'penandatangan': ['penandatangan__nama__icontains', 'penandatangan__nip__icontains'],
+            'pemda': ['pemda__nama_pemda__icontains', 'pemda__nama_kabupaten__icontains'],
+            'nama_dinas': ['nama_dinas__nama__icontains'],
+            'kota_tujuan': ['kota_tujuan__lokasi__icontains', 'kota_tujuan__kota__icontains'],
+            'kota_asal': ['kota_asal__lokasi__icontains', 'kota_asal__kota__icontains'],
+            'lokasi': ['lokasi__lokasi__icontains', 'lokasi__kota__icontains'],
+            'tujuan': ['tujuan__lokasi__icontains', 'tujuan__kota__icontains'],
+            'lokasi_berangkat': ['lokasi_berangkat__lokasi__icontains'],
+            'lokasi_bandara': ['lokasi_bandara__nama__icontains', 'lokasi_bandara__kota__icontains'],
+            'tujuan_bandara': ['tujuan_bandara__nama__icontains', 'tujuan_bandara__kota__icontains'],
+            'provinsi': ['provinsi__provinsi__icontains'],
+            'jenis_kegiatan': ['jenis_kegiatan__nama__icontains'],
+            'jenis_spd': ['jenis_spd__nama__icontains'],
+            'jenis_transportasi': ['jenis_transportasi__nama__icontains'],
+            'dasar_peraturan': [
+                'dasar_peraturan__nama_peraturan__icontains',
+                'dasar_peraturan__nomor_peraturan__icontains',
+            ],
+            'menu': ['menu__nama__icontains'],
+            'spt': [
+                'spt__tempat_tujuan__icontains',
+                'spt__berita__icontains',
+                'spt__dasar__icontains',
+                'spt__kota_tujuan__lokasi__icontains',
+                'spt__jenis_kegiatan__nama__icontains',
+                'spt__pemberi_tugas__nomor_spt__icontains',
+                'spt__pemberi_tugas__nomor_spd__icontains',
+                'spt__pemberi_tugas__nama__icontains',
+            ],
+            'pelaksana': [
+                'pelaksana__nama__nama__icontains',
+                'pelaksana__nama__nip__icontains',
+            ],
+            'pemberi_tugas': [
+                'pemberi_tugas__nomor_spt__icontains',
+                'pemberi_tugas__nomor_spd__icontains',
+                'pemberi_tugas__nama__icontains',
+                'pemberi_tugas__nip__icontains',
+            ],
+        }
+
         def is_relation(field_name):
-            return getattr(model_fields.get(field_name), "is_relation", False)
+            field = model_fields.get(field_name)
+            return getattr(field, "is_relation", False)
 
-        def add_text_filter(field_name, related_lookup=None):
-            nonlocal filters
+        for rel_name, lookups in related_lookups.items():
+            if rel_name in field_names and is_relation(rel_name):
+                for lookup in lookups:
+                    try:
+                        filters |= Q(**{lookup: search})
+                    except Exception:
+                        pass
 
-            if field_name not in field_names:
-                return
-
-            if is_relation(field_name):
-                if related_lookup:
-                    filters |= Q(**{related_lookup: search})
-                return
-
-            filters |= Q(**{f"{field_name}__icontains": search})
-
-        if 'nama' in field_names:
-            filters |= Q(nama__icontains=search)
-        if 'nip' in field_names:
-            filters |= Q(nip__icontains=search)
-        if 'jabatan' in field_names:
-            filters |= Q(jabatan__icontains=search)
-        add_text_filter('pangkat', 'pangkat__pangkat__icontains')
-        add_text_filter('eselon', 'eselon__eselon__icontains')
-        add_text_filter('jenis_jabatan', 'jenis_jabatan__nama__icontains')
-        add_text_filter('status', 'status__nama__icontains')
-        add_text_filter('opd', 'opd__nama__icontains')
-        add_text_filter('tingkat', 'tingkat__tingkat__icontains')
-        if 'tugas' in field_names and is_relation('tugas'):
-            filters |= Q(tugas__nama__icontains=search)
-        elif 'tugas' in field_names:
-            filters |= Q(tugas__icontains=search)
-        if 'nama_pemda' in field_names:
-            filters |= Q(nama_pemda__icontains=search)
-        if 'nama_dinas' in field_names:
-            filters |= Q(nama_dinas__icontains=search)
-        if 'alamat' in field_names:
-            filters |= Q(alamat__icontains=search)
-        if 'telepon' in field_names:
-            filters |= Q(telepon__icontains=search)
-        if 'email' in field_names:
-            filters |= Q(email__icontains=search)
-        add_text_filter('pemda', 'pemda__nama_pemda__icontains')
-        if 'font_family' in field_names:
-            filters |= Q(font_family__icontains=search)
-        if 'nomor_spt' in field_names:
-            filters |= Q(nomor_spt__icontains=search)
-        if 'url' in field_names:
-            filters |= Q(url__icontains=search)
-        add_text_filter('menu', 'menu__nama__icontains')
-        if 'icon' in field_names:
-            filters |= Q(icon__icontains=search)
-        add_text_filter('lokasi', 'lokasi__lokasi__icontains')
-        if 'kota' in field_names:
-            filters |= Q(kota__icontains=search)
-        add_text_filter('jenis_spd', 'jenis_spd__nama__icontains')
-        add_text_filter('jenis_kegiatan', 'jenis_kegiatan__nama__icontains')
-        add_text_filter('jenis_transportasi', 'jenis_transportasi__nama__icontains')
-        add_text_filter('penandatangan', 'penandatangan__nama__icontains')
-        if 'spt' in field_names and is_relation('spt'):
+        # 3. Model-specific reverse/special lookups
+        model_name = getattr(self.model, '__name__', '')
+        if model_name == "Spt":
             filters |= (
-                Q(spt__tempat_tujuan__icontains=search) |
-                Q(spt__kota_tujuan__lokasi__icontains=search)
+                Q(pelaksana__nama__nama__icontains=search) |
+                Q(pelaksana__nama__nip__icontains=search) |
+                Q(pemberi_tugas__nomor_spt__icontains=search) |
+                Q(pemberi_tugas__nomor_spd__icontains=search) |
+                Q(kota_tujuan__lokasi__icontains=search) |
+                Q(jenis_kegiatan__nama__icontains=search)
             )
+
+        # 4. Money/numeric fields
         money_field_types = (
             models.DecimalField,
             models.FloatField,
@@ -277,10 +305,9 @@ class BaseCRUDView(ExcelMixin, ListView):
                     filters |= Q(**{field_name: money_value})
             except (TypeError, ValueError):
                 pass
-        
 
         if filters:
-            qs = qs.filter(filters)
+            qs = qs.filter(filters).distinct()
 
         return qs
 

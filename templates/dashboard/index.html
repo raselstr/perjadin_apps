@@ -23,63 +23,101 @@
     </div>
 
     <div class="row g-2">
+      <!-- Card 1: Total SPT Tahun Ini -->
       <div class="col-xxl-3 col-md-6">
-        <div class="card border-0 shadow-sm dashboard-stat-card bg-primary text-white h-100">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="stat-icon bg-white bg-opacity-25">
-                <i class="ti ti-file-description"></i>
+        <div class="card border-0 shadow-sm dashboard-stat-card stat-card-emerald h-100 position-relative overflow-hidden">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="stat-icon stat-icon-emerald">
+                <i class="ti ti-file-certificate"></i>
               </div>
-              <span class="badge rounded-pill text-bg-light">Tahun {{ dashboard_year }}</span>
+              <span class="badge rounded-pill stat-badge-emerald">Tahun {{ dashboard_year }}</span>
             </div>
-            <h4 class="text-white mb-0 fw-bold">{{ stats.total_spt_year }}</h4>
-            <p class="mb-0 stat-card-label text-white text-opacity-75">Total SPT diterbitkan</p>
+            <div class="stat-value-group">
+              <h3 class="stat-number mb-0 fw-bold">{{ stats.total_spt_year }}</h3>
+              <p class="mb-0 stat-card-label">Total SPT Diterbitkan</p>
+            </div>
+            <div class="stat-card-footer mt-2 pt-2 border-top">
+              <span class="small text-muted d-flex align-items-center gap-1">
+                <i class="ti ti-check-circle text-success"></i> Dokumen SPT tahun aktif
+              </span>
+            </div>
           </div>
+          <i class="ti ti-file-text stat-card-bg-icon"></i>
         </div>
       </div>
 
+      <!-- Card 2: Frekuensi Pelaksana -->
       <div class="col-xxl-3 col-md-6">
-        <div class="card border-0 shadow-sm dashboard-stat-card bg-success text-white h-100">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="stat-icon bg-white bg-opacity-25">
-                <i class="ti ti-users"></i>
+        <div class="card border-0 shadow-sm dashboard-stat-card stat-card-teal h-100 position-relative overflow-hidden">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="stat-icon stat-icon-teal">
+                <i class="ti ti-users-group"></i>
               </div>
-              <span class="badge rounded-pill text-bg-light">Frekuensi</span>
+              <span class="badge rounded-pill stat-badge-teal">Penugasan</span>
             </div>
-            <h4 class="text-white mb-0 fw-bold">{{ stats.total_pelaksana_year }}</h4>
-            <p class="mb-0 stat-card-label text-white text-opacity-75">Jumlah pelaksana perjalanan</p>
+            <div class="stat-value-group">
+              <h3 class="stat-number mb-0 fw-bold">{{ stats.total_pelaksana_year }}</h3>
+              <p class="mb-0 stat-card-label">Jumlah Pelaksana Perjalanan</p>
+            </div>
+            <div class="stat-card-footer mt-2 pt-2 border-top">
+              <span class="small text-muted d-flex align-items-center gap-1">
+                <i class="ti ti-activity text-teal"></i> Total orang/frekuensi tugas
+              </span>
+            </div>
           </div>
+          <i class="ti ti-users stat-card-bg-icon"></i>
         </div>
       </div>
 
+      <!-- Card 3: SPT Bulan Berjalan -->
       <div class="col-xxl-3 col-md-6">
-        <div class="card border-0 shadow-sm dashboard-stat-card bg-warning h-100">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="stat-icon bg-white bg-opacity-50">
-                <i class="ti ti-calendar-stats text-dark"></i>
+        <div class="card border-0 shadow-sm dashboard-stat-card stat-card-gold h-100 position-relative overflow-hidden">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="stat-icon stat-icon-gold">
+                <i class="ti ti-calendar-stats"></i>
               </div>
-              <span class="badge rounded-pill bg-white text-warning fw-semibold">Bulan Ini</span>
+              <span class="badge rounded-pill stat-badge-gold">Bulan {{ today|date:"F" }}</span>
             </div>
-            <h4 class="mb-0 fw-bold text-dark">{{ stats.total_current_month }}</h4>
-            <p class="mb-0 stat-card-label text-dark text-opacity-75">SPT berangkat bulan berjalan</p>
+            <div class="stat-value-group">
+              <h3 class="stat-number mb-0 fw-bold">{{ stats.total_current_month }}</h3>
+              <p class="mb-0 stat-card-label">SPT Berangkat Bulan Ini</p>
+            </div>
+            <div class="stat-card-footer mt-2 pt-2 border-top">
+              <span class="small text-muted d-flex align-items-center gap-1">
+                <i class="ti ti-calendar text-warning"></i> Keberangkatan bulan berjalan
+              </span>
+            </div>
           </div>
+          <i class="ti ti-calendar-event stat-card-bg-icon"></i>
         </div>
       </div>
 
+      <!-- Card 4: Pelaksana Hari Ini -->
       <div class="col-xxl-3 col-md-6">
-        <div class="card border-0 shadow-sm dashboard-stat-card bg-dark text-white h-100">
-          <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div class="stat-icon bg-white bg-opacity-25">
+        <div class="card border-0 shadow-sm dashboard-stat-card stat-card-slate h-100 position-relative overflow-hidden">
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+              <div class="stat-icon stat-icon-slate">
                 <i class="ti ti-map-pin-share"></i>
               </div>
-              <span class="badge rounded-pill text-bg-light">{{ today|date:"d/m/Y" }}</span>
+              <span class="badge rounded-pill stat-badge-slate">
+                <span class="live-indicator"></span> {{ today|date:"d/m/Y" }}
+              </span>
             </div>
-            <h4 class="text-white mb-0 fw-bold">{{ stats.total_today }}</h4>
-            <p class="mb-0 stat-card-label text-white text-opacity-75">Pelaksana dinas hari ini</p>
+            <div class="stat-value-group">
+              <h3 class="stat-number mb-0 fw-bold">{{ stats.total_today }}</h3>
+              <p class="mb-0 stat-card-label">Pelaksana Dinas Hari Ini</p>
+            </div>
+            <div class="stat-card-footer mt-2 pt-2 border-top">
+              <span class="small text-muted d-flex align-items-center gap-1">
+                <i class="ti ti-user-check text-success"></i> Sedang dalam dinas aktif
+              </span>
+            </div>
           </div>
+          <i class="ti ti-map-pin stat-card-bg-icon"></i>
         </div>
       </div>
 
@@ -194,37 +232,94 @@
       </div>
 
       <div class="col-xl-4">
-        <div class="card border-0 shadow-sm h-100">
-          <div class="card-header border-0 pt-4 pb-0">
-            <h5 class="mb-1">Ruang Pantau Hari Ini</h5>
-            <p class="text-muted mb-0">Status berdasarkan tanggal server saat ini.</p>
-          </div>
-          <div class="card-body">
-            <div class="overview-panel mb-3">
-              <div class="small text-muted mb-1">Tanggal aktif</div>
-              <div class="fw-semibold fs-5">{{ today|date:"d/m/Y" }}</div>
+        <div class="card border-0 shadow-sm h-100 executive-control-card">
+          <div class="card-header border-0 pt-4 pb-0 bg-transparent">
+            <div class="d-flex align-items-center justify-content-between">
+              <div>
+                <h5 class="mb-1 fw-bold text-dark d-flex align-items-center gap-2">
+                  <i class="ti ti-radar text-emerald"></i> Ruang Pantau Hari Ini
+                </h5>
+                <p class="text-muted small mb-0">Status operasional server saat ini</p>
+              </div>
+              <span class="badge rounded-pill stat-badge-emerald px-2.5 py-1">
+                <span class="live-indicator live-indicator-sm"></span> Realtime
+              </span>
             </div>
-            <div class="overview-panel mb-3">
-              <div class="small text-muted mb-1">OPD aktif</div>
-              <div class="fw-semibold">{{ opd|default:"Semua OPD" }}</div>
+          </div>
+          <div class="card-body d-flex flex-column gap-2.5 pt-3">
+            <div class="overview-panel">
+              <div class="d-flex align-items-center gap-3">
+                <div class="overview-panel-icon bg-emerald-50 text-emerald-700">
+                  <i class="ti ti-calendar"></i>
+                </div>
+                <div>
+                  <div class="small text-muted">Tanggal Aktif Server</div>
+                  <div class="fw-bold fs-6 text-dark">{{ today|date:"l, d F Y" }}</div>
+                </div>
+              </div>
             </div>
             <div class="overview-panel">
-              <div class="small text-muted mb-1">Dokumen berjalan</div>
-              <div class="fw-semibold">{{ stats.total_today }} pelaksana sedang bertugas</div>
+              <div class="d-flex align-items-center gap-3">
+                <div class="overview-panel-icon bg-amber-50 text-amber-700">
+                  <i class="ti ti-building-bank"></i>
+                </div>
+                <div>
+                  <div class="small text-muted">Perangkat Daerah / OPD Aktif</div>
+                  <div class="fw-bold text-dark text-truncate" style="max-width: 230px;" title="{{ opd|default:'Semua Perangkat Daerah' }}">
+                    {{ opd|default:"Semua Perangkat Daerah" }}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="overview-panel">
+              <div class="d-flex align-items-center gap-3">
+                <div class="overview-panel-icon bg-blue-50 text-blue-700">
+                  <i class="ti ti-briefcase"></i>
+                </div>
+                <div>
+                  <div class="small text-muted">Status Penugasan Hari Ini</div>
+                  <div class="fw-bold text-dark">
+                    {% if stats.total_today > 0 %}
+                      <span class="text-emerald-700">{{ stats.total_today }} Pegawai</span> Sedang Bertugas
+                    {% else %}
+                      <span class="text-muted">Tidak Ada Dinas Aktif</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Action Links -->
+            <div class="quick-nav-box mt-auto pt-2 border-top">
+              <div class="small text-muted fw-semibold text-uppercase mb-2" style="font-size: 0.7rem; letter-spacing: 0.5px;">Akses Cepat Modul</div>
+              <div class="d-grid gap-2">
+                <a href="{% url 'spt_list' %}" class="btn btn-sm btn-outline-emerald d-flex align-items-center justify-content-between">
+                  <span><i class="ti ti-file-plus me-1.5"></i> Kelola Daftar SPT</span>
+                  <i class="ti ti-chevron-right small"></i>
+                </a>
+                <a href="{% url 'kwitansi_list' %}" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-between">
+                  <span><i class="ti ti-receipt me-1.5"></i> Cetak Kwitansi SPJ</span>
+                  <i class="ti ti-chevron-right small"></i>
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header border-0 pt-4 pb-0">
+        <div class="card border-0 shadow-sm executive-card">
+          <div class="card-header border-0 pt-4 pb-0 bg-transparent">
             <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
               <div>
-                <h5 class="mb-1">Pelaksana Terbanyak</h5>
-                <p class="text-muted mb-0">Lima orang dengan frekuensi perjalanan dinas tertinggi tahun {{ dashboard_year }}.</p>
+                <h5 class="mb-1 fw-bold text-dark d-flex align-items-center gap-2">
+                  <i class="ti ti-award text-amber-600"></i> Pelaksana Terbanyak
+                </h5>
+                <p class="text-muted mb-0">Lima pegawai dengan frekuensi dinas tertinggi tahun {{ dashboard_year }}.</p>
               </div>
-              <span class="badge rounded-pill bg-light-primary text-primary px-3 py-2">Top 5</span>
+              <span class="badge rounded-pill stat-badge-gold px-3 py-2 fw-semibold">
+                <i class="ti ti-flame me-1"></i> Top 5 Frekuensi
+              </span>
             </div>
           </div>
           <div class="card-body">
@@ -237,12 +332,26 @@
                   <div class="top-travelers-list">
                     {% for item in top_travelers %}
                       <div class="top-traveler-row">
-                        <div class="top-traveler-rank">{{ forloop.counter }}</div>
-                        <div class="flex-grow-1">
-                          <div class="fw-semibold">{{ item.nama__nama }}</div>
-                          <div class="text-muted small">{{ item.nama__nip|default:"-" }}{% if item.nama__jabatan %} | {{ item.nama__jabatan }}{% endif %}</div>
+                        <div class="top-traveler-rank rank-{{ forloop.counter }}">
+                          {% if forloop.counter == 1 %}
+                            <i class="ti ti-crown"></i>
+                          {% elif forloop.counter == 2 %}
+                            <i class="ti ti-medal"></i>
+                          {% elif forloop.counter == 3 %}
+                            <i class="ti ti-award"></i>
+                          {% else %}
+                            {{ forloop.counter }}
+                          {% endif %}
                         </div>
-                        <div class="fw-semibold text-primary">{{ item.total }} kali</div>
+                        <div class="flex-grow-1 min-width-0">
+                          <div class="fw-semibold text-dark text-truncate">{{ item.nama__nama }}</div>
+                          <div class="text-muted small text-truncate">{{ item.nama__nip|default:"-" }}{% if item.nama__jabatan %} | {{ item.nama__jabatan }}{% endif %}</div>
+                        </div>
+                        <div class="text-end flex-shrink-0">
+                          <span class="badge rounded-pill stat-badge-emerald px-2.5 py-1.5 fw-bold">
+                            {{ item.total }} Perjalanan
+                          </span>
+                        </div>
                       </div>
                     {% endfor %}
                   </div>
@@ -253,8 +362,8 @@
                 <div class="empty-icon">
                   <i class="ti ti-chart-bar-off"></i>
                 </div>
-                <h5 class="mb-2">Belum ada data frekuensi</h5>
-                <p class="text-muted mb-0">Data perjalanan tahun {{ dashboard_year }} belum tersedia.</p>
+                <h5 class="mb-2 fw-bold text-dark">Belum ada data frekuensi</h5>
+                <p class="text-muted mb-0">Data perjalanan dinas tahun {{ dashboard_year }} belum tersedia.</p>
               </div>
             {% endif %}
           </div>
@@ -262,47 +371,71 @@
       </div>
 
       <div class="col-12">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header border-0 pt-4 pb-0">
+        <div class="card border-0 shadow-sm executive-card">
+          <div class="card-header border-0 pt-4 pb-0 bg-transparent">
             <div class="d-flex flex-column flex-md-row justify-content-between gap-3 align-items-md-center">
               <div>
-                <h5 class="mb-1">Pelaksana Perjalanan Dinas Hari Ini</h5>
+                <h5 class="mb-1 fw-bold text-dark d-flex align-items-center gap-2">
+                  <i class="ti ti-map-pin text-emerald-600"></i> Pelaksana Perjalanan Dinas Hari Ini
+                </h5>
                 <p class="text-muted mb-0">
                   Daftar pegawai yang tanggal perjalanannya mencakup {{ today|date:"d/m/Y" }}.
                 </p>
               </div>
-              <span class="badge rounded-pill bg-light-primary text-primary px-3 py-2">
-                {{ stats.total_today }} pelaksana aktif
+              <span class="badge rounded-pill stat-badge-emerald px-3 py-2 fw-semibold">
+                <span class="live-indicator me-1"></span> {{ stats.total_today }} pelaksana aktif
               </span>
             </div>
           </div>
           <div class="card-body">
             {% if today_travelers %}
               <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
+                <table class="table table-hover align-middle mb-0 executive-table">
                   <thead>
                     <tr>
-                      <th>Nama</th>
+                      <th class="ps-3">Nama Pelaksana</th>
                       <th>Jabatan</th>
-                      <th>Tujuan</th>
-                      <th>Kegiatan</th>
-                      <th>Periode</th>
+                      <th>Kota / Tempat Tujuan</th>
+                      <th>Jenis Kegiatan</th>
+                      <th class="pe-3">Masa Penugasan</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for item in today_travelers %}
                       <tr>
-                        <td>
-                          <div class="fw-semibold">{{ item.nama.nama }}</div>
-                          <div class="text-muted small">{{ item.nama.nip|default:"-" }}</div>
+                        <td class="ps-3">
+                          <div class="d-flex align-items-center gap-2.5">
+                            <div class="table-avatar-circle">
+                              {{ item.nama.nama|slice:":1"|upper }}
+                            </div>
+                            <div>
+                              <div class="fw-semibold text-dark">{{ item.nama.nama }}</div>
+                              <div class="text-muted small">{{ item.nama.nip|default:"-" }}</div>
+                            </div>
+                          </div>
                         </td>
-                        <td>{{ item.nama.jabatan|default:"-" }}</td>
                         <td>
-                          <div class="fw-medium">{{ item.spt.kota_tujuan_display|default:"-" }}</div>
-                          <div class="text-muted small">{{ item.spt.tempat_tujuan_display|default:"-" }}</div>
+                          <span class="text-dark small">{{ item.nama.jabatan|default:"-" }}</span>
                         </td>
-                        <td>{{ item.spt.jenis_kegiatan|default:"-" }}</td>
-                        <td>{{ item.spt.tgl_berangkat|date:"d/m/Y" }} - {{ item.spt.tgl_kembali|date:"d/m/Y" }}</td>
+                        <td>
+                          <div class="d-flex align-items-center gap-1.5">
+                            <i class="ti ti-map-pin text-emerald small"></i>
+                            <span class="fw-medium text-dark">{{ item.spt.kota_tujuan_display|default:item.spt.kota_tujuan|default:"-" }}</span>
+                          </div>
+                          {% if item.spt.tempat_tujuan %}
+                            <div class="text-muted small ps-3">{{ item.spt.tempat_tujuan }}</div>
+                          {% endif %}
+                        </td>
+                        <td>
+                          <span class="badge bg-light text-dark border px-2 py-1 small">
+                            <i class="ti ti-tag me-1 text-primary"></i>{{ item.spt.jenis_kegiatan|default:"-" }}
+                          </span>
+                        </td>
+                        <td class="pe-3">
+                          <span class="badge bg-emerald-subtle text-emerald border border-emerald-subtle px-2.5 py-1">
+                            <i class="ti ti-calendar me-1"></i>{{ item.spt.tgl_berangkat|date:"d/m/Y" }} - {{ item.spt.tgl_kembali|date:"d/m/Y" }}
+                          </span>
+                        </td>
                       </tr>
                     {% endfor %}
                   </tbody>
@@ -313,9 +446,9 @@
                 <div class="empty-icon">
                   <i class="ti ti-calendar-off"></i>
                 </div>
-                <h5 class="mb-2">Belum ada perjalanan aktif hari ini</h5>
+                <h5 class="mb-2 fw-bold text-dark">Belum ada perjalanan aktif hari ini</h5>
                 <p class="text-muted mb-0">
-                  Tidak ditemukan pelaksana perjalanan dinas yang sedang berjalan pada tanggal ini.
+                  Tidak ditemukan pelaksana perjalanan dinas yang sedang bertugas pada tanggal ini.
                 </p>
               </div>
             {% endif %}
@@ -398,73 +531,277 @@
 
 {% block extrastyle %}
 <style>
+/* Stat Cards Modern Asahan Palette */
 .dashboard-stat-card {
-  overflow: hidden;
-  border-radius: 10px;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02) !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dashboard-stat-card .card-body {
-  padding: 8px 12px;
+.dashboard-stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -4px rgba(15, 23, 42, 0.1) !important;
 }
 
-.dashboard-stat-card h4 {
-  font-size: 1.3rem;
-  line-height: 1.1;
+.stat-card-emerald {
+  background: linear-gradient(145deg, #ffffff 0%, #f0fdf4 100%);
+  border-color: rgba(6, 95, 70, 0.16) !important;
 }
 
-.stat-card-label {
-  font-size: 0.72rem;
-  margin-top: 1px;
-  line-height: 1.2;
+.stat-card-teal {
+  background: linear-gradient(145deg, #ffffff 0%, #f0fdfa 100%);
+  border-color: rgba(13, 148, 136, 0.16) !important;
+}
+
+.stat-card-gold {
+  background: linear-gradient(145deg, #ffffff 0%, #fffbeb 100%);
+  border-color: rgba(217, 119, 6, 0.18) !important;
+}
+
+.stat-card-slate {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border-color: rgba(51, 65, 85, 0.14) !important;
 }
 
 .stat-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 7px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 19px;
+  flex-shrink: 0;
 }
 
-.stat-icon-mini {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  background-color: rgba(13, 110, 253, 0.12);
+.stat-icon-emerald {
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(6, 95, 70, 0.25);
+}
+
+.stat-icon-teal {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(13, 148, 136, 0.25);
+}
+
+.stat-icon-gold {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.25);
+}
+
+.stat-icon-slate {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(30, 41, 59, 0.25);
+}
+
+.stat-badge-emerald {
+  background: #dcfce7;
+  color: #065F46;
+  border: 1px solid #bbf7d0;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.stat-badge-teal {
+  background: #ccfbf1;
+  color: #0f766e;
+  border: 1px solid #99f6e4;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.stat-badge-gold {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.stat-badge-slate {
+  background: #e2e8f0;
+  color: #1e293b;
+  border: 1px solid #cbd5e1;
+  font-size: 0.73rem;
+  font-weight: 600;
+}
+
+.stat-number {
+  font-size: 1.85rem;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+}
+
+.stat-card-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.stat-card-footer {
+  border-color: rgba(15, 23, 42, 0.06) !important;
+}
+
+.stat-card-bg-icon {
+  position: absolute;
+  right: -10px;
+  bottom: -12px;
+  font-size: 85px;
+  color: rgba(15, 23, 42, 0.035);
+  pointer-events: none;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.dashboard-stat-card:hover .stat-card-bg-icon {
+  transform: scale(1.08) rotate(-4deg);
+  color: rgba(6, 95, 70, 0.06);
+}
+
+/* Live Pulse Indicator */
+.live-indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulse-live 1.8s infinite;
+  vertical-align: middle;
+}
+
+.live-indicator-sm {
+  width: 6px;
+  height: 6px;
+}
+
+@keyframes pulse-live {
+  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Executive Cards & Panels */
+.executive-card,
+.executive-control-card {
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
 }
 
 .overview-panel {
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
-  padding: 16px 18px;
-  background: linear-gradient(135deg, #f8fafc 0%, #eef4ff 100%);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.02);
+  transition: all 0.2s ease;
 }
 
+.overview-panel:hover {
+  border-color: rgba(6, 95, 70, 0.2);
+  background: #fbfdfc;
+}
+
+.overview-panel-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  flex-shrink: 0;
+}
+
+.btn-outline-emerald {
+  color: #065F46;
+  border-color: rgba(6, 95, 70, 0.3);
+  background-color: transparent;
+  font-weight: 600;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-emerald:hover {
+  color: #ffffff;
+  background-color: #065F46;
+  border-color: #065F46;
+  box-shadow: 0 4px 10px rgba(6, 95, 70, 0.25);
+}
+
+/* Executive Table */
+.executive-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.executive-table thead th {
+  background: #f8fafc;
+  color: #334155;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 700;
+  border-top: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+
+.executive-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.executive-table tbody tr:hover td {
+  background-color: #f0fdf4 !important;
+}
+
+.table-avatar-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #065F46 0%, #047857 100%);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(6, 95, 70, 0.25);
+}
+
+/* Empty Dashboard State */
 .empty-dashboard-state {
   border: 1px dashed rgba(15, 23, 42, 0.12);
-  border-radius: 20px;
-  padding: 42px 20px;
+  border-radius: 16px;
+  padding: 38px 20px;
   text-align: center;
-  background: linear-gradient(180deg, #fbfdff 0%, #f3f7ff 100%);
+  background: linear-gradient(180deg, #fbfdff 0%, #f4fbf7 100%);
 }
 
 .empty-icon {
-  width: 70px;
-  height: 70px;
-  margin: 0 auto 16px;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 14px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #e9f2ff;
-  color: #0d6efd;
-  font-size: 28px;
+  background: #dcfce7;
+  color: #065F46;
+  font-size: 26px;
 }
 
 .birthday-card {
@@ -758,17 +1095,44 @@
 }
 
 .top-traveler-rank {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
   color: #ffffff;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
+
+.top-traveler-rank.rank-1 {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  font-size: 18px;
+  box-shadow: 0 4px 10px rgba(217, 119, 6, 0.35);
+}
+
+.top-traveler-rank.rank-2 {
+  background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+  color: #ffffff;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(100, 116, 139, 0.3);
+}
+
+.top-traveler-rank.rank-3 {
+  background: linear-gradient(135deg, #b45309 0%, #78350f 100%);
+  color: #ffffff;
+  font-size: 16px;
+  box-shadow: 0 4px 10px rgba(180, 83, 9, 0.3);
+}
+
+.top-traveler-rank.rank-4,
+.top-traveler-rank.rank-5 {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
 }
 </style>
 {% endblock extrastyle %}
@@ -800,6 +1164,19 @@
       data: chartData.series,
     }],
     colors: ['#059669'],
+    fill: {
+      type: 'gradient',
+      gradient: {
+        shade: 'light',
+        type: 'vertical',
+        shadeIntensity: 0.2,
+        gradientToColors: ['#10b981'],
+        inverseColors: false,
+        opacityFrom: 0.95,
+        opacityTo: 0.8,
+        stops: [0, 100]
+      }
+    },
     plotOptions: {
       bar: {
         borderRadius: 8,

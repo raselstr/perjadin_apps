@@ -458,7 +458,7 @@ body {
   }
 
   #filter-form {
-    flex-wrap: wrap !important;
+    flex-wrap: nowrap !important;
     gap: 6px !important;
   }
 
@@ -656,8 +656,26 @@ body {
 
 /* filter form rapat */
 #filter-form {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
   padding-bottom: 6px !important;
   margin-bottom: 4px !important;
+  gap: 8px !important;
+}
+
+#filter-form select[name="per_page"] {
+  width: 80px !important;
+  min-width: 80px !important;
+  max-width: 80px !important;
+  flex: 0 0 80px !important;
+}
+
+#filter-form input[name="search"] {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
 }
 
 /* Per-page info & pagination row */

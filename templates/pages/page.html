@@ -59,7 +59,7 @@
             </div>
             <div class="card-body">
               <div id="main-content"
-                hx-get="{% url initial_url %}"
+                hx-get="{% url initial_url %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"
                 hx-trigger="load"
                 hx-target="this"
                 hx-swap="innerHTML">

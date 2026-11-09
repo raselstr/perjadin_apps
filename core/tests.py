@@ -383,3 +383,81 @@ class ExcelImportCoverageTests(TestCase):
                 self.assertEqual(latest_record.biaya, Decimal(str(updated_row[-1])))
 
                 model_class.objects.all().delete()
+
+
+class CRUDViewSearchTests(TestCase):
+    def setUp(self):
+        self.rf = RequestFactory()
+        self.user = User.objects.create_superuser(
+            username="admin_test",
+            password="password123",
+            email="admin@example.com"
+        )
+        self.opd1 = OPD.objects.create(nama="Dinas Kesehatan")
+        self.opd2 = OPD.objects.create(nama="Badan Pengelola Keuangan")
+        self.opd3 = OPD.objects.create(nama="Dinas Pendidikan")
+
+    def test_search_direct_field(self):
+        from profiles.views import OPDView
+        req = self.rf.get("/profiles/opd/", {"search": "kesehatan"})
+        req.user = self.user
+        view = OPDView()
+        view.setup(req)
+        qs = view.get_queryset()
+        self.assertEqual(qs.count(), 1)
+        self.assertEqual(qs.first().nama, "Dinas Kesehatan")
+
+    def test_search_case_insensitive_partial(self):
+        from profiles.views import OPDView
+        req = self.rf.get("/profiles/opd/", {"search": "dinas"})
+        req.user = self.user
+        view = OPDView()
+        view.setup(req)
+        qs = view.get_queryset()
+        self.assertEqual(qs.count(), 2)
+
+    def test_search_empty_or_whitespace_returns_all(self):
+        from profiles.views import OPDView
+        req = self.rf.get("/profiles/opd/", {"search": "   "})
+        req.user = self.user
+        view = OPDView()
+        view.setup(req)
+        qs = view.get_queryset()
+        self.assertEqual(qs.count(), 3)
+
+    def test_search_related_fk_field(self):
+        from umum.views import PegawaiView
+        pangkat = Pangkat.objects.create(pangkat="Pembina", golongan="IV", ruang="a")
+        Pegawai.objects.create(
+            nip="198001012005011001",
+            nama="Budi Santoso",
+            jabatan="Kepala Bidang",
+            opd=self.opd1,
+            pangkat=pangkat
+        )
+        Pegawai.objects.create(
+            nip="198502022010011002",
+            nama="Siti Rahma",
+            jabatan="Staff Keuangan",
+            opd=self.opd2,
+            pangkat=pangkat
+        )
+
+        # Search by NIP
+        req = self.rf.get("/umum/pegawai/", {"search": "19800101"})
+        req.user = self.user
+        view = PegawaiView()
+        view.setup(req)
+        qs = view.get_queryset()
+        self.assertEqual(qs.count(), 1)
+        self.assertEqual(qs.first().nama, "Budi Santoso")
+
+        # Search by related OPD name
+        req2 = self.rf.get("/umum/pegawai/", {"search": "Keuangan"})
+        req2.user = self.user
+        view2 = PegawaiView()
+        view2.setup(req2)
+        qs2 = view2.get_queryset()
+        # matches Siti (staff keuangan / badan pengelola keuangan)
+        self.assertTrue(qs2.filter(nama="Siti Rahma").exists())
+

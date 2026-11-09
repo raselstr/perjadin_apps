@@ -1111,7 +1111,7 @@ class DataPerjalananPerOrangView(LoginRequiredMixin, View):
     def _build_rows(self, request):
         start_date = _date_param(request, "tgl1")
         end_date = _date_param(request, "tgl2")
-        keyword = (request.GET.get("nama") or "").strip()
+        keyword = (request.GET.get("nama") or request.GET.get("search") or "").strip()
         queryset = self._base_queryset(request)
 
         if start_date:
@@ -1122,6 +1122,8 @@ class DataPerjalananPerOrangView(LoginRequiredMixin, View):
             queryset = queryset.filter(
                 Q(nama__nama__icontains=keyword)
                 | Q(nama__nip__icontains=keyword)
+                | Q(spt__tempat_tujuan__icontains=keyword)
+                | Q(spt__kota_tujuan__lokasi__icontains=keyword)
             )
 
         rows = list(queryset)
@@ -1350,7 +1352,14 @@ class KwitansiView(LoginRequiredMixin, View):
         if end_date:
             pelaksana = pelaksana.filter(spt__tgl_berangkat__lte=end_date)
         if keyword:
-            pelaksana = pelaksana.filter(nama__nama__icontains=keyword)
+            pelaksana = pelaksana.filter(
+                Q(nama__nama__icontains=keyword) |
+                Q(nama__nip__icontains=keyword) |
+                Q(spt__tempat_tujuan__icontains=keyword) |
+                Q(spt__kota_tujuan__lokasi__icontains=keyword) |
+                Q(spt__pemberi_tugas__nomor_spt__icontains=keyword) |
+                Q(spt__pemberi_tugas__nomor_spd__icontains=keyword)
+            )
 
         rows_by_spt = {}
         for item in pelaksana:
