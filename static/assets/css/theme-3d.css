@@ -126,14 +126,14 @@ body {
    ============================================================================ */
 /* Container menggunakan width: auto agar pas menghitung (100% - margin sidebar) */
 .pc-container {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 70px);
   position: relative;
   top: 0 !important;
-  margin-top: 80px !important;
-  margin-left: 230px !important;
+  margin-top: 70px !important;
+  margin-left: 235px !important;
   margin-right: 20px !important;
   width: auto !important;
-  max-width: calc(100% - 250px) !important;
+  max-width: calc(100% - 255px) !important;
   min-width: 0 !important;
   box-sizing: border-box !important;
   overflow-x: clip;
@@ -239,6 +239,12 @@ body {
    2. HEADER ATAS (NAVBAR 3D DENGAN AKSEN ZAMRUD & EMAS)
    ============================================================================ */
 .pc-header {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  height: 70px !important;
+  display: flex !important;
   background: rgba(255, 255, 255, 0.96) !important;
   backdrop-filter: blur(12px);
   border-bottom: 2px solid var(--emerald-500) !important;
@@ -246,11 +252,80 @@ body {
     0 2px 4px rgba(6, 78, 59, 0.04),
     0 8px 20px -2px rgba(6, 78, 59, 0.10) !important;
   transition: all 0.25s ease;
+  z-index: 1025 !important;
+}
+
+/* Brand Box Zamrud di Pojok Kiri Atas Navbar */
+.pc-header .m-header {
+  width: 235px !important;
+  min-width: 235px !important;
+  max-width: 235px !important;
+  height: 70px !important;
+  background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
+  border-bottom: 2px solid var(--gold-500) !important;
+  border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25) !important;
+  padding: 0 14px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 0 0 235px !important;
+}
+
+.pc-header .m-header .b-brand {
+  display: flex !important;
+  align-items: center !important;
+  text-decoration: none !important;
+}
+
+.pc-header .m-header .b-brand img {
+  max-height: 40px !important;
+  width: auto !important;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+  margin-right: 8px !important;
+}
+
+.pc-header .m-header .brand-text {
+  line-height: 1.15;
+}
+
+.pc-header .m-header .brand-text .fw-bold {
+  color: #FFFFFF !important;
+  font-size: 13px !important;
+  letter-spacing: 0.5px;
+}
+
+.pc-header .m-header .brand-text .text-white-50 {
+  color: rgba(255, 255, 255, 0.75) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.8px;
+}
+
+.pc-header .m-header #sidebar-hide {
+  color: #FFFFFF !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.pc-header .m-header #sidebar-hide:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #FFFFFF !important;
 }
 
 .pc-header .header-wrapper {
-  padding: 0 clamp(10px, 1.5vw, 20px);
-  flex-wrap: wrap;
+  padding: 0 clamp(10px, 1.5vw, 20px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 1 1 auto !important;
+  height: 70px !important;
+  min-height: 70px !important;
   gap: 8px;
 }
 
@@ -297,35 +372,36 @@ body {
    3. SIDEBAR 3D (HIJAU ZAMRUD ELEGAN TANPA GARIS PADA SUBMENU)
    ============================================================================ */
 .pc-sidebar {
-  width: 230px !important;
+  width: 235px !important;
+  top: 70px !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  position: fixed !important;
   background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
   border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
   box-shadow: 4px 0 24px rgba(6, 78, 59, 0.08) !important;
+  z-index: 1024 !important;
+  overflow: hidden !important;
 }
 
+.pc-sidebar .navbar-wrapper {
+  width: 235px !important;
+  background: transparent !important;
+}
+
+/* Sembunyikan m-header di dalam sidebar agar tidak terjadi lambang turun / duplikasi */
 .pc-sidebar .m-header {
-  width: 230px !important;
-  height: 56px !important;
-  min-height: 56px !important;
-  background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
-  border-bottom: 2px solid var(--gold-500) !important;
-  box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25) !important;
-  padding: 8px 14px !important;
-  display: flex !important;
-  align-items: center !important;
+  display: none !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
 }
 
-.pc-sidebar .m-header .b-brand img {
-  max-height: 36px !important;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-}
-
-.pc-sidebar .m-header .brand-text {
-  line-height: 1.15;
-}
-
-.pc-sidebar .m-header .brand-text .fw-bold {
-  font-size: 13px !important;
+.pc-sidebar .navbar-content {
+  height: calc(100vh - 70px) !important;
+  padding: 6px 0 !important;
+  overflow-y: auto !important;
 }
 
 .pc-sidebar .m-header .brand-text .text-muted {
@@ -471,15 +547,9 @@ body {
   padding-left: 36px !important;
 }
 
-@media (min-width: 1025px) {
-  .pc-header {
-    left: 230px !important;
-    width: calc(100% - 230px) !important;
-  }
-}
-.pc-sidebar.pc-sidebar-hide ~ .pc-header {
-  left: 0 !important;
-  width: 100% !important;
+.pc-sidebar.pc-sidebar-hide {
+  left: -245px !important;
+  width: 0 !important;
 }
 
 /* ============================================================================

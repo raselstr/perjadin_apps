@@ -4,29 +4,20 @@
 <!-- [ Header Topbar ] start -->
 <header class="pc-header">
   <div class="m-header">
-    {% if request.user.is_superuser %}
-      <a href="{% url 'admin:index' %}" class="b-brand">
-    {% else %}
-      <a href="/" class="pc-link">
-    {% endif %}
-      <!-- ========   change your logo hear   ============ -->
-        <a href="/" class="b-brand d-flex align-items-center">
-          <img src="{% static 'assets/images/logo.png' %}?v=2"
-              style="max-height:50px; width:auto; display:block;padding-right:10px;">
-        </a>
-
-        <div class="brand-text">
-          <div class="fw-bold lh-1" style="font-size:14px; letter-spacing:0.5px;">
-            Sistem Informasi Perjalanan Dinas
-          </div>
-          <div class="text-muted" style="font-size:11px; letter-spacing:1px;">
-            BKAD Asahan
-          </div>
+    <a href="{% if request.user.is_superuser %}{% url 'admin:index' %}{% else %}/{% endif %}" class="b-brand d-flex align-items-center text-decoration-none">
+      <img src="{% static 'assets/images/logo.png' %}?v=2"
+          style="max-height:44px; width:auto; display:block; margin-right:8px;">
+      <div class="brand-text">
+        <div class="fw-bold text-white lh-1" style="font-size:13px; letter-spacing:0.5px;">
+          BKAD ASAHAN
         </div>
-      </a>
+        <div class="text-white-50" style="font-size:10px; letter-spacing:0.8px; margin-top:3px;">
+          Perjalanan Dinas
+        </div>
+      </div>
     </a>
     <!-- ======= Menu collapse Icon ===== -->
-    <div class="pc-h-item">
+    <div class="pc-h-item ms-auto">
       <a href="#" class="pc-head-link head-link-secondary m-0" id="sidebar-hide">
         <i class="ti ti-menu-2"></i>
       </a>
