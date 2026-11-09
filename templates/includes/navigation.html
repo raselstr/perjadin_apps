@@ -6,7 +6,7 @@
   <div class="m-header">
     <a href="{% if request.user.is_superuser %}{% url 'admin:index' %}{% else %}/{% endif %}" class="b-brand d-flex align-items-center text-decoration-none">
       <img src="{% static 'assets/images/logo.png' %}?v=2"
-          style="max-height:44px; width:auto; display:block; margin-right:8px;">
+          style="max-height:40px; width:auto; display:block; margin-right:8px;">
       <div class="brand-text">
         <div class="fw-bold text-white lh-1" style="font-size:13px; letter-spacing:0.5px;">
           BKAD ASAHAN
@@ -16,31 +16,41 @@
         </div>
       </div>
     </a>
-    <!-- ======= Menu collapse Icon ===== -->
+    <!-- ======= Menu collapse Icon (Desktop) ===== -->
     <div class="pc-h-item ms-auto">
-      <a href="#" class="pc-head-link head-link-secondary m-0" id="sidebar-hide">
+      <a href="#" class="pc-head-link head-link-secondary m-0" id="sidebar-hide" title="Sembunyikan Sidebar">
         <i class="ti ti-menu-2"></i>
       </a>
     </div>
   </div>
   <div class="header-wrapper"> <!-- [Mobile Media Block] start -->
   <div class="me-auto pc-mob-drp">
-    <ul class="list-unstyled">
+    <ul class="list-unstyled mb-0 d-flex align-items-center">
+      <!-- Mobile Hamburger (HANYA tampil di layar kecil/HP/Tablet <= 1024px) -->
       <li class="pc-h-item header-mobile-collapse">
-        <a href="#" class="pc-head-link head-link-secondary ms-0" id="mobile-collapse">
+        <a href="#" class="pc-head-link head-link-secondary ms-0" id="mobile-collapse" title="Buka Menu">
           <i class="ti ti-menu-2"></i>
         </a>
       </li>
-      <li class="pc-h-item d-none d-md-flex align-items-center" style="height: 100%;">
+      <!-- Mobile Brand: Tampil saat mode HP/Android/Tablet di samping hamburger -->
+      <li class="pc-h-item header-mobile-brand align-items-center ms-2">
+        <a href="/" class="d-flex align-items-center text-decoration-none">
+          <img src="{% static 'assets/images/logo.png' %}?v=2"
+               style="max-height:30px; width:auto; display:block; margin-right:6px;">
+          <span class="fw-bold text-dark" style="font-size: 13px; letter-spacing: 0.3px;">BKAD Asahan</span>
+        </a>
+      </li>
+      <!-- Desktop OPD Name (HANYA tampil di desktop > 1024px) -->
+      <li class="pc-h-item header-desktop-opd align-items-center" style="height: 100%;">
         <div class="ms-2">
-            <h3 class="m-0 text-dark fw-semibold">
+            <h3 class="m-0 text-dark fw-semibold" style="font-size: clamp(0.95rem, 1.2vw, 1.15rem);">
                 {% if user.userprofile.opd %}
                     {{ user.userprofile.opd.nama }}
                 {% else %}
                     Sistem Administrator
                 {% endif %}
             </h3>
-            <label class="form-label text-muted">Panel Kendali Utama</label>
+            <label class="form-label text-muted mb-0" style="font-size: 0.72rem;">Panel Kendali Utama</label>
         </div>
       </li>
     

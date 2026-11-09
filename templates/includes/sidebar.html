@@ -2,19 +2,26 @@
 
 <nav class="pc-sidebar">
   <div class="navbar-wrapper">
-    <div class="m-header d-none" style="gap:12px;">
-      <a href="/" class="b-brand d-flex align-items-center">
+    <!-- Header drawer (hanya aktif saat mode mobile slide-out) -->
+    <div class="m-header">
+      <a href="/" class="b-brand d-flex align-items-center text-decoration-none">
         <img src="{% static 'assets/images/logo.png' %}?v=2"
-         style="max-height:50px; width:auto; display:block;">
+             style="max-height:36px; width:auto; display:block; margin-right:8px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35));">
+        <div class="brand-text">
+          <div class="fw-bold text-white lh-1" style="font-size:13px; letter-spacing:0.5px;">
+            BKAD ASAHAN
+          </div>
+          <div class="text-white-50" style="font-size:10px; letter-spacing:0.8px; margin-top:2px;">
+            Perjalanan Dinas
+          </div>
+        </div>
       </a>
-      <div class="brand-text">
-        <div class="fw-bold lh-1" style="font-size:14px; letter-spacing:0.5px;">
-          BKAD
-        </div>
-        <div class="text-muted" style="font-size:11px; letter-spacing:1px;">
-          ASAHAN
-        </div>
-      </div>
+      <a href="#!" onclick="if(typeof remove_menu==='function'){remove_menu();}else{var s=document.querySelector('.pc-sidebar');if(s)s.classList.remove('mob-sidebar-active');var o=document.querySelector('.pc-menu-overlay');if(o)o.remove();} return false;"
+         class="text-white ms-auto d-inline-flex align-items-center justify-content-center"
+         style="width:32px; height:32px; border-radius:8px; background:rgba(255,255,255,0.18); text-decoration:none;"
+         title="Tutup Menu">
+        <i class="ti ti-x" style="font-size: 18px;"></i>
+      </a>
     </div>
 
     <div class="navbar-content">

@@ -18,7 +18,7 @@
 
   {% include 'includes/styles.html' %}
   <!-- Tema 3D Visual Identitas Kabupaten Asahan (60-30-10) -->
-  <link rel="stylesheet" href="{% static 'assets/css/theme-3d.css' %}?v=8" id="theme-3d-style" />
+  <link rel="stylesheet" href="{% static 'assets/css/theme-3d.css' %}?v=10" id="theme-3d-style" />
 
   {% block extrastyle %}{% endblock extrastyle %}
 
@@ -244,6 +244,20 @@
       );
       resetIdleTimer();
     })();
+
+    // Safeguard responsif: tutup drawer mobile saat layar diperbesar ke desktop (> 1024px)
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 1024) {
+        if (typeof remove_menu === 'function') {
+          remove_menu();
+        } else {
+          var sb = document.querySelector('.pc-sidebar');
+          if (sb) sb.classList.remove('mob-sidebar-active');
+          var ov = document.querySelector('.pc-menu-overlay');
+          if (ov) ov.remove();
+        }
+      }
+    });
   </script>
 
   {% block extra_js %}{% endblock extra_js %}

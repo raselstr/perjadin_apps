@@ -176,12 +176,14 @@ body {
 /* Breakpoint Responsif Tablet & Laptop Kecil (<= 1024px) */
 @media (max-width: 1024px) {
   .pc-container {
-    margin-top: 70px !important;
+    margin-top: 60px !important;
     top: 0 !important;
-    margin-left: 10px !important;
-    margin-right: 10px !important;
-    max-width: calc(100% - 20px) !important;
-    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
     padding-bottom: 50px !important;
   }
 
@@ -195,10 +197,12 @@ body {
   .pc-container {
     margin-top: 60px !important;
     top: 0 !important;
-    margin-left: 4px !important;
-    margin-right: 4px !important;
-    max-width: calc(100% - 8px) !important;
-    width: auto !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
     padding-bottom: 65px !important;
   }
 
@@ -243,7 +247,6 @@ body {
   left: 0 !important;
   right: 0 !important;
   top: 0 !important;
-  height: 70px !important;
   display: flex !important;
   background: rgba(255, 255, 255, 0.96) !important;
   backdrop-filter: blur(12px);
@@ -255,21 +258,16 @@ body {
   z-index: 1025 !important;
 }
 
-/* Brand Box Zamrud di Pojok Kiri Atas Navbar */
+/* Brand Box Zamrud di Header Topbar */
 .pc-header .m-header {
-  width: 235px !important;
-  min-width: 235px !important;
-  max-width: 235px !important;
   height: 70px !important;
   background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
   border-bottom: 2px solid var(--gold-500) !important;
   border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
   box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25) !important;
   padding: 0 14px !important;
-  display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  flex: 0 0 235px !important;
 }
 
 .pc-header .m-header .b-brand {
@@ -324,8 +322,6 @@ body {
   align-items: center !important;
   justify-content: space-between !important;
   flex: 1 1 auto !important;
-  height: 70px !important;
-  min-height: 70px !important;
   gap: 8px;
 }
 
@@ -369,43 +365,213 @@ body {
 }
 
 /* ============================================================================
-   3. SIDEBAR 3D (HIJAU ZAMRUD ELEGAN TANPA GARIS PADA SUBMENU)
+   3. SIDEBAR 3D & HEADER MEDIA QUERY RULES (DESKTOP VS MOBILE/TABLET)
    ============================================================================ */
-.pc-sidebar {
-  width: 235px !important;
-  top: 70px !important;
-  bottom: 0 !important;
-  left: 0 !important;
-  position: fixed !important;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
-  border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
-  box-shadow: 4px 0 24px rgba(6, 78, 59, 0.08) !important;
-  z-index: 1024 !important;
-  overflow: hidden !important;
+
+/* --- A. MODE DESKTOP (> 1024px) --- */
+@media (min-width: 1025px) {
+  .pc-header {
+    height: 70px !important;
+  }
+
+  .pc-header .m-header {
+    display: flex !important;
+    width: 235px !important;
+    min-width: 235px !important;
+    max-width: 235px !important;
+    flex: 0 0 235px !important;
+  }
+
+  .header-mobile-collapse {
+    display: none !important;
+  }
+
+  .header-mobile-brand {
+    display: none !important;
+  }
+
+  .header-desktop-opd {
+    display: flex !important;
+  }
+
+  .pc-header .header-wrapper {
+    height: 70px !important;
+    min-height: 70px !important;
+  }
+
+  .pc-sidebar {
+    width: 235px !important;
+    top: 70px !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    position: fixed !important;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
+    border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
+    box-shadow: 4px 0 24px rgba(6, 78, 59, 0.08) !important;
+    z-index: 1024 !important;
+    overflow: hidden !important;
+    transition: width 0.2s ease, left 0.2s ease !important;
+  }
+
+  .pc-sidebar .navbar-wrapper {
+    width: 235px !important;
+    background: transparent !important;
+  }
+
+  /* Sembunyikan m-header di dalam sidebar desktop */
+  .pc-sidebar .m-header {
+    display: none !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+
+  .pc-sidebar .navbar-content {
+    height: calc(100vh - 70px) !important;
+    padding: 6px 0 !important;
+    overflow-y: auto !important;
+  }
+
+  .pc-sidebar.pc-sidebar-hide {
+    left: -245px !important;
+    width: 0 !important;
+  }
+
+  .pc-footer {
+    left: 235px !important;
+    max-width: calc(100% - 235px) !important;
+  }
+
+  .pc-sidebar.pc-sidebar-hide ~ .pc-footer {
+    left: 0 !important;
+    max-width: 100% !important;
+  }
 }
 
-.pc-sidebar .navbar-wrapper {
-  width: 235px !important;
-  background: transparent !important;
-}
+/* --- B. MODE MOBILE & TABLET / ANDROID (<= 1024px) --- */
+@media (max-width: 1024px) {
+  .pc-header {
+    height: 60px !important;
+    min-height: 60px !important;
+  }
 
-/* Sembunyikan m-header di dalam sidebar agar tidak terjadi lambang turun / duplikasi */
-.pc-sidebar .m-header {
-  display: none !important;
-  height: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  border: none !important;
-}
+  /* Hilangkan header desktop agar TIDAK ADA 2 hamburger / header ganda */
+  .pc-header .m-header {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: hidden !important;
+  }
 
-.pc-sidebar .navbar-content {
-  height: calc(100vh - 70px) !important;
-  padding: 6px 0 !important;
-  overflow-y: auto !important;
-}
+  /* Tampilkan satu hamburger mobile & brand Asahan mobile */
+  .header-mobile-collapse {
+    display: inline-flex !important;
+  }
 
-.pc-sidebar .m-header .brand-text .text-muted {
-  font-size: 10px !important;
+  .header-mobile-brand {
+    display: flex !important;
+  }
+
+  .header-desktop-opd {
+    display: none !important;
+  }
+
+  .pc-header .header-wrapper {
+    height: 60px !important;
+    min-height: 60px !important;
+    padding: 0 12px !important;
+  }
+
+  .pc-header .header-mobile-collapse #mobile-collapse {
+    color: var(--emerald-900) !important;
+    background: var(--emerald-100) !important;
+    border: 1px solid var(--emerald-300) !important;
+    border-radius: 8px !important;
+    width: 36px !important;
+    height: 36px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+    transition: all 0.2s ease;
+  }
+
+  .pc-header .header-mobile-collapse #mobile-collapse:hover {
+    background: var(--emerald-200) !important;
+    color: var(--emerald-950) !important;
+  }
+
+  /* SIDEBAR HP: OTOMATIS TERSEMBUNYI DI LUAR LAYAR (-290px) */
+  .pc-sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: -290px !important; /* DEFAULT TERTUTUP / TERSEMBUNYI */
+    width: 270px !important;
+    max-width: 82vw !important;
+    height: 100vh !important;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
+    border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
+    box-shadow: none !important;
+    z-index: 1040 !important;
+    overflow: visible !important;
+    transition: left 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  /* KETIKA HAMBURGER DITEKAN: SLIDE-IN MASUK DARI KIRI */
+  .pc-sidebar.mob-sidebar-active {
+    left: 0 !important;
+    box-shadow: 6px 0 32px rgba(6, 78, 59, 0.35) !important;
+  }
+
+  .pc-sidebar.mob-sidebar-active .navbar-wrapper {
+    position: relative !important;
+    z-index: 5 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background: linear-gradient(180deg, #FFFFFF 0%, #F0FDF4 50%, #ECFDF5 100%) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  /* Header di dalam sliding drawer mobile */
+  .pc-sidebar .m-header {
+    display: flex !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
+    border-bottom: 2px solid var(--gold-500) !important;
+    padding: 0 14px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex-shrink: 0 !important;
+    margin: 0 !important;
+  }
+
+  .pc-sidebar .navbar-content {
+    height: calc(100vh - 60px) !important;
+    padding: 8px 0 24px !important;
+    overflow-y: auto !important;
+    flex: 1 1 auto !important;
+  }
+
+  /* Overlay backdrop gelap di belakang drawer */
+  .pc-menu-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 1 !important;
+    background: rgba(2, 44, 34, 0.55) !important;
+    backdrop-filter: blur(2px) !important;
+    cursor: pointer !important;
+  }
 }
 
 /* Jarak Antara Menu Lebih Rapat, Padat & Elegan */
