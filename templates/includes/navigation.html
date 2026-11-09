@@ -6,12 +6,12 @@
   <div class="m-header">
     <a href="{% if request.user.is_superuser %}{% url 'admin:index' %}{% else %}/{% endif %}" class="b-brand d-flex align-items-center text-decoration-none">
       <img src="{% static 'assets/images/logo.png' %}?v=2"
-          style="max-height:40px; width:auto; display:block; margin-right:8px;">
+          style="max-height:30px; width:auto; display:block; margin-right:6px;">
       <div class="brand-text">
-        <div class="fw-bold text-white lh-1" style="font-size:13px; letter-spacing:0.5px;">
+        <div class="fw-bold text-white lh-1" style="font-size:12px; letter-spacing:0.3px;">
           BKAD ASAHAN
         </div>
-        <div class="text-white-50" style="font-size:10px; letter-spacing:0.8px; margin-top:3px;">
+        <div class="text-white-50" style="font-size:9.5px; letter-spacing:0.5px; margin-top:2px;">
           Perjalanan Dinas
         </div>
       </div>
@@ -36,21 +36,21 @@
       <li class="pc-h-item header-mobile-brand align-items-center ms-2">
         <a href="/" class="d-flex align-items-center text-decoration-none">
           <img src="{% static 'assets/images/logo.png' %}?v=2"
-               style="max-height:30px; width:auto; display:block; margin-right:6px;">
-          <span class="fw-bold text-dark" style="font-size: 13px; letter-spacing: 0.3px;">BKAD Asahan</span>
+               style="max-height:28px; width:auto; display:block; margin-right:6px;">
+          <span class="fw-bold text-dark" style="font-size: 12.5px; letter-spacing: 0.3px;">BKAD Asahan</span>
         </a>
       </li>
       <!-- Desktop OPD Name (HANYA tampil di desktop > 1024px) -->
       <li class="pc-h-item header-desktop-opd align-items-center" style="height: 100%;">
         <div class="ms-2">
-            <h3 class="m-0 text-dark fw-semibold" style="font-size: clamp(0.95rem, 1.2vw, 1.15rem);">
+            <h3 class="m-0 text-dark fw-semibold" style="font-size: clamp(0.85rem, 1.1vw, 1rem);">
                 {% if user.userprofile.opd %}
                     {{ user.userprofile.opd.nama }}
                 {% else %}
                     Sistem Administrator
                 {% endif %}
             </h3>
-            <label class="form-label text-muted mb-0" style="font-size: 0.72rem;">Panel Kendali Utama</label>
+            <label class="form-label text-muted mb-0" style="font-size: 0.7rem;">Panel Kendali Utama</label>
         </div>
       </li>
     

@@ -126,7 +126,7 @@ body {
    ============================================================================ */
 /* Container menggunakan width: auto agar pas menghitung (100% - margin sidebar) */
 .pc-container {
-  min-height: calc(100vh - 70px);
+  min-height: calc(100vh - 56px);
   position: relative;
   top: 0 !important;
   box-sizing: border-box !important;
@@ -212,7 +212,7 @@ body {
 /* Breakpoint Responsif Tablet & Laptop Kecil (<= 1024px) */
 @media (max-width: 1024px) {
   .pc-container {
-    margin-top: 60px !important;
+    margin-top: 52px !important;
     top: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -231,7 +231,7 @@ body {
 /* Breakpoint Responsif Handphone (<= 575.98px) */
 @media (max-width: 575.98px) {
   .pc-container {
-    margin-top: 60px !important;
+    margin-top: 52px !important;
     top: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
@@ -239,7 +239,7 @@ body {
     width: 100% !important;
     padding-left: 4px !important;
     padding-right: 4px !important;
-    padding-bottom: 65px !important;
+    padding-bottom: 60px !important;
   }
 
   .pc-content {
@@ -276,6 +276,8 @@ body {
   left: 0 !important;
   right: 0 !important;
   top: 0 !important;
+  height: 56px !important;
+  min-height: 56px !important;
   display: flex !important;
   background: rgba(255, 255, 255, 0.96) !important;
   backdrop-filter: blur(12px);
@@ -289,12 +291,13 @@ body {
 
 /* Brand Box Zamrud di Header Topbar */
 .pc-header .m-header {
-  height: 70px !important;
+  height: 56px !important;
+  min-height: 56px !important;
   background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
   border-bottom: 2px solid var(--gold-500) !important;
   border-right: 1px solid rgba(5, 150, 105, 0.25) !important;
   box-shadow: 0 4px 12px rgba(6, 78, 59, 0.25) !important;
-  padding: 0 14px !important;
+  padding: 0 10px !important;
   align-items: center !important;
   justify-content: space-between !important;
 }
@@ -306,10 +309,10 @@ body {
 }
 
 .pc-header .m-header .b-brand img {
-  max-height: 40px !important;
+  max-height: 32px !important;
   width: auto !important;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
-  margin-right: 8px !important;
+  margin-right: 6px !important;
 }
 
 .pc-header .m-header .brand-text {
@@ -318,22 +321,22 @@ body {
 
 .pc-header .m-header .brand-text .fw-bold {
   color: #FFFFFF !important;
-  font-size: 13px !important;
-  letter-spacing: 0.5px;
+  font-size: 12px !important;
+  letter-spacing: 0.3px;
 }
 
 .pc-header .m-header .brand-text .text-white-50 {
   color: rgba(255, 255, 255, 0.75) !important;
-  font-size: 10px !important;
-  letter-spacing: 0.8px;
+  font-size: 9.5px !important;
+  letter-spacing: 0.5px;
 }
 
 .pc-header .m-header #sidebar-hide {
   color: #FFFFFF !important;
   background: rgba(255, 255, 255, 0.15) !important;
-  border-radius: 8px !important;
-  width: 32px !important;
-  height: 32px !important;
+  border-radius: 6px !important;
+  width: 28px !important;
+  height: 28px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -346,18 +349,26 @@ body {
 }
 
 .pc-header .header-wrapper {
-  padding: 0 clamp(10px, 1.5vw, 20px) !important;
+  padding: 0 clamp(8px, 1.2vw, 16px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
   flex: 1 1 auto !important;
+  height: 56px !important;
+  min-height: 56px !important;
   gap: 8px;
+}
+
+.pc-header .pc-h-item {
+  min-height: 56px !important;
+  height: 56px !important;
 }
 
 .pc-header .pc-head-link {
   color: var(--emerald-900) !important;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 8px;
+  height: 32px !important;
   transition: all 0.2s ease;
 }
 
@@ -400,15 +411,19 @@ body {
 /* --- A. MODE DESKTOP (> 1024px) --- */
 @media (min-width: 1025px) {
   .pc-header {
-    height: 70px !important;
+    height: 56px !important;
+    min-height: 56px !important;
   }
 
   .pc-header .m-header {
     display: flex !important;
-    width: 235px !important;
-    min-width: 235px !important;
-    max-width: 235px !important;
-    flex: 0 0 235px !important;
+    width: 210px !important;
+    min-width: 210px !important;
+    max-width: 210px !important;
+    flex: 0 0 210px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 0 10px !important;
   }
 
   .header-mobile-collapse {
@@ -424,13 +439,14 @@ body {
   }
 
   .pc-header .header-wrapper {
-    height: 70px !important;
-    min-height: 70px !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    padding: 0 16px !important;
   }
 
   .pc-sidebar {
-    width: 235px !important;
-    top: 70px !important;
+    width: 210px !important;
+    top: 56px !important;
     bottom: 0 !important;
     left: 0 !important;
     position: fixed !important;
@@ -443,7 +459,7 @@ body {
   }
 
   .pc-sidebar .navbar-wrapper {
-    width: 235px !important;
+    width: 210px !important;
     background: transparent !important;
   }
 
@@ -457,23 +473,23 @@ body {
   }
 
   .pc-sidebar .navbar-content {
-    height: calc(100vh - 70px) !important;
-    padding: 6px 0 !important;
+    height: calc(100vh - 56px) !important;
+    padding: 4px 0 !important;
     overflow-y: auto !important;
   }
 
   .pc-sidebar.pc-sidebar-hide {
-    left: -245px !important;
+    left: -220px !important;
     width: 0 !important;
   }
 
-  /* Layout Container Desktop: Batas kiri dan kanan seimbang persis seperti Page Kwitansi */
+  /* Layout Container Desktop: Batas kiri dan kanan seimbang, sejajar dengan sidebar 210px */
   .pc-container {
-    margin-top: 70px !important;
-    margin-left: 235px !important;
+    margin-top: 56px !important;
+    margin-left: 210px !important;
     margin-right: 0 !important;
-    width: calc(100% - 235px) !important;
-    max-width: calc(100% - 235px) !important;
+    width: calc(100% - 210px) !important;
+    max-width: calc(100% - 210px) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
   }
@@ -486,17 +502,18 @@ body {
   }
 
   .pc-content {
-    padding: 14px 18px !important;
+    padding: 12px 16px !important;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
   }
 
+  /* Footer menyentuh sidebar persis (left: 210px) */
   .pc-footer {
-    left: 235px !important;
+    left: 210px !important;
     right: 0 !important;
-    width: calc(100% - 235px) !important;
-    max-width: calc(100% - 235px) !important;
+    width: calc(100% - 210px) !important;
+    max-width: calc(100% - 210px) !important;
     bottom: 0 !important;
   }
 
@@ -511,8 +528,8 @@ body {
 /* --- B. MODE MOBILE & TABLET / ANDROID (<= 1024px) --- */
 @media (max-width: 1024px) {
   .pc-header {
-    height: 60px !important;
-    min-height: 60px !important;
+    height: 52px !important;
+    min-height: 52px !important;
   }
 
   /* Hilangkan header desktop agar TIDAK ADA 2 hamburger / header ganda */
@@ -540,9 +557,9 @@ body {
   }
 
   .pc-header .header-wrapper {
-    height: 60px !important;
-    min-height: 60px !important;
-    padding: 0 12px !important;
+    height: 52px !important;
+    min-height: 52px !important;
+    padding: 0 10px !important;
   }
 
   .pc-header .header-mobile-collapse #mobile-collapse {
@@ -550,12 +567,12 @@ body {
     background: var(--emerald-100) !important;
     border: 1px solid var(--emerald-300) !important;
     border-radius: 8px !important;
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    font-size: 1.25rem !important;
+    font-size: 1.15rem !important;
     transition: all 0.2s ease;
   }
 
@@ -601,11 +618,11 @@ body {
   /* Header di dalam sliding drawer mobile */
   .pc-sidebar .m-header {
     display: flex !important;
-    height: 60px !important;
-    min-height: 60px !important;
+    height: 52px !important;
+    min-height: 52px !important;
     background: linear-gradient(135deg, #065F46 0%, #047857 50%, #059669 100%) !important;
     border-bottom: 2px solid var(--gold-500) !important;
-    padding: 0 14px !important;
+    padding: 0 12px !important;
     align-items: center !important;
     justify-content: space-between !important;
     flex-shrink: 0 !important;
@@ -613,8 +630,8 @@ body {
   }
 
   .pc-sidebar .navbar-content {
-    height: calc(100vh - 60px) !important;
-    padding: 8px 0 24px !important;
+    height: calc(100vh - 52px) !important;
+    padding: 6px 0 20px !important;
     overflow-y: auto !important;
     flex: 1 1 auto !important;
   }
@@ -773,7 +790,7 @@ body {
 }
 
 .pc-sidebar.pc-sidebar-hide {
-  left: -245px !important;
+  left: -220px !important;
   width: 0 !important;
 }
 
@@ -1481,12 +1498,14 @@ body {
 }
 
 /* ============================================================================
-   12. FOOTER 3D (FIXED DI BAWAH LAYAR — TIDAK BERGERAK SAAT SCROLL)
+   12. FOOTER 3D (FIXED DI BAWAH LAYAR — MENYENTUH SIDEBAR 210PX SECARA PRESISI)
    ============================================================================ */
 .pc-footer {
   background: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%) !important;
   border-top: 2px solid var(--gold-500) !important;
   border-bottom: none !important;
+  border-left: none !important;
+  border-right: none !important;
   box-shadow:
     0 -4px 16px rgba(6, 78, 59, 0.25),
     0 -2px 4px rgba(6, 78, 59, 0.12) !important;
@@ -1495,40 +1514,46 @@ body {
   position: fixed !important;
   bottom: 0 !important;          /* Posisi berada di bawah layar */
   top: auto !important;
-  left: 260px !important;        /* Sejajar lebar sidebar */
+  left: 210px !important;        /* Menyentuh sisi kanan sidebar 210px */
   right: 0 !important;
   z-index: 1020 !important;      /* Tetap fixed di bawah layar */
   margin: 0 !important;
-  width: auto !important;
-  max-width: calc(100% - 260px) !important;
+  width: calc(100% - 210px) !important;
+  max-width: calc(100% - 210px) !important;
   box-sizing: border-box !important;
   border-radius: 0 !important;
-  transition: left 0.2s ease, max-width 0.2s ease;
+  transition: left 0.2s ease, width 0.2s ease, max-width 0.2s ease;
 }
 
-/* Ketika sidebar disembunyikan */
+/* Ketika sidebar disembunyikan di desktop */
 .pc-sidebar.pc-sidebar-hide ~ .pc-footer {
   left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
   max-width: 100% !important;
 }
 
-/* Breakpoint Tablet */
+/* Breakpoint Tablet (<= 1024px) */
 @media (max-width: 1024px) {
   .pc-footer {
     bottom: 0 !important;
     top: auto !important;
     left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
     max-width: 100% !important;
     padding: 6px 12px !important;
   }
 }
 
-/* Breakpoint Handphone */
+/* Breakpoint Handphone (<= 575.98px) */
 @media (max-width: 575.98px) {
   .pc-footer {
     bottom: 0 !important;
     top: auto !important;
     left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
     max-width: 100% !important;
     padding: 5px 8px !important;
   }
