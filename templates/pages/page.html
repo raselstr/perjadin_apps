@@ -58,11 +58,18 @@
               </div>
             </div>
             <div class="card-body">
-              <div id="main-content"
-                hx-get="{% url initial_url %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"
-                hx-trigger="load"
-                hx-target="this"
-                hx-swap="innerHTML">
+              <div id="main-content">
+                {% block main_content %}
+                  {% if table %}
+                    {% include "components/crud/list.html" %}
+                  {% elif initial_url %}
+                    <div hx-get="{% url initial_url %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}"
+                         hx-trigger="load"
+                         hx-target="this"
+                         hx-swap="outerHTML">
+                    </div>
+                  {% endif %}
+                {% endblock main_content %}
               </div>
             </div>
           </div>
@@ -145,7 +152,6 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="https://unpkg.com/htmx.org@1.9.10"></script>
 <script>
   function showModalById(modalId) {
     const modalEl = document.getElementById(modalId);
