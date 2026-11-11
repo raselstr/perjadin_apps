@@ -72,7 +72,7 @@ li {
     --content-scale: {{ kop_surat.print_scale_decimal|default:"1" }};
     --document-font-family: {{ kop_surat.font_family_css }};
     --letterhead-top-padding: 1mm;
-    --letterhead-side-padding: 1mm;
+    --letterhead-side-padding: {{ kop_surat.margin_right_mm|default:18 }}mm;
     --document-margin-top: {{ kop_surat.margin_top_mm|default:1 }}mm;
     --document-margin-right: {{ kop_surat.margin_right_mm|default:1 }}mm;
     --document-margin-bottom: {{ kop_surat.margin_bottom_mm|default:1 }}mm;

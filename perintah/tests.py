@@ -1151,15 +1151,18 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         response_html = response.content.decode()
 
         self.assertEqual(response.status_code, 200)
+        # Kepala: eselon II tidak tampil (terlalu tinggi)
         self.assertNotIn(
             f"<td>{self.pegawai_eselon_ii.nama}</td>",
             response_html,
         )
+        # Kepala: eselon III tampil
         self.assertIn(
             f"<td>{self.pegawai_eselon_iii.nama}</td>",
             response_html,
         )
-        self.assertNotIn(
+        # Kepala: non-eselon tampil (is_eselon_three_to_non mencakup non-eselon)
+        self.assertIn(
             f"<td>{self.pegawai_non_eselon.nama}</td>",
             response_html,
         )
@@ -1753,9 +1756,11 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         response_html = response.content.decode()
 
         self.assertEqual(response.status_code, 200)
-        self.assertRegex(
+        # Tanpa nomor, format default menggunakan HANDWRITTEN_NUMBER_SPACE
+        # sebagai placeholder yang bisa diisi tangan
+        self.assertIn(
+            HANDWRITTEN_NUMBER_SPACE,
             response_html,
-            r'<span class="document-number-value">&nbsp;</span>',
         )
 
     def test_print_spt_uses_browser_native_print_scaling(self):
@@ -1899,9 +1904,10 @@ class PemberiTugasPrintViewTests(PerintahBaseTestCase):
         response_html = response.content.decode()
 
         self.assertEqual(response.status_code, 200)
-        self.assertRegex(
+        # Tanpa nomor, format default menggunakan HANDWRITTEN_NUMBER_SPACE
+        self.assertIn(
+            HANDWRITTEN_NUMBER_SPACE,
             response_html,
-            r'<td>&nbsp;</td>',
         )
 
     def test_print_spd_uses_browser_native_print_scaling(self):

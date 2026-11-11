@@ -426,8 +426,6 @@ class PemberiTugasPrintBaseView(PerintahPermissionMixin, View):
             penandatangan,
             pemda=pemda,
         )
-        print("Nomor SPT:", pemberi_tugas.nomor_spt)
-        print("Format Nomor SPT:", kop_surat.default_spt_number_format)
 
         return {
             "pemda": pemda,
