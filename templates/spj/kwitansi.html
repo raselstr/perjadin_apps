@@ -104,6 +104,42 @@
       grid-template-columns: 1fr;
     }
   }
+
+  /* Print Preview Modal — Kwitansi (Sesuai gaya Modal SPT) */
+  .print-preview-modal .modal-dialog {
+    max-width: min(1280px, calc(100vw - 2rem));
+  }
+
+  .print-preview-modal .modal-content {
+    min-height: min(88vh, 920px);
+    border: 0;
+    overflow: hidden;
+  }
+
+  .print-preview-shell {
+    border: 1px solid #dbe4f0;
+    border-radius: 1rem;
+    overflow: hidden;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  }
+
+  .print-scale-toolbar {
+    border-radius: 1rem;
+    border: 1px solid #f6d69a;
+    background: linear-gradient(180deg, #fff8eb 0%, #fffdf8 100%);
+  }
+
+  .print-scale-toolbar .form-range {
+    accent-color: #d97706;
+  }
+
+  .print-preview-frame {
+    display: block;
+    width: 100%;
+    height: min(74vh, 780px);
+    border: 0;
+    background: #eef2f7;
+  }
 </style>
 {% endblock extrastyle %}
 
@@ -234,13 +270,17 @@
                     </td>
                     <td class="text-end fw-semibold">Rp{{ pelaksana.total|format_indonesian_number }}</td>
                     <td class="text-center">
-                      <a
-                        class="btn btn-sm btn-primary js-print-link"
-                        href="{% url 'kwitansi_print' pelaksana.item.id %}{% if selected_bendahara_id %}?bendahara={{ selected_bendahara_id }}{% endif %}"
-                        target="_blank"
-                        rel="noopener">
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-primary js-cetak-kwitansi"
+                        data-pelaksana-id="{{ pelaksana.item.id }}"
+                        data-print-href="{% url 'kwitansi_print' pelaksana.item.id %}?autoprint=0"
+                        hx-get="{% url 'kwitansi_preview' pelaksana.item.id %}{% if selected_bendahara_id %}?bendahara={{ selected_bendahara_id }}{% endif %}"
+                        hx-target="#print-preview-modal-body"
+                        hx-swap="innerHTML"
+                        title="Preview &amp; Cetak Kwitansi">
                         <i class="ti ti-printer"></i> Cetak
-                      </a>
+                      </button>
                     </td>
                   </tr>
                 {% endfor %}
@@ -266,6 +306,14 @@
     </div>
   </div>
 </div>
+
+<!-- [ Print Preview Modal — Kwitansi ] -->
+<div class="modal fade print-preview-modal" id="printPreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-fullscreen-lg-down">
+    <div class="modal-content" id="print-preview-modal-body"></div>
+  </div>
+</div>
+
 {% endblock content %}
 
 {% block extra_js %}
@@ -273,19 +321,22 @@
   (function () {
     const bendaharaSelect = document.getElementById('bendahara-select');
     const bendaharaSummary = document.getElementById('bendahara-summary');
-    const printLinks = document.querySelectorAll('.js-print-link');
 
-    function syncPrintLinks() {
+    // Sync URL bendahara pada tombol preview kwitansi (hx-get) saat dropdown berubah
+    function syncCetakButtons() {
       const bendaharaId = bendaharaSelect ? bendaharaSelect.value : '';
 
-      printLinks.forEach((link) => {
-        const url = new URL(link.href, window.location.origin);
+      document.querySelectorAll('.js-cetak-kwitansi').forEach(function (btn) {
+        const pelaksanaId = btn.dataset.pelaksanaId;
+        let baseUrl = `/spj/kwitansi/preview/${pelaksanaId}/`;
         if (bendaharaId) {
-          url.searchParams.set('bendahara', bendaharaId);
-        } else {
-          url.searchParams.delete('bendahara');
+          baseUrl += `?bendahara=${encodeURIComponent(bendaharaId)}`;
         }
-        link.href = url.toString();
+        btn.setAttribute('hx-get', baseUrl);
+        // Re-proses HTMX agar atribut hx-get yang baru dikenali
+        if (typeof htmx !== 'undefined') {
+          htmx.process(btn);
+        }
       });
 
       if (bendaharaSummary) {
@@ -294,9 +345,76 @@
     }
 
     if (bendaharaSelect) {
-      bendaharaSelect.addEventListener('change', syncPrintLinks);
-      syncPrintLinks();
+      bendaharaSelect.addEventListener('change', syncCetakButtons);
+      syncCetakButtons();
     }
+
+    // Helper untuk menampilkan modal cetak kwitansi
+    function showPrintPreviewModal() {
+      const modalEl = document.getElementById('printPreviewModal');
+      if (modalEl) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+      }
+    }
+
+    // Setelah HTMX selesai memuat konten preview modal ke dalam #print-preview-modal-body
+    document.body.addEventListener('htmx:afterSwap', function (evt) {
+      const targetId = evt.detail.target?.id;
+      if (targetId === 'print-preview-modal-body') {
+        showPrintPreviewModal();
+      }
+    });
+
+    // Tangani error respons saat memuat preview
+    document.body.addEventListener('htmx:responseError', function (evt) {
+      const targetId = evt.detail.target?.id;
+      if (targetId === 'print-preview-modal-body') {
+        const modalBody = document.getElementById('print-preview-modal-body');
+        if (modalBody) {
+          modalBody.innerHTML =
+            '<div class="modal-header border-0 pb-0">' +
+              '<h5 class="modal-title text-danger"><i class="ti ti-alert-triangle me-1"></i> Gagal Memuat Dokumen</h5>' +
+              '<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>' +
+            '</div>' +
+            '<div class="modal-body pt-3">' +
+              '<div class="alert alert-danger mb-0">Terjadi kesalahan saat memuat pratinjau kwitansi. Silakan coba kembali atau gunakan tombol Buka Tab Baru.</div>' +
+            '</div>' +
+            '<div class="modal-footer border-0 pt-0">' +
+              '<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>' +
+            '</div>';
+        }
+        showPrintPreviewModal();
+      }
+    });
+
+    // Handle aksi Cetak dari dalam Modal (tombol [data-print-preview-action="print"])
+    document.addEventListener('click', function (evt) {
+      const printBtn = evt.target.closest('[data-print-preview-action="print"]');
+      if (!printBtn) return;
+
+      const frameId = printBtn.dataset.frameId;
+      const frame = document.getElementById(frameId);
+      const frameWindow = frame?.contentWindow;
+
+      if (!frameWindow) {
+        alert('Dokumen kwitansi sedang dimuat, silakan tunggu sesaat.');
+        return;
+      }
+
+      frameWindow.focus();
+      frameWindow.print();
+    });
+
+    // Reset konten preview saat modal ditutup agar bersih untuk pembukaan berikutnya
+    document.addEventListener('hidden.bs.modal', function (evt) {
+      if (evt.target.id === 'printPreviewModal') {
+        const modalBody = document.getElementById('print-preview-modal-body');
+        if (modalBody) {
+          modalBody.innerHTML = '';
+        }
+      }
+    });
   })();
 </script>
 {% endblock extra_js %}

@@ -192,21 +192,42 @@
       };
     }
 
-    // D. Ekspor Excel / PDF
+    // D. Preview Dokumen Cetak (SPT, SPD, Kwitansi, Laporan Perjalanan)
+    if (hxGet && hxGet.includes('/preview/')) {
+      if (hxGet.includes('/kwitansi/')) {
+        return {
+          overlay: true,
+          title: 'Memuat Kwitansi',
+          desc: 'Menyiapkan pratinjau cetak kwitansi'
+        };
+      }
+      if (hxGet.includes('/spt/')) {
+        return {
+          overlay: true,
+          title: 'Memuat SPT',
+          desc: 'Menyiapkan pratinjau Surat Perintah Tugas'
+        };
+      }
+      if (hxGet.includes('/spd/')) {
+        return {
+          overlay: true,
+          title: 'Memuat SPD',
+          desc: 'Menyiapkan pratinjau Surat Perjalanan Dinas'
+        };
+      }
+      return {
+        overlay: true,
+        title: 'Memuat Pratinjau',
+        desc: 'Menyiapkan pratinjau dokumen cetak'
+      };
+    }
+
+    // E. Ekspor Excel / PDF / Cetak Langsung
     if (btnText.includes('excel') || btnText.includes('cetak') || url.includes('/excel/') || url.includes('/pdf/')) {
       return {
         overlay: true,
         title: 'Menyiapkan Berkas',
         desc: 'Memproses format dokumen'
-      };
-    }
-
-    // E. Halaman Preview Laporan Perjalanan
-    if (hxGet && hxGet.includes('/preview/')) {
-      return {
-        overlay: true,
-        title: 'Memuat Pratinjau',
-        desc: 'Menyiapkan dokumen laporan perjalanan'
       };
     }
 

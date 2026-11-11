@@ -386,3 +386,74 @@ class DataPerjalananPerOrangViewTests(TestCase):
         self.assertContains(response, "001/SPT/2026")
         self.assertContains(response, "001/SPD/2026")
         self.assertContains(response, "002/SPT/2026")
+
+
+class KwitansiPreviewTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username="admin_user",
+            password="secretpassword",
+            is_staff=True,
+            is_superuser=True,
+        )
+        self.opd = OPD.objects.create(nama="BKAD")
+        self.lokasi = Lokasi.objects.create(lokasi="Medan", kota="Medan")
+        self.kegiatan = JenisKegiatan.objects.create(nama="Luar Daerah")
+        self.pegawai = Pegawai.objects.create(
+            nama="Budi Santoso",
+            nip="198001012005011001",
+            opd=self.opd,
+        )
+        self.spt = Spt.objects.create(
+            dasar="Dasar",
+            berita="Berita",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Kantor Regional",
+            lama_perjalanan=3,
+            tgl_berangkat=date(2026, 1, 10),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        self.pelaksana = Pelaksana.objects.create(
+            spt=self.spt,
+            nama=self.pegawai,
+        )
+
+    def test_kwitansi_preview_requires_login(self):
+        url = reverse("kwitansi_preview", args=[self.pelaksana.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)
+
+    def test_kwitansi_preview_renders_modal(self):
+        self.client.force_login(self.user)
+        url = reverse("kwitansi_preview", args=[self.pelaksana.pk])
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Preview Kwitansi")
+        self.assertContains(response, "print-preview-shell")
+        self.assertContains(response, "print-preview-frame")
+        self.assertContains(response, "Cetak Kwitansi")
+        self.assertContains(response, reverse("kwitansi_print", args=[self.pelaksana.pk]))
+        self.assertContains(response, "autoprint=0")
+
+    def test_kwitansi_print_allows_sameorigin_iframe(self):
+        self.client.force_login(self.user)
+        url = reverse("kwitansi_print", args=[self.pelaksana.pk]) + "?autoprint=0"
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("X-Frame-Options"), "SAMEORIGIN")
+        csp = response.headers.get("Content-Security-Policy", "")
+        self.assertIn("frame-ancestors 'self'", csp)
+        self.assertNotIn("frame-ancestors 'none'", csp)
+
+    def test_kwitansi_page_has_modal_and_preview_button(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("kwitansi_list"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'id="printPreviewModal"')
+        self.assertContains(response, 'id="print-preview-modal-body"')
+        self.assertContains(response, 'js-cetak-kwitansi')
+        self.assertContains(response, f'hx-get="/spj/kwitansi/preview/{self.pelaksana.pk}/"')

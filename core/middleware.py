@@ -109,7 +109,7 @@ class SecurityHeadersMiddleware:
             "font-src 'self' data: https://cdn.jsdelivr.net; "
             "connect-src 'self' https://nominatim.openstreetmap.org; "
             "frame-src 'self' https://www.openstreetmap.org; "
-            "frame-ancestors 'none'; "
+            "frame-ancestors 'self'; "
             "base-uri 'self'; "
             "form-action 'self'; "
             "object-src 'none'"

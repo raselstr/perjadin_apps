@@ -1502,7 +1502,62 @@ class KwitansiPrintView(LoginRequiredMixin, View):
         }
         response = render(request, self.template_name, context)
         response["X-Frame-Options"] = "SAMEORIGIN"
+        response["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "font-src 'self' data:; "
+            "frame-ancestors 'self'; "
+            "base-uri 'self'; "
+            "form-action 'self'; "
+            "object-src 'none'"
+        )
         return response
+
+
+class KwitansiPreviewView(LoginRequiredMixin, View):
+    """
+    Render modal preview iframe untuk Kwitansi — mengikuti pola
+    PemberiTugasPreviewBaseView pada perintah/views.py.
+    Dipanggil via HTMX hx-get, hasilnya dimasukkan ke #print-preview-modal-body.
+    """
+
+    template_name = "components/pdf/preview_modal.html"
+
+    def get_queryset(self, request):
+        queryset = Pelaksana.objects.select_related(
+            "spt",
+            "nama",
+        )
+        return filter_spj_queryset_for_user(queryset, request, "nama__nip").distinct()
+
+    def get(self, request, pk):
+        pelaksana = get_object_or_404(self.get_queryset(request), pk=pk)
+
+        # Bangun URL print (dengan autoprint=0 agar tidak langsung cetak di iframe)
+        bendahara_id = request.GET.get("bendahara", "")
+        print_url = reverse("kwitansi_print", args=[pelaksana.pk]) + "?autoprint=0"
+        if bendahara_id:
+            print_url += f"&bendahara={bendahara_id}"
+
+        frame_id = f"print-preview-frame-kwitansi-{pelaksana.pk}"
+        nama_pelaksana = getattr(getattr(pelaksana, "nama", None), "nama", "") or ""
+
+        context = {
+            "title": "Preview Kwitansi",
+            "document_code": "KWITANSI",
+            "preview_description": (
+                f"Tinjau Kwitansi {nama_pelaksana} terlebih dahulu sebelum dicetak."
+                if nama_pelaksana
+                else "Tinjau Kwitansi terlebih dahulu sebelum dicetak."
+            ),
+            "iframe_src": print_url,
+            "open_url": print_url,
+            "frame_id": frame_id,
+            "print_button_label": "Cetak Kwitansi",
+        }
+        return render(request, self.template_name, context)
 
 
 class LaporanPerjalananPrintView(LoginRequiredMixin, View):
