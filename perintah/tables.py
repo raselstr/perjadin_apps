@@ -17,6 +17,7 @@ class SptTable(BaseTable):
         template_code="""
         <div class="d-flex gap-1 justify-content-center">
             <button
+                type="button"
                 class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center"
                 style="width:32px;height:32px"
                 hx-get="{% url 'spt_action_pk' record.id update_action %}"
@@ -35,6 +36,7 @@ class SptTable(BaseTable):
                 </button>
             </form>
             <button
+                type="button"
                 class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
                 style="width:32px;height:32px"
                 hx-get="{% url 'spt_delete' record.id delete_action %}"

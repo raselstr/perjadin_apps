@@ -726,7 +726,7 @@
     if (window.jQuery) {
       $('.select2, .select2-ajax').each(function () {
         const $field = $(this);
-        const $dropdownParent = $field.closest('[data-formset-row], .modal');
+        const $dropdownParent = $field.closest('.modal-content, .modal');
 
         $field.select2({
           width: '100%',

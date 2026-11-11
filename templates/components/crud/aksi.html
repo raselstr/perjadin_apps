@@ -2,6 +2,7 @@
 
     <!-- EDIT -->
     <button
+        type="button"
         class="btn btn-sm btn-outline-warning d-flex align-items-center justify-content-center"
         style="width:32px;height:32px"
         hx-get="{% url url_pk record.id update_action %}"
@@ -13,6 +14,7 @@
 
     <!-- DELETE -->
     <button
+        type="button"
         class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-center"
         style="width:32px;height:32px"
         hx-get="{% url url_delete record.id delete_action %}"
