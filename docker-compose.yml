@@ -15,6 +15,7 @@ services:
 
     volumes:
       - ./:/app
+      - ./entrypoint.sh:/entrypoint.sh
       - perjadin_static:/app/staticfiles
       - perjadin_media:/app/media
 
