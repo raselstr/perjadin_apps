@@ -461,3 +461,50 @@ class CRUDViewSearchTests(TestCase):
         # matches Siti (staff keuangan / badan pengelola keuangan)
         self.assertTrue(qs2.filter(nama="Siti Rahma").exists())
 
+
+class CRUDViewDeleteTests(TestCase):
+    def setUp(self):
+        self.rf = RequestFactory()
+        self.user = User.objects.create_superuser(
+            username="admin_delete_test",
+            password="password123",
+            email="admin_del@example.com"
+        )
+        self.opd = OPD.objects.create(nama="OPD Uji Hapus")
+
+    def test_delete_success_htmx(self):
+        from profiles.views import OPDView
+        opd_to_del = OPD.objects.create(nama="OPD Dihapus")
+        req = self.rf.post(f"/profiles/opd/{opd_to_del.pk}/delete/", HTTP_HX_REQUEST="true")
+        req.user = self.user
+        view = OPDView()
+        view.setup(req)
+        response = view.delete_view(req, opd_to_del.pk)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertIn("crudSuccess", response.headers["HX-Trigger"])
+        self.assertFalse(OPD.objects.filter(pk=opd_to_del.pk).exists())
+
+    def test_delete_protected_error_htmx(self):
+        from profiles.views import OPDView
+        from umum.models import Pemda
+        opd_protected = OPD.objects.create(nama="OPD Dilindungi")
+        Pemda.objects.create(
+            nama_pemda="Pemerintah Kabupaten Uji",
+            nama_kabupaten="Kabupaten Uji",
+            ibukota="Kota Uji",
+            nama_dinas=opd_protected,
+        )
+
+        req = self.rf.post(f"/profiles/opd/{opd_protected.pk}/delete/", HTTP_HX_REQUEST="true")
+        req.user = self.user
+        view = OPDView()
+        view.setup(req)
+        response = view.delete_view(req, opd_protected.pk)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("crudError", response.headers["HX-Trigger"])
+        self.assertIn("tidak dapat dihapus karena masih terkait", response.headers["HX-Trigger"])
+        self.assertTrue(OPD.objects.filter(pk=opd_protected.pk).exists())
+
+

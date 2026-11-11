@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from datetime import datetime
 from io import BytesIO
@@ -5,6 +6,7 @@ from PIL import Image, ImageOps
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
+from django.db import models, IntegrityError
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -633,7 +635,23 @@ class SPJQuerysetMixin:
             return redirect(self.url_list)
 
         if request.method == "POST":
-            instance.delete()
+            try:
+                instance.delete()
+            except (models.ProtectedError, IntegrityError):
+                error_msg = f"Data SPJ '{instance}' tidak dapat dihapus karena masih terkait dengan data lain."
+                if request.headers.get("HX-Request"):
+                    response = HttpResponse(status=200)
+                    response["HX-Trigger"] = json.dumps({
+                        "crudError": {
+                            "title": "Gagal Menghapus Data",
+                            "message": error_msg,
+                            "level": "error",
+                            "action": "delete",
+                        }
+                    })
+                    return response
+                messages.error(request, error_msg)
+                return redirect(self.url_list)
 
             if request.headers.get("HX-Request"):
                 return self._build_htmx_success_response("delete")

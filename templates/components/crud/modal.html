@@ -15,8 +15,20 @@
     if (!modalEl) return;
 
     window.closeCrudModal = function () {
-        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-        modal.hide();
+        const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (modal) {
+            modal.hide();
+        }
+        setTimeout(function () {
+            document.querySelectorAll('.modal-backdrop').forEach(function (el) { el.remove(); });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('padding-right');
+            document.body.style.removeProperty('overflow');
+            const body = document.getElementById('modal-body');
+            if (body && !modalEl.classList.contains('show')) {
+                body.innerHTML = '';
+            }
+        }, 300);
     };
 })();
 </script>

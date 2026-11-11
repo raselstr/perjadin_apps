@@ -1,7 +1,7 @@
 import json
 
 from django.contrib import messages
-from django.db import models, transaction
+from django.db import models, transaction, IntegrityError
 from django.http import HttpResponse, JsonResponse
 from django.views.generic import ListView
 from django.shortcuts import render, get_object_or_404, redirect
@@ -448,7 +448,23 @@ class BaseCRUDView(ExcelMixin, ListView):
         )
 
         if request.method == "POST":
-            obj.delete()
+            try:
+                obj.delete()
+            except (models.ProtectedError, IntegrityError):
+                error_msg = f"Data '{obj}' tidak dapat dihapus karena masih terkait dengan data lain."
+                if request.headers.get("HX-Request"):
+                    response = HttpResponse(status=200)
+                    response["HX-Trigger"] = json.dumps({
+                        "crudError": {
+                            "title": "Gagal Menghapus Data",
+                            "message": error_msg,
+                            "level": "error",
+                            "action": "delete",
+                        }
+                    })
+                    return response
+                messages.error(request, error_msg)
+                return redirect(self.url_list)
 
             if request.headers.get("HX-Request"):
                 return self._build_htmx_success_response("delete")

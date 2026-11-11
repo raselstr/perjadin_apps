@@ -153,7 +153,10 @@
       return;
     }
 
-    bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
+    if (!modalEl.classList.contains('show')) {
+      modalInstance.show();
+    }
   }
 
   function clearModalContentById(contentId) {
@@ -691,15 +694,6 @@
     syncFromPreview();
   }
 
-  // FORM SUCCESS HANDLER
-  document.body.addEventListener('formSuccess', function () {
-      requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-              forceCloseModal();
-          });
-      });
-  });
-
   // TABLE REFRESH
   document.body.addEventListener('reloadTable', function () {
       const container = document.getElementById('table-container');
@@ -717,7 +711,11 @@
           requestAnimationFrame(() => {
               forceCloseModal();
               setTimeout(() => {
-                  htmx.trigger('#table-container', 'reloadTable');
+                  if (typeof window.reloadTableWithPage === 'function') {
+                      window.reloadTableWithPage();
+                  } else {
+                      htmx.trigger('#table-container', 'reloadTable');
+                  }
               }, 100);
           });
       });
@@ -915,11 +913,30 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
 
     if (evt.target.id === 'modal') {
       clearModalContentById('modal-body');
+      document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('padding-right');
+      document.body.style.removeProperty('overflow');
     }
   });
 
   document.body.addEventListener('crudSuccess', function (evt) {
     showAppToast(evt.detail || {});
+    if (typeof window.closeCrudModal === 'function') {
+      window.closeCrudModal();
+    } else if (typeof forceCloseModal === 'function') {
+      forceCloseModal();
+    }
+    setTimeout(function () {
+      if (typeof window.reloadTableWithPage === 'function') {
+        window.reloadTableWithPage();
+      } else {
+        const container = document.getElementById('table-container');
+        if (container) {
+          htmx.trigger(container, 'reloadTable');
+        }
+      }
+    }, 100);
   });
 
   document.body.addEventListener('crudError', function (evt) {
@@ -928,6 +945,13 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
       message: 'Periksa kembali data yang diinput.',
       level: 'error',
     });
+    if (evt.detail && evt.detail.action === 'delete') {
+      if (typeof window.closeCrudModal === 'function') {
+        window.closeCrudModal();
+      } else if (typeof forceCloseModal === 'function') {
+        forceCloseModal();
+      }
+    }
   });
 
 // Trigger formSuccess event ketika form sukses disubmit

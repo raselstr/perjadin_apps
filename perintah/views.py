@@ -1,10 +1,12 @@
+import json
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.core.files.storage import default_storage
-from django.db import transaction
+from django.db import models, transaction, IntegrityError
 from django.db.models import Prefetch
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views import View
@@ -254,15 +256,31 @@ class PemberiTugasView(BaseCRUDView):
             pk=pk,
         )
 
-        with transaction.atomic():
-            ttd = getattr(pemberi_tugas, "ttdsptspd", None)
-            hardcopy_name = ""
+        try:
+            with transaction.atomic():
+                ttd = getattr(pemberi_tugas, "ttdsptspd", None)
+                hardcopy_name = ""
 
-            if ttd:
-                hardcopy_name = ttd.hardcopy.name if ttd.hardcopy else ""
-                ttd.delete()
+                if ttd:
+                    hardcopy_name = ttd.hardcopy.name if ttd.hardcopy else ""
+                    ttd.delete()
 
-            pemberi_tugas.delete()
+                pemberi_tugas.delete()
+        except (models.ProtectedError, IntegrityError):
+            error_msg = f"SPT '{pemberi_tugas}' tidak dapat dihapus karena masih terkait dengan data lain."
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Trigger"] = json.dumps({
+                    "crudError": {
+                        "title": "Gagal Menghapus Data",
+                        "message": error_msg,
+                        "level": "error",
+                        "action": "delete",
+                    }
+                })
+                return response
+            messages.error(request, error_msg)
+            return redirect(self.url_list)
 
         if hardcopy_name:
             default_storage.delete(hardcopy_name)

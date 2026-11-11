@@ -21,8 +21,6 @@ class SptTable(BaseTable):
                 style="width:32px;height:32px"
                 hx-get="{% url 'spt_action_pk' record.id update_action %}"
                 hx-target="#modal-body"
-                data-bs-toggle="modal"
-                data-bs-target="#modal"
                 title="Edit">
                 <i class="ti ti-pencil"></i>
             </button>
@@ -41,8 +39,6 @@ class SptTable(BaseTable):
                 style="width:32px;height:32px"
                 hx-get="{% url 'spt_delete' record.id delete_action %}"
                 hx-target="#modal-body"
-                data-bs-toggle="modal"
-                data-bs-target="#modal"
                 title="Hapus">
                 <i class="ti ti-trash"></i>
             </button>
