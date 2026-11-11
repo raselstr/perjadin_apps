@@ -1,0 +1,259 @@
+{% load static %}
+<!-- [ Pre-loader Asahan 3D Identity ] start -->
+<div class="loader-bg">
+  <div class="loader-track">
+    <div class="loader-fill"></div>
+  </div>
+</div>
+<!-- [ Pre-loader ] end -->
+
+<!-- [ Nano Top Progress Bar ] start -->
+<div id="app-top-progress" aria-hidden="true"></div>
+<!-- [ Nano Top Progress Bar ] end -->
+
+<!-- [ Professional 3D Action Loader Overlay ] start -->
+<div id="app-action-loader" aria-hidden="true" role="status" aria-live="polite">
+  <div class="app-loader-card">
+    <div class="app-orbit-spinner">
+      <div class="app-orbit-outer"></div>
+      <div class="app-orbit-inner"></div>
+      <div class="app-orbit-core"></div>
+    </div>
+    <div class="app-loader-title" id="app-loader-title">Memproses Data</div>
+    <p class="app-loader-desc" id="app-loader-desc">
+      <span id="app-loader-desc-text">Mohon tunggu sebentar</span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </p>
+  </div>
+</div>
+<!-- [ Professional 3D Action Loader Overlay ] end -->
+
+<script>
+(function () {
+  if (window.AppLoader) {
+    return;
+  }
+
+  const progressBar = document.getElementById('app-top-progress');
+  const actionOverlay = document.getElementById('app-action-loader');
+  const titleEl = document.getElementById('app-loader-title');
+  const descTextEl = document.getElementById('app-loader-desc-text');
+
+  let progressInterval = null;
+  let progressValue = 0;
+  let activeRequestsCount = 0;
+  let safetyTimeout = null;
+  let currentActiveButton = null;
+
+  const AppLoader = {
+    // 1. Progress Bar Logic
+    startProgress: function () {
+      if (!progressBar) return;
+      window.clearInterval(progressInterval);
+      progressBar.classList.remove('is-done');
+      progressBar.classList.add('is-active');
+      progressValue = 15;
+      progressBar.style.width = progressValue + '%';
+
+      progressInterval = window.setInterval(function () {
+        if (progressValue < 60) {
+          progressValue += 10;
+        } else if (progressValue < 85) {
+          progressValue += 3;
+        } else if (progressValue < 95) {
+          progressValue += 0.5;
+        }
+        progressBar.style.width = progressValue + '%';
+      }, 150);
+    },
+
+    finishProgress: function () {
+      if (!progressBar) return;
+      window.clearInterval(progressInterval);
+      progressValue = 100;
+      progressBar.style.width = '100%';
+      progressBar.classList.add('is-done');
+      setTimeout(function () {
+        progressBar.classList.remove('is-active');
+        progressBar.style.width = '0%';
+      }, 350);
+    },
+
+    // 2. Action Overlay Spinner Logic
+    showActionOverlay: function (title, desc) {
+      if (!actionOverlay) return;
+      if (titleEl) titleEl.textContent = title || 'Memproses Data';
+      if (descTextEl) descTextEl.textContent = desc || 'Mohon tunggu sebentar';
+      actionOverlay.classList.add('is-visible');
+    },
+
+    hideActionOverlay: function () {
+      if (!actionOverlay) return;
+      actionOverlay.classList.remove('is-visible');
+    },
+
+    // 3. Unified Master Controller
+    start: function (options) {
+      options = options || {};
+      activeRequestsCount++;
+
+      // Always run top progress bar
+      this.startProgress();
+
+      // Show full glassmorphic spinner card if requested or on modal/form/delete
+      if (options.overlay !== false && (options.overlay === true || options.title)) {
+        this.showActionOverlay(options.title, options.desc);
+      }
+
+      // Reset safety timeout (15s safeguard)
+      window.clearTimeout(safetyTimeout);
+      safetyTimeout = window.setTimeout(function () {
+        AppLoader.forceReset();
+      }, 15000);
+    },
+
+    done: function () {
+      activeRequestsCount = Math.max(0, activeRequestsCount - 1);
+      if (activeRequestsCount === 0) {
+        this.finishProgress();
+        this.hideActionOverlay();
+        if (currentActiveButton) {
+          currentActiveButton.classList.remove('is-btn-loading');
+          currentActiveButton = null;
+        }
+        document.querySelectorAll('.is-btn-loading').forEach(function (btn) {
+          btn.classList.remove('is-btn-loading');
+        });
+        window.clearTimeout(safetyTimeout);
+      }
+    },
+
+    forceReset: function () {
+      activeRequestsCount = 0;
+      this.finishProgress();
+      this.hideActionOverlay();
+      document.querySelectorAll('.is-btn-loading').forEach(function (btn) {
+        btn.classList.remove('is-btn-loading');
+      });
+      window.clearTimeout(safetyTimeout);
+    }
+  };
+
+  window.AppLoader = AppLoader;
+
+  // 4. Deteksi Konteks & Pesan Animasi Otomatis
+  function detectActionContext(elt) {
+    if (!elt) {
+      return { overlay: false, title: null, desc: null };
+    }
+
+    const form = elt.closest('form');
+    const isDeleteModal = elt.closest('.modal-content') && elt.closest('.modal-content').querySelector('.modal-title.text-danger');
+    const isSubmitBtn = (elt.type === 'submit') || elt.closest('button[type="submit"]') || (elt.tagName === 'FORM');
+    const hxGet = elt.getAttribute('hx-get') || '';
+    const hxPost = elt.getAttribute('hx-post') || (form ? form.getAttribute('hx-post') : '');
+    const url = hxGet || hxPost || (form ? form.action : '');
+    const btnText = (elt.textContent || '').trim().toLowerCase();
+
+    // A. Aksi Penghapusan
+    if (url.includes('/delete/') || btnText.includes('hapus') || isDeleteModal) {
+      if (isSubmitBtn || hxPost) {
+        return {
+          overlay: true,
+          title: 'Menghapus Data',
+          desc: 'Sistem sedang menghapus data terpilih'
+        };
+      }
+      return {
+        overlay: true,
+        title: 'Menyiapkan Penghapusan',
+        desc: 'Memuat data konfirmasi'
+      };
+    }
+
+    // B. Aksi Simpan / Tambah / Update Form
+    if (isSubmitBtn && (url.includes('/form/') || url.includes('/update/') || form)) {
+      return {
+        overlay: true,
+        title: 'Menyimpan Perubahan',
+        desc: 'Data sedang divalidasi dan disimpan ke server'
+      };
+    }
+
+    // C. Membuka Form Tambah / Edit Modal
+    if (hxGet && (hxGet.includes('/form/') || hxGet.includes('/update/') || hxGet.includes('/add/'))) {
+      const isEdit = hxGet.includes('/update/') || btnText.includes('edit');
+      return {
+        overlay: true,
+        title: isEdit ? 'Memuat Formulir Edit' : 'Menyiapkan Formulir',
+        desc: 'Mengambil data dari server'
+      };
+    }
+
+    // D. Ekspor Excel / PDF
+    if (btnText.includes('excel') || btnText.includes('cetak') || url.includes('/excel/') || url.includes('/pdf/')) {
+      return {
+        overlay: true,
+        title: 'Menyiapkan Berkas',
+        desc: 'Memproses format dokumen'
+      };
+    }
+
+    // E. Aksi tabel biasa (Paginasi, sorting, live search) -> Cukup top progress bar halus
+    return { overlay: false, title: null, desc: null };
+  }
+
+  // 5. Integrasi Otomatis dengan HTMX Events
+  document.addEventListener('htmx:beforeRequest', function (evt) {
+    const elt = evt.detail.elt;
+    const context = detectActionContext(elt);
+
+    // Tandai button dengan micro-spinner
+    const btn = elt ? elt.closest('button, .btn') : null;
+    if (btn && (context.overlay || btn.type === 'submit')) {
+      btn.classList.add('is-btn-loading');
+      currentActiveButton = btn;
+    }
+
+    AppLoader.start(context);
+  });
+
+  document.addEventListener('htmx:afterRequest', function () {
+    AppLoader.done();
+  });
+
+  document.addEventListener('htmx:sendError', function () {
+    AppLoader.forceReset();
+  });
+
+  document.addEventListener('htmx:responseError', function () {
+    AppLoader.forceReset();
+  });
+
+  // 6. Integrasi dengan Standard Form Submission (Non-HTMX)
+  document.addEventListener('submit', function (evt) {
+    const form = evt.target;
+    if (form && !form.hasAttribute('hx-post') && !form.hasAttribute('hx-get')) {
+      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+      if (submitBtn) {
+        submitBtn.classList.add('is-btn-loading');
+      }
+      AppLoader.start({
+        overlay: true,
+        title: 'Menyimpan Data',
+        desc: 'Mengirimkan formulir ke server'
+      });
+    }
+  }, true);
+
+  // 7. Cleanup otomatis saat modal ditutup
+  document.addEventListener('hidden.bs.modal', function () {
+    AppLoader.hideActionOverlay();
+    document.querySelectorAll('.is-btn-loading').forEach(function (btn) {
+      btn.classList.remove('is-btn-loading');
+    });
+  });
+})();
+</script>
