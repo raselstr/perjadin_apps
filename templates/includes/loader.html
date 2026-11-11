@@ -143,6 +143,11 @@
 
   window.AppLoader = AppLoader;
 
+  // Reset spinner saat halaman selesai dimuat (setelah navigasi penuh)
+  window.addEventListener('pageshow', function () {
+    AppLoader.forceReset();
+  });
+
   // 4. Deteksi Konteks & Pesan Animasi Otomatis
   function detectActionContext(elt) {
     if (!elt) {
@@ -201,7 +206,16 @@
       };
     }
 
-    // E. Aksi tabel biasa (Paginasi, sorting, live search) -> Cukup top progress bar halus
+    // E. Halaman Preview Laporan Perjalanan
+    if (hxGet && hxGet.includes('/preview/')) {
+      return {
+        overlay: true,
+        title: 'Memuat Pratinjau',
+        desc: 'Menyiapkan dokumen laporan perjalanan'
+      };
+    }
+
+    // F. Aksi tabel biasa (Paginasi, sorting, live search) -> Cukup top progress bar halus
     return { overlay: false, title: null, desc: null };
   }
 
@@ -236,15 +250,21 @@
   document.addEventListener('submit', function (evt) {
     const form = evt.target;
     if (form && !form.hasAttribute('hx-post') && !form.hasAttribute('hx-get')) {
-      const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
-      if (submitBtn) {
-        submitBtn.classList.add('is-btn-loading');
+      // Skip jika form sudah ditangani oleh handler halaman spesifik
+      if (form.getAttribute('data-loader-handled')) return;
+      const submitter = evt.submitter;
+      const exportVal = submitter ? (submitter.value || '') : '';
+      if (submitter) submitter.classList.add('is-btn-loading');
+      if (exportVal === 'excel') {
+        AppLoader.start({ overlay: true, title: 'Menyiapkan Excel', desc: 'Memproses data ke format spreadsheet' });
+        // File download: reset setelah 8 detik
+        setTimeout(function () { AppLoader.forceReset(); }, 8000);
+      } else if (exportVal === 'pdf') {
+        AppLoader.start({ overlay: true, title: 'Menyiapkan PDF', desc: 'Memproses data ke format dokumen' });
+        setTimeout(function () { AppLoader.forceReset(); }, 8000);
+      } else {
+        AppLoader.start({ overlay: true, title: 'Menyimpan Data', desc: 'Mengirimkan formulir ke server' });
       }
-      AppLoader.start({
-        overlay: true,
-        title: 'Menyimpan Data',
-        desc: 'Mengirimkan formulir ke server'
-      });
     }
   }, true);
 
@@ -254,6 +274,48 @@
     document.querySelectorAll('.is-btn-loading').forEach(function (btn) {
       btn.classList.remove('is-btn-loading');
     });
+  });
+
+  // 8. Spinner saat navigasi ke halaman laporan / berat via link <a>
+  //    (non-HTMX full-page navigation)
+  var REPORT_URL_PATTERNS = [
+    '/laporan-perjalanan/',
+    '/laporan/',
+    '/data-perjalanan-per-orang/',
+    '/kwitansi/',
+    '/laporan-perjalanan/cetak/',
+    '/laporan-perjalanan/preview/',
+  ];
+
+  function getNavLoaderOptions(href) {
+    if (!href || href.startsWith('#') || href.startsWith('javascript')) return null;
+    if (href.includes('/laporan-perjalanan/cetak/') || href.includes('/laporan-perjalanan/preview/')) {
+      return { overlay: true, title: 'Memuat Dokumen Laporan', desc: 'Menyiapkan dokumen perjalanan dinas' };
+    }
+    if (href.includes('/laporan-perjalanan/')) {
+      return { overlay: true, title: 'Memuat Laporan Perjalanan', desc: 'Mengambil data laporan dari server' };
+    }
+    if (href.includes('/laporan/') && href.includes('/data-perjalanan-per-orang/')) {
+      return { overlay: true, title: 'Memuat Data Perjalanan', desc: 'Mengambil data perjalanan per pegawai' };
+    }
+    if (href.includes('/laporan/') || href.endsWith('/laporan')) {
+      return { overlay: true, title: 'Memuat Rekap SPJ', desc: 'Mengambil data rekap seluruh SPJ dari server' };
+    }
+    return null;
+  }
+
+  document.addEventListener('click', function (evt) {
+    var anchor = evt.target.closest('a[href]');
+    if (!anchor) return;
+    if (anchor.hasAttribute('hx-get') || anchor.hasAttribute('hx-post')) return;
+    var href = anchor.getAttribute('href') || '';
+    // Skip external, hash, download links
+    if (href.startsWith('http') || href.startsWith('#') || anchor.hasAttribute('download')) return;
+    var opts = getNavLoaderOptions(href);
+    if (opts) {
+      AppLoader.start(opts);
+      anchor.classList.add('is-btn-loading');
+    }
   });
 })();
 </script>

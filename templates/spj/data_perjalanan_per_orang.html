@@ -144,3 +144,34 @@
 }
 </style>
 {% endblock extrastyle %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // Override global form submit handler untuk halaman Data Perjalanan Per Orang
+  var form = document.querySelector('form[method="get"]');
+  if (!form || !window.AppLoader) return;
+  form.setAttribute('data-loader-handled', '1');
+
+  form.addEventListener('submit', function (evt) {
+    var submitter = evt.submitter;
+    var exportVal = submitter ? (submitter.value || '') : '';
+    if (submitter) submitter.classList.add('is-btn-loading');
+    if (exportVal === 'excel') {
+      AppLoader.start({ overlay: true, title: 'Menyiapkan Excel', desc: 'Memproses data ke format spreadsheet' });
+      setTimeout(function () { AppLoader.forceReset(); }, 8000);
+    } else {
+      AppLoader.start({ overlay: true, title: 'Memuat Data Perjalanan', desc: 'Mengambil data perjalanan per pegawai dari server' });
+    }
+  }, true);
+
+  // Tombol Cetak (window.print) bukan submit, tangkap via onclick
+  document.querySelectorAll('button[onclick*="print"]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      AppLoader.start({ overlay: true, title: 'Menyiapkan Cetakan', desc: 'Membuka dialog cetak / simpan PDF' });
+      setTimeout(function () { AppLoader.forceReset(); }, 3000);
+    });
+  });
+})();
+</script>
+{% endblock extra_js %}

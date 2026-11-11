@@ -170,3 +170,29 @@
 }
 </style>
 {% endblock extrastyle %}
+
+{% block extra_js %}
+<script>
+(function () {
+  // Override global form submit handler untuk halaman laporan rekap SPJ
+  var form = document.querySelector('form[method="get"]');
+  if (!form || !window.AppLoader) return;
+  form.setAttribute('data-loader-handled', '1');
+
+  form.addEventListener('submit', function (evt) {
+    var submitter = evt.submitter;
+    var exportVal = submitter ? (submitter.value || '') : '';
+    if (submitter) submitter.classList.add('is-btn-loading');
+    if (exportVal === 'excel') {
+      AppLoader.start({ overlay: true, title: 'Menyiapkan Excel', desc: 'Memproses data ke format spreadsheet' });
+      setTimeout(function () { AppLoader.forceReset(); }, 8000);
+    } else if (exportVal === 'pdf') {
+      AppLoader.start({ overlay: true, title: 'Menyiapkan PDF', desc: 'Memproses data ke format dokumen PDF' });
+      setTimeout(function () { AppLoader.forceReset(); }, 8000);
+    } else {
+      AppLoader.start({ overlay: true, title: 'Memuat Rekap SPJ', desc: 'Mengambil data rekap seluruh SPJ dari server' });
+    }
+  }, true);
+})();
+</script>
+{% endblock extra_js %}
