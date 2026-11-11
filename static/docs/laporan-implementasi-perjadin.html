@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="utf-8">
-  <title>Laporan Implementasi Sistem Informasi Perjalanan Dinas</title>
+  <title>Panduan Penggunaan dan Dokumentasi Sistem Informasi Perjalanan Dinas</title>
   <style>
     @page { size: A4; margin: 18mm 16mm 17mm; @bottom-right { content: "Halaman " counter(page) " dari " counter(pages); font-size: 8pt; color: #64748b; } }
     @page cover { margin: 0; @bottom-right { content: ""; } }
@@ -54,9 +54,9 @@
 <body>
   <section class="cover">
     <div class="mark">PD</div>
-    <h1>Laporan Implementasi<br>Sistem Informasi Perjalanan Dinas</h1>
-    <div class="subtitle">User interface, mockup, flowchart, cara penggunaan, struktur aplikasi, metadata, dan source code</div>
-    <div class="meta"><b>Perjadin Apps</b><br>Dokumen teknis dan panduan implementasi<br>Versi laporan: 1.0 &nbsp;|&nbsp; 13 September 2026</div>
+    <h1>Panduan Penggunaan<br>Sistem Informasi Perjalanan Dinas</h1>
+    <div class="subtitle">Panduan kerja operator dan verifikator, alur proses, keamanan, serta dokumentasi teknis aplikasi</div>
+    <div class="meta"><b>Perjadin Apps</b><br>BKAD — Pemerintah Kabupaten Asahan<br>Revisi: 11 November 2026</div>
   </section>
 
   <section>
@@ -69,7 +69,7 @@
       <tr><th>Bahasa dan zona waktu</th><td>Bahasa Indonesia (id-id), konfigurasi zona waktu aplikasi UTC; format tanggal UI dan dokumen menggunakan dd/mm/yyyy.</td></tr>
       <tr><th>Basis kode</th><td>Repository <b>raselstr/perjadin_apps</b>; modul utama: profiles, menus, dashboard, umum, spd, perintah, spj, core.</td></tr>
     </table>
-    <div class="note"><b>Ruang lingkup laporan.</b> Mockup pada dokumen ini adalah representasi visual dari UI yang berjalan, bukan screenshot data produksi. Nilai transaksi di contoh bersifat ilustratif.</div>
+    <div class="note"><b>Cara menggunakan dokumen.</b> Bagian 1–6 ditujukan bagi pengguna aplikasi. Bagian 7–10 menjelaskan struktur dan pengelolaan teknis bagi administrator/pengelola. Mockup adalah ilustrasi, bukan screenshot data produksi; angka dan nama pada contoh tidak boleh dipakai sebagai data transaksi.</div>
 
     <h2>2. Daftar Isi</h2>
     <ol class="toc">
@@ -158,6 +158,44 @@
     <ol><li>Pilih SPT dan pelaksana yang sesuai.</li><li>Isi uang harian, representasi, pesawat, penginapan, dan transport lokal sesuai bukti.</li><li>Unggah bukti PDF/foto pada field yang tersedia. Untuk hotel, isi lokasi, tipe/nomor kamar, check-in/out, tarif, dan koordinat bila diperlukan.</li><li>Periksa rincian hari, tarif 100%/30%/0%, subtotal, dan total. Simpan sebagai draft.</li></ol>
     <h3>D. Verifikasi dan laporan</h3>
     <ol><li>Verifikator membuka data SPJ, memeriksa bukti dan kewajaran perhitungan.</li><li>Ubah status menjadi <b>Diverifikasi</b> atau <b>Ditolak</b> dengan catatan perbaikan.</li><li>Buka <b>SPJ → Laporan</b>, filter periode/status/OPD, pilih <i>Preview PDF</i>, lalu cetak atau simpan PDF.</li></ol>
+    <h3>E. Pemeriksaan sebelum pengajuan</h3>
+    <p>Sebelum mengirim data untuk diperiksa, operator sebaiknya memastikan hal-hal berikut:</p>
+    <ul>
+      <li>SPT, tujuan, tanggal, lama perjalanan, pelaksana, dan pemberi tugas sudah sesuai dokumen penugasan.</li>
+      <li>Setiap komponen biaya tercatat pada SPT dan pelaksana yang tepat; tanggal dan jumlah hari tidak bertentangan dengan perjalanan.</li>
+      <li>Nilai yang dimasukkan sesuai bukti dan ketentuan yang berlaku. Jangan mengubah nilai hanya agar cocok dengan total yang diharapkan.</li>
+      <li>Bukti dapat dibuka, terbaca, tidak terpotong, dan menunjukkan informasi yang diperlukan. Pastikan berkas yang diunggah memang milik transaksi tersebut.</li>
+      <li>Preview dokumen sudah diperiksa, terutama ejaan nama/NIP, nomor, tanggal, tujuan, rincian, dan total.</li>
+    </ul>
+    <h3>F. Checklist verifikator</h3>
+    <ol>
+      <li>Cocokkan identitas pelaksana dan rincian perjalanan dengan SPT/SPD.</li>
+      <li>Periksa bukti untuk setiap komponen, kesesuaian tanggal, kewajaran nilai, dan kemungkinan entri ganda.</li>
+      <li>Pastikan perhitungan hari, tarif, subtotal, dan total dapat dijelaskan dari data yang tersimpan.</li>
+      <li>Jika ada kekurangan, tolak/kembalikan dengan catatan yang spesifik: sebutkan bagian yang perlu diperbaiki dan bukti yang harus dilengkapi.</li>
+      <li>Setelah sesuai, tetapkan status verifikasi sesuai kewenangan. Verifikasi di aplikasi tidak menggantikan pemeriksaan terhadap peraturan dan dokumen sumber.</li>
+    </ol>
+    <h3>G. Kendala umum dan langkah awal</h3>
+    <table>
+      <tr><th>Kendala</th><th>Yang dapat diperiksa</th><th>Jika belum selesai</th></tr>
+      <tr><td>Menu tidak terlihat</td><td>Pastikan akun yang dipakai benar dan peran/hak akses sesuai tugas.</td><td>Hubungi administrator aplikasi untuk pemeriksaan hak akses.</td></tr>
+      <tr><td>Data pelaksana tidak muncul</td><td>Pastikan pelaksana telah ditambahkan pada SPT yang dipilih dan data pegawainya tersedia.</td><td>Minta operator/admin memperbaiki data master atau keterkaitan SPT.</td></tr>
+      <tr><td>Perhitungan atau tanggal berbeda</td><td>Periksa tanggal berangkat, lama perjalanan, pelaksana, dan rincian biaya yang menjadi dasar hitung.</td><td>Simpan pesan/keterangan yang tampil dan minta pemeriksaan administrator; jangan mengakali nilai.</td></tr>
+      <tr><td>Bukti gagal diunggah</td><td>Pastikan format sesuai field yang tersedia, ukuran berkas wajar, dan koneksi stabil.</td><td>Coba berkas yang terbaca jelas; jika berulang, catat nama file dan waktu kejadian untuk admin.</td></tr>
+      <tr><td>PDF kosong atau tata letak terpotong</td><td>Gunakan Preview, pastikan data wajib lengkap, lalu coba kembali setelah halaman termuat.</td><td>Laporkan jenis dokumen, nomor transaksi, browser, dan bagian yang bermasalah.</td></tr>
+      <tr><td>Sesi berakhir</td><td>Masuk kembali melalui halaman login. Data yang belum disimpan mungkin perlu diisi ulang.</td><td>Simpan perubahan secara berkala dan hubungi admin bila masalah sering terjadi.</td></tr>
+    </table>
+    <h3>H. Istilah yang digunakan</h3>
+    <table>
+      <tr><th>Istilah</th><th>Arti ringkas</th></tr>
+      <tr><td>SPT</td><td>Surat Perintah Tugas sebagai dasar penugasan perjalanan dinas.</td></tr>
+      <tr><td>SPD</td><td>Surat Perjalanan Dinas yang mencatat pelaksanaan perjalanan.</td></tr>
+      <tr><td>SPJ</td><td>Dokumen/data pertanggungjawaban biaya perjalanan dinas beserta bukti pendukung.</td></tr>
+      <tr><td>Draft</td><td>Data yang masih disusun dan belum dinyatakan selesai diverifikasi.</td></tr>
+      <tr><td>Diverifikasi</td><td>Status bahwa pemeriksaan dalam aplikasi telah dilakukan oleh pengguna berwenang.</td></tr>
+      <tr><td>Ditolak</td><td>Data dikembalikan untuk perbaikan; ikuti catatan yang diberikan.</td></tr>
+      <tr><td>OPD</td><td>Organisasi Perangkat Daerah yang terkait dengan data atau transaksi.</td></tr>
+    </table>
     <div class="warning"><b>Catatan operasional:</b> lakukan pemeriksaan hak akses, backup database, dan uji cetak pada printer/format kertas sebelum dipakai untuk dokumen resmi.</div>
   </section>
 

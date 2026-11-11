@@ -2,35 +2,437 @@
 <footer class="pc-footer">
   <div class="footer-wrapper container-fluid">
     <div class="row align-items-center g-1">
+
+      {# ── Kiri: Identitas & Versi ── #}
       <div class="col-12 col-md my-0 text-center text-md-start">
         <p class="m-0 footer-brand-text">
-          &copy; 2026 <strong>Pemerintah Kabupaten Asahan</strong> &bull; BKAD &mdash; Sistem Perjalanan Dinas
+          <i class="ti ti-building-bank footer-icon-gov"></i>
+          &copy; 2026 <strong>Pemerintah Kabupaten Asahan</strong>
+          <span class="footer-divider">|</span>
+          <span class="footer-unit">BKAD — Sistem Informasi Perjalanan Dinas</span>
+          <span class="footer-badge-ver ms-1">v2.0</span>
+        </p>
+        <p class="m-0 footer-sub-text">
+          <i class="ti ti-lock footer-icon-lock"></i>
+          Akses terlindungi &bull; Sesi otomatis berakhir setelah 30 menit tidak aktif
         </p>
       </div>
+
+      {# ── Kanan: Tombol Aksi ── #}
       <div class="col-12 col-md-auto my-0 text-center text-md-end">
-        <div class="d-inline-flex flex-wrap gap-1 justify-content-center justify-content-md-end footer-action-buttons">
+        <div class="d-inline-flex flex-wrap gap-2 justify-content-center justify-content-md-end footer-action-buttons">
+
+          {# Panduan #}
           <a href="{% static 'docs/laporan-implementasi-perjadin.pdf' %}"
              target="_blank"
-             rel="noopener"
+             rel="noopener noreferrer"
              class="btn btn-sm btn-footer-doc"
-             title="Buka Dokumen Panduan">
-            <i class="ti ti-file-text"></i> <span>Panduan</span>
+             title="Buka Panduan Pengguna (PDF)">
+            <i class="ti ti-book"></i>
+            <span class="footer-btn-label">Panduan</span>
           </a>
+
+          {# Unduh PDF #}
           <a href="{% static 'docs/laporan-implementasi-perjadin.pdf' %}"
-             download
+             download="Panduan-Perjadin-BKAD-Asahan.pdf"
              class="btn btn-sm btn-footer-download"
-             title="Unduh PDF">
-            <i class="ti ti-download"></i> <span>Unduh PDF</span>
+             title="Unduh Dokumen Panduan (PDF)">
+            <i class="ti ti-download"></i>
+            <span class="footer-btn-label">Unduh PDF</span>
           </a>
+
+          {# Dokumentasi HTML #}
           <a href="{% static 'docs/laporan-implementasi-perjadin.html' %}"
              target="_blank"
-             rel="noopener"
+             rel="noopener noreferrer"
              class="btn btn-sm btn-footer-html"
-             title="Dokumentasi HTML">
-            <i class="ti ti-code"></i> <span>Docs</span>
+             title="Buka Dokumentasi Teknis (HTML)">
+            <i class="ti ti-code"></i>
+            <span class="footer-btn-label">Dokumentasi</span>
           </a>
+
+          {# Keamanan — buka modal #}
+          <button type="button"
+                  class="btn btn-sm btn-footer-security"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalKeamananSistem"
+                  title="Lihat Informasi Keamanan Sistem">
+            <i class="ti ti-shield-check"></i>
+            <span class="footer-btn-label">Keamanan</span>
+          </button>
+
         </div>
       </div>
+
     </div>
   </div>
 </footer>
+
+{# ══════════════════════════════════════════════════════════
+   MODAL KEAMANAN SISTEM
+   ══════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalKeamananSistem" tabindex="-1"
+     aria-labelledby="modalKeamananLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content security-modal-content">
+
+      {# Header #}
+      <div class="modal-header security-modal-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="security-modal-icon">
+            <i class="ti ti-shield-check"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0" id="modalKeamananLabel">
+              Keamanan &amp; Perlindungan Sistem
+            </h5>
+            <small class="text-white-50">Sistem Informasi Perjalanan Dinas — BKAD Asahan</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+
+      {# Body #}
+      <div class="modal-body security-modal-body p-0">
+
+        {# Banner ringkasan #}
+        <div class="security-summary-bar">
+          <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+              <div class="sec-stat">
+                <i class="ti ti-lock sec-stat-icon text-success"></i>
+                <div class="sec-stat-label">Autentikasi</div>
+                <div class="sec-stat-val text-success">Aktif</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="sec-stat">
+                <i class="ti ti-shield sec-stat-icon text-success"></i>
+                <div class="sec-stat-label">CSRF</div>
+                <div class="sec-stat-val text-success">Dilindungi</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="sec-stat">
+                <i class="ti ti-clock sec-stat-icon text-warning"></i>
+                <div class="sec-stat-label">Sesi Idle</div>
+                <div class="sec-stat-val text-warning">30 Menit</div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="sec-stat">
+                <i class="ti ti-code-off sec-stat-icon text-success"></i>
+                <div class="sec-stat-label">XSS / CSP</div>
+                <div class="sec-stat-val text-success">Diblokir</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {# Konten detail keamanan #}
+        <div class="p-4">
+
+          {# 1. Autentikasi & Otorisasi #}
+          <div class="sec-section mb-4">
+            <div class="sec-section-header">
+              <span class="sec-section-icon bg-primary-subtle text-primary">
+                <i class="ti ti-user-check"></i>
+              </span>
+              <h6 class="sec-section-title">1. Autentikasi &amp; Otorisasi</h6>
+              <span class="badge bg-success ms-auto">Aktif</span>
+            </div>
+            <div class="sec-section-body">
+              <ul class="sec-list">
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Login wajib</strong> untuk semua halaman — semua URL dilindungi oleh
+                    <code>SessionSecurityMiddleware</code> dan <code>LoginRequiredMixin</code>.
+                    Pengguna yang belum masuk diarahkan otomatis ke halaman login.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Kontrol akses berbasis peran</strong> — setiap pengguna hanya
+                    dapat mengakses menu dan data sesuai hak akses yang diberikan administrator.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Password terenkripsi</strong> menggunakan algoritma
+                    <code>PBKDF2 + SHA-256</code> dengan salt acak (Django default).
+                    Password divalidasi: minimal panjang, tidak umum, tidak mirip nama pengguna.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Halaman login</strong> dilindungi dari serangan brute-force melalui
+                    validasi form Django.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {# 2. Manajemen Sesi #}
+          <div class="sec-section mb-4">
+            <div class="sec-section-header">
+              <span class="sec-section-icon bg-warning-subtle text-warning">
+                <i class="ti ti-clock-hour-4"></i>
+              </span>
+              <h6 class="sec-section-title">2. Manajemen Sesi</h6>
+              <span class="badge bg-success ms-auto">Aktif</span>
+            </div>
+            <div class="sec-section-body">
+              <ul class="sec-list">
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Batas waktu idle 30 menit</strong> — sesi otomatis berakhir dan pengguna
+                    diarahkan ke halaman login jika tidak ada aktivitas selama 30 menit
+                    (<code>IDLE_TIMEOUT = 1800 detik</code>).
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Sesi tutup browser</strong> — sesi berakhir otomatis saat
+                    browser ditutup (<code>SESSION_EXPIRE_AT_BROWSER_CLOSE = True</code>).
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Cookie HttpOnly</strong> — cookie sesi tidak dapat diakses oleh
+                    JavaScript (<code>SESSION_COOKIE_HTTPONLY = True</code>), mencegah pencurian
+                    cookie melalui XSS.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>SameSite Lax</strong> — cookie dilindungi dari serangan
+                    Cross-Site Request Forgery berbasis navigasi (<code>SESSION_COOKIE_SAMESITE = 'Lax'</code>).
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>No-Cache pada halaman terproteksi</strong> — semua respons halaman
+                    private menyertakan header <code>Cache-Control: no-store</code> agar tidak
+                    tersimpan di cache browser.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {# 3. Perlindungan CSRF #}
+          <div class="sec-section mb-4">
+            <div class="sec-section-header">
+              <span class="sec-section-icon bg-danger-subtle text-danger">
+                <i class="ti ti-shield-lock"></i>
+              </span>
+              <h6 class="sec-section-title">3. Perlindungan CSRF</h6>
+              <span class="badge bg-success ms-auto">Aktif</span>
+            </div>
+            <div class="sec-section-body">
+              <ul class="sec-list">
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Token CSRF</strong> pada setiap formulir — semua permintaan POST
+                    diverifikasi dengan token acak Django (<code>CsrfViewMiddleware</code>).
+                    Permintaan tanpa token yang valid ditolak.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>CSRF Trusted Origins</strong> — hanya asal (origin) yang terdaftar
+                    dapat mengirimkan permintaan lintas domain
+                    (<code>CSRF_TRUSTED_ORIGINS</code>).
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Halaman gagal CSRF kustom</strong> — pengguna mendapat pesan
+                    yang jelas bila token CSRF tidak valid, bukan halaman error generik.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {# 4. Header Keamanan HTTP #}
+          <div class="sec-section mb-4">
+            <div class="sec-section-header">
+              <span class="sec-section-icon bg-info-subtle text-info">
+                <i class="ti ti-code-off"></i>
+              </span>
+              <h6 class="sec-section-title">4. Header Keamanan HTTP</h6>
+              <span class="badge bg-success ms-auto">Aktif</span>
+            </div>
+            <div class="sec-section-body">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered sec-table mb-0">
+                  <thead class="table-dark">
+                    <tr>
+                      <th style="width:38%">Header</th>
+                      <th>Nilai / Efek</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><code>Content-Security-Policy</code></td>
+                      <td>Memblokir skrip, style, dan sumber daya dari domain asing yang tidak diizinkan. Mencegah serangan XSS dan injeksi konten.</td>
+                    </tr>
+                    <tr>
+                      <td><code>X-Content-Type-Options</code></td>
+                      <td><code>nosniff</code> — Browser tidak diizinkan menebak tipe konten (mencegah MIME-sniffing attack).</td>
+                    </tr>
+                    <tr>
+                      <td><code>X-Frame-Options</code></td>
+                      <td><code>DENY</code> — Halaman tidak dapat dimuat dalam iframe dari domain lain (mencegah clickjacking).</td>
+                    </tr>
+                    <tr>
+                      <td><code>Referrer-Policy</code></td>
+                      <td><code>same-origin</code> — URL referrer hanya dikirim ke domain yang sama, tidak bocor ke situs luar.</td>
+                    </tr>
+                    <tr>
+                      <td><code>Cross-Origin-Opener-Policy</code></td>
+                      <td><code>same-origin</code> — Mencegah akses lintas-origin ke objek window (isolasi konteks browser).</td>
+                    </tr>
+                    <tr>
+                      <td><code>Cross-Origin-Resource-Policy</code></td>
+                      <td><code>same-origin</code> — Mencegah sumber daya dimuat dari domain lain tanpa izin.</td>
+                    </tr>
+                    <tr>
+                      <td><code>Permissions-Policy</code></td>
+                      <td>Kamera, mikrofon, payment, dan USB dinonaktifkan. Geolokasi hanya untuk domain sendiri.</td>
+                    </tr>
+                    <tr>
+                      <td><code>X-Permitted-Cross-Domain-Policies</code></td>
+                      <td><code>none</code> — Adobe Flash/PDF tidak diizinkan mengakses lintas domain.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {# 5. Keamanan Database & Data #}
+          <div class="sec-section mb-4">
+            <div class="sec-section-header">
+              <span class="sec-section-icon bg-success-subtle text-success">
+                <i class="ti ti-database-lock"></i>
+              </span>
+              <h6 class="sec-section-title">5. Keamanan Database &amp; Data</h6>
+              <span class="badge bg-success ms-auto">Aktif</span>
+            </div>
+            <div class="sec-section-body">
+              <ul class="sec-list">
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>ORM Django (SQL Injection Protection)</strong> — semua query database
+                    menggunakan Django ORM dengan parameterisasi otomatis, sehingga data pengguna
+                    tidak pernah langsung dimasukkan ke dalam query SQL mentah.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Kredensial dari Docker Secrets</strong> — kunci rahasia (<code>SECRET_KEY</code>),
+                    nama database, pengguna, dan password dibaca dari
+                    <code>/run/secrets/</code> (Docker Swarm Secrets), bukan dari variabel lingkungan
+                    terbuka, sehingga tidak terekspos di log atau proses list.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Database PostgreSQL</strong> terpisah dari aplikasi web dalam jaringan
+                    Docker internal, tidak dapat diakses langsung dari luar container.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Debug mode nonaktif</strong> (<code>DEBUG = False</code>) di lingkungan
+                    produksi — pesan error detail tidak pernah ditampilkan kepada pengguna akhir.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {# 6. HTTPS & Transport #}
+          <div class="sec-section mb-0">
+            <div class="sec-section-header">
+              <span class="sec-section-icon bg-secondary-subtle text-secondary">
+                <i class="ti ti-certificate"></i>
+              </span>
+              <h6 class="sec-section-title">6. Enkripsi Transport (HTTPS)</h6>
+              <span class="badge bg-warning text-dark ms-auto">Siap Aktifkan</span>
+            </div>
+            <div class="sec-section-body">
+              <ul class="sec-list">
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Dukungan HTTPS penuh</strong> tersedia — sistem sudah dikonfigurasi
+                    untuk HTTPS dengan pengaturan <code>USE_HTTPS = True</code>.
+                    Saat diaktifkan, seluruh lalu lintas data dienkripsi dengan TLS/SSL.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>HSTS (HTTP Strict Transport Security)</strong> — saat HTTPS aktif,
+                    browser dipaksa selalu menggunakan HTTPS untuk domain ini selama 1 tahun
+                    (<code>SECURE_HSTS_SECONDS = 31536000</code>) termasuk subdomain dan
+                    preload list.
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-check text-success"></i>
+                  <div>
+                    <strong>Secure Cookie</strong> — saat HTTPS aktif, cookie sesi dan CSRF
+                    hanya dikirim melalui koneksi terenkripsi
+                    (<code>SESSION_COOKIE_SECURE</code>, <code>CSRF_COOKIE_SECURE</code>).
+                  </div>
+                </li>
+                <li>
+                  <i class="ti ti-info-circle text-warning"></i>
+                  <div>
+                    <strong>Status saat ini:</strong> Sistem berjalan di jaringan intranet lokal
+                    menggunakan HTTP. Untuk internet/publik, aktifkan HTTPS dengan sertifikat
+                    TLS dari Let's Encrypt melalui Nginx reverse proxy.
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+        </div>{# /p-4 #}
+      </div>{# /modal-body #}
+
+      {# Footer Modal #}
+      <div class="modal-footer security-modal-footer justify-content-between">
+        <small class="text-muted">
+          <i class="ti ti-info-circle"></i>
+          Dibangun dengan <strong>Django 5.2</strong> &bull; PostgreSQL &bull; Docker
+        </small>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+          <i class="ti ti-x"></i> Tutup
+        </button>
+      </div>
+
+    </div>{# /modal-content #}
+  </div>
+</div>
