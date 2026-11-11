@@ -34,6 +34,7 @@ services:
       SECURE_SSL_REDIRECT: "False"
 
       ALLOWED_HOSTS: "103.188.249.54,perjadin.bkadasahan.dedyn.io,perjadin.bkadasahan.ddns.net,192.168.66.5,192.168.66.167,127.0.0.1,localhost,perjadin_apps,web"
+      CSRF_TRUSTED_ORIGINS: "http://103.188.249.54:8085,http://perjadin.bkadasahan.dedyn.io:8085,https://perjadin.bkadasahan.dedyn.io,http://perjadin.bkadasahan.ddns.net:8085,https://perjadin.bkadasahan.ddns.net,http://192.168.66.5:8085,http://192.168.66.167:8085,http://localhost:8085,http://127.0.0.1:8085"
 
     networks:
       - production_network

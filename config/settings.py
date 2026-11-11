@@ -222,7 +222,21 @@ MEDIA_ROOT = BASE_DIR / 'media'
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
-CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+_default_trusted_origins = [
+    "http://127.0.0.1:8085",
+    "http://localhost:8085",
+]
+for _h in ALLOWED_HOSTS:
+    if _h and _h not in ('*', 'localhost', '127.0.0.1', 'perjadin_apps', 'web'):
+        _default_trusted_origins.extend([
+            f"http://{_h}",
+            f"https://{_h}",
+            f"http://{_h}:8085",
+            f"https://{_h}:8085",
+        ])
+
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=_default_trusted_origins)
+CSRF_FAILURE_VIEW = 'profiles.views.csrf_failure_view'
 
 IDLE_TIMEOUT_SECONDS = 1800
 SESSION_COOKIE_AGE = IDLE_TIMEOUT_SECONDS
@@ -232,7 +246,7 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_SECURE = USE_HTTPS
 
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SECURE = USE_HTTPS
 

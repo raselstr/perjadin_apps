@@ -284,6 +284,14 @@
 </div>
 
 <script>
+    // Jika halaman dibuka kembali dari Back-Forward cache (bfcache),
+    // reload otomatis agar mendapatkan token CSRF segar dan tidak bentrok dengan cookie baru.
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
+
     try {
         localStorage.clear();
     } catch (error) {

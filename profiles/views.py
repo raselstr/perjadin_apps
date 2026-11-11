@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.csrf import csrf_protect
 from django.db import transaction
 from django.http import HttpResponse, JsonResponse
 from types import SimpleNamespace
@@ -71,6 +73,28 @@ def _authenticate_pegawai_with_standard_password(username, password):
     return user
 
 
+def csrf_failure_view(request, reason=""):
+    """
+    Menangani kegagalan verifikasi CSRF.
+    Jika terjadi pada halaman login (misalnya sesi/token kedaluwarsa setelah idle/timeout),
+    rotasikan token dan redirect kembali ke halaman login dengan pesan yang ramah,
+    bukan menampilkan halaman error 403 raw.
+    """
+    if request.path.rstrip("/").endswith("/profiles/masuk") or request.path == "/profiles/masuk/":
+        from django.middleware.csrf import rotate_token
+        rotate_token(request)
+        messages.warning(
+            request,
+            "Sesi keamanan Anda telah diperbarui. Silakan masukkan kembali kredensial login Anda."
+        )
+        return redirect(f"{reverse('masuk')}?expired=1")
+
+    from django.views.csrf import csrf_failure as default_csrf_failure
+    return default_csrf_failure(request, reason)
+
+
+@never_cache
+@csrf_protect
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
