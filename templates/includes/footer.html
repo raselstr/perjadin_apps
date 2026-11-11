@@ -42,14 +42,14 @@
           </a>
 
           {# Dokumentasi HTML #}
-          <a href="{% static 'docs/laporan-implementasi-perjadin.html' %}"
-             target="_blank"
-             rel="noopener noreferrer"
-             class="btn btn-sm btn-footer-html"
-             title="Buka Dokumentasi Teknis (HTML)">
+          <button type="button"
+                  class="btn btn-sm btn-footer-html"
+                  data-bs-toggle="modal"
+                  data-bs-target="#modalDokumentasiTeknis"
+                  title="Buka Dokumentasi Teknis">
             <i class="ti ti-code"></i>
             <span class="footer-btn-label">Dokumentasi</span>
-          </a>
+          </button>
 
           {# Keamanan — buka modal #}
           <button type="button"
@@ -434,5 +434,42 @@
       </div>
 
     </div>{# /modal-content #}
+  </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════
+   MODAL DOKUMENTASI TEKNIS
+   ══════════════════════════════════════════════════════════ #}
+<div class="modal fade" id="modalDokumentasiTeknis" tabindex="-1"
+     aria-labelledby="modalDokumentasiLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content security-modal-content">
+      <div class="modal-header security-modal-header">
+        <div class="d-flex align-items-center gap-3">
+          <div class="security-modal-icon">
+            <i class="ti ti-code"></i>
+          </div>
+          <div>
+            <h5 class="modal-title mb-0" id="modalDokumentasiLabel">Dokumentasi Teknis</h5>
+            <small class="text-white-50">Sistem Informasi Perjalanan Dinas — BKAD Asahan</small>
+          </div>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe src="{% static 'docs/laporan-implementasi-perjadin.html' %}"
+                title="Dokumentasi Teknis Sistem Informasi Perjalanan Dinas"
+                style="display:block; width:100%; height:75vh; border:0;"
+                loading="lazy"></iframe>
+      </div>
+      <div class="modal-footer security-modal-footer justify-content-between">
+        <small class="text-muted">Dokumentasi ditampilkan dari berkas HTML aplikasi.</small>
+        <a class="btn btn-sm btn-outline-primary"
+           href="{% static 'docs/laporan-implementasi-perjadin.html' %}"
+           target="_blank" rel="noopener noreferrer">
+          <i class="ti ti-external-link"></i> Buka di tab baru
+        </a>
+      </div>
+    </div>
   </div>
 </div>
