@@ -223,21 +223,35 @@ class SptForm(BaseAppModelForm):
             self.data,
             prefix=formset_prefix,
         )
-        conflict = _get_pelaksana_schedule_conflicts(
-            selected_pelaksana_ids,
-            departure_date,
-            exclude_spt_id=self.instance.pk if self.instance else None,
-        ).first()
 
-        if conflict:
-            self.add_error(
-                "tgl_berangkat",
-                (
-                    _format_pelaksana_schedule_conflict(conflict)
-                    + " Tanggal berangkat SPT baru harus lebih besar atau "
-                    "sama dengan tanggal kembali SPT sebelumnya."
-                ),
+        # Saat edit: pelaksana yang sudah tersimpan tidak perlu divalidasi ulang
+        existing_pelaksana_ids = set()
+        if self.instance and self.instance.pk:
+            existing_pelaksana_ids = set(
+                self.instance.pelaksana.values_list("nama_id", flat=True)
             )
+        new_pelaksana_ids = [
+            pid for pid in selected_pelaksana_ids
+            if str(pid) not in {str(x) for x in existing_pelaksana_ids}
+        ]
+
+        # Hanya validasi jadwal untuk pelaksana yang baru ditambahkan
+        if new_pelaksana_ids:
+            conflict = _get_pelaksana_schedule_conflicts(
+                new_pelaksana_ids,
+                departure_date,
+                exclude_spt_id=self.instance.pk if self.instance else None,
+            ).first()
+
+            if conflict:
+                self.add_error(
+                    "tgl_berangkat",
+                    (
+                        _format_pelaksana_schedule_conflict(conflict)
+                        + " Tanggal berangkat SPT baru harus lebih besar atau "
+                        "sama dengan tanggal kembali SPT sebelumnya."
+                    ),
+                )
 
         return cleaned_data
 
@@ -436,13 +450,37 @@ class BasePelaksanaInlineFormSet(BaseInlineFormSet):
 
         return None
 
+    def _get_existing_pelaksana_ids(self):
+        """
+        Kembalikan set pegawai_id yang sudah tersimpan di SPT instance saat ini.
+        Digunakan untuk melewati validasi jadwal jika pelaksana tidak berubah.
+        """
+        if not (self.instance and self.instance.pk):
+            return set()
+        return set(
+            self.instance.pelaksana.values_list("nama_id", flat=True)
+        )
+
     def _validate_pelaksana_schedule(self, selected_rows):
         departure_date = self._get_parent_departure_date()
         if not departure_date:
             return
 
+        # Saat edit: pelaksana yang sudah tersimpan di SPT ini tidak perlu
+        # divalidasi ulang — konflik sudah ada sebelum pengeditan dan
+        # memblokir simpan hanya menyulitkan pengguna.
+        existing_pelaksana_ids = self._get_existing_pelaksana_ids()
+        new_pelaksana_ids = [
+            pid for pid in selected_rows.keys()
+            if str(pid) not in {str(x) for x in existing_pelaksana_ids}
+        ]
+
+        # Jika tidak ada pelaksana baru yang ditambahkan, lewati validasi jadwal
+        if not new_pelaksana_ids:
+            return
+
         conflicting_pelaksana = _get_pelaksana_schedule_conflicts(
-            selected_rows.keys(),
+            new_pelaksana_ids,
             departure_date,
             exclude_spt_id=self.instance.pk if self.instance else None,
         )

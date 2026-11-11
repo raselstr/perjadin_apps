@@ -485,7 +485,13 @@
 
         window.jQuery(row).find(".select2, .select2-ajax").each(function () {
             const $field = window.jQuery(this);
-            const $dropdownParent = $field.closest("[data-formset-row], .modal");
+
+            // Gunakan .modal-content atau document.body agar dropdown tidak
+            // terpotong oleh overflow:hidden pada .pelaksana-item / formset-row
+            const $modalContent = $field.closest(".modal-content");
+            const $dropdownParent = $modalContent.length
+                ? $modalContent
+                : window.jQuery(document.body);
 
             if ($field.hasClass("select2-hidden-accessible")) {
                 $field.select2("destroy");
@@ -493,9 +499,7 @@
 
             $field.select2({
                 width: "100%",
-                dropdownParent: $dropdownParent.length
-                    ? $dropdownParent
-                    : window.jQuery(document.body),
+                dropdownParent: $dropdownParent,
                 theme: "bootstrap-5",
                 placeholder: $field.data("placeholder") || "",
             });
