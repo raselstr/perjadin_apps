@@ -33,7 +33,7 @@ from .document_utils import (
     sort_pelaksana_by_priority,
 )
 from .forms import PelaksanaForm, PelaksanaFormSet, PemberiTugasForm
-from .models import PemberiTugas, Spt
+from .models import PemberiTugas, Spt, TtdSptSpd
 from .tables import PemberiTugasTable, SptTable, TtdSptSpdTable
 from .views import _build_number_from_format
 
@@ -1957,3 +1957,44 @@ class SptListViewTests(PerintahBaseTestCase):
             response.context["table"].page.paginator.per_page,
             25,
         )
+
+
+class SptDeleteViewTests(PerintahBaseTestCase):
+    def test_delete_spt_with_ttd_spt_spd_deletes_both(self):
+        superuser = User.objects.create_superuser(
+            username="admin-delete",
+            email="admin-delete@example.com",
+            password="admin12345",
+        )
+        self.client.force_login(superuser)
+
+        # Buat SPT, PemberiTugas, dan TtdSptSpd
+        spt = Spt.objects.create(
+            dasar="Dasar hapus uji",
+            berita="Berita hapus uji",
+            kota_tujuan=self.lokasi,
+            tempat_tujuan="Tujuan Uji",
+            lama_perjalanan=1,
+            tgl_berangkat=date(2026, 6, 1),
+            jenis_kegiatan=self.kegiatan,
+            kendaraan="transport_umum",
+        )
+        pt = PemberiTugas.objects.create(
+            spt=spt,
+            penandatangan=self.kepala_bk,
+            nomor_spt="090/001",
+            nomor_spd="090/002",
+            tanggal_spt=date(2026, 6, 1),
+        )
+        ttd = TtdSptSpd.objects.create(pemberi_tugas=pt)
+
+        # Hapus via POST ke spt_delete
+        response = self.client.post(
+            reverse("spt_delete", kwargs={"pk": spt.pk, "action": "delete"}),
+            HTTP_HX_REQUEST="true",
+        )
+
+        self.assertIn(response.status_code, (200, 204))
+        self.assertFalse(Spt.objects.filter(pk=spt.pk).exists())
+        self.assertFalse(PemberiTugas.objects.filter(pk=pt.pk).exists())
+        self.assertFalse(TtdSptSpd.objects.filter(pk=ttd.pk).exists())

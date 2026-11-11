@@ -103,7 +103,7 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
         csp_directives = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net https://unpkg.com; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net https://unpkg.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com; "
             "img-src 'self' data: blob:; "
             "font-src 'self' data: https://cdn.jsdelivr.net; "

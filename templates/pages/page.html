@@ -35,6 +35,7 @@
               <button class="btn btn-success"
                       hx-get="{% url create_user_url %}"
                       hx-target="#modal-body"
+                      hx-swap="innerHTML"
                       hx-trigger="click">
                 + Tambah User Baru
               </button>
@@ -44,6 +45,7 @@
                 <button class="btn btn-primary"
                         hx-get="{% url url_action %}"
                         hx-target="#modal-body"
+                        hx-swap="innerHTML"
                         hx-trigger="click">
                   + Tambah
                 </button>
@@ -956,7 +958,7 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
 
 // Trigger formSuccess event ketika form sukses disubmit
 document.body.addEventListener('htmx:xhr:loadend', function (evt) {
-    if (evt.detail.xhr.status === 200 && evt.detail.target.tagName === 'FORM') {
+    if (evt.detail && evt.detail.xhr && evt.detail.xhr.status === 200 && evt.detail.target && evt.detail.target.tagName === 'FORM') {
         document.body.dispatchEvent(new Event('formSuccess'));
     }
 });

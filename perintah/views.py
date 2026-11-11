@@ -211,6 +211,56 @@ class SptView(BaseMasterDetailCRUDView):
         )
         return redirect(self.url_list)
 
+    def delete_view(self, request, pk):
+        if request.method != "POST":
+            return super().delete_view(request, pk)
+
+        perm = self.get_permission()
+        if not perm or not perm.can_delete:
+            return self._forbidden(request)
+
+        spt = get_object_or_404(
+            self.get_object_queryset(),
+            pk=pk,
+        )
+
+        try:
+            with transaction.atomic():
+                pemberi_tugas_list = list(spt.pemberi_tugas.all())
+                hardcopy_files = []
+                for pt in pemberi_tugas_list:
+                    ttd = getattr(pt, "ttdsptspd", None)
+                    if ttd:
+                        if ttd.hardcopy:
+                            hardcopy_files.append(ttd.hardcopy.name)
+                        ttd.delete()
+                spt.delete()
+
+                for file_name in hardcopy_files:
+                    if file_name and default_storage.exists(file_name):
+                        default_storage.delete(file_name)
+        except (models.ProtectedError, IntegrityError):
+            error_msg = f"Data '{spt}' tidak dapat dihapus karena masih terkait dengan data lain."
+            if request.headers.get("HX-Request"):
+                response = HttpResponse(status=200)
+                response["HX-Trigger"] = json.dumps({
+                    "crudError": {
+                        "title": "Gagal Menghapus Data",
+                        "message": error_msg,
+                        "level": "error",
+                        "action": "delete",
+                    }
+                })
+                return response
+            messages.error(request, error_msg)
+            return redirect(self.url_list)
+
+        if request.headers.get("HX-Request"):
+            return self._build_htmx_success_response("delete")
+
+        self._add_success_message(request, "delete")
+        return redirect(self.url_list)
+
 
 class PemberiTugasView(BaseCRUDView):
     model = PemberiTugas

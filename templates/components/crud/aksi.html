@@ -7,6 +7,7 @@
         style="width:32px;height:32px"
         hx-get="{% url url_pk record.id update_action %}"
         hx-target="#modal-body"
+        hx-swap="innerHTML"
         title="Edit">
 
         <i class="ti ti-pencil"></i>
@@ -19,6 +20,7 @@
         style="width:32px;height:32px"
         hx-get="{% url url_delete record.id delete_action %}"
         hx-target="#modal-body"
+        hx-swap="innerHTML"
         title="Hapus">
 
         <i class="ti ti-trash"></i>
