@@ -15,7 +15,8 @@ from django.utils.html import format_html, format_html_join
 from django.utils import timezone
 from django.views import View
 from openpyxl import Workbook
-from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.utils import get_column_letter
 
 from core.crud.base import BaseCRUDView
 from core.utils.formatting import format_indonesian_number, is_money_identifier, number_to_words
@@ -968,114 +969,343 @@ class SPJReportView(LoginRequiredMixin, View):
         pb = row["pesawat_berangkat"]
         pk = row["pesawat_kembali"]
         hotel = row["hotel"]
+
+        spt_year = spt.tgl_berangkat.year if (spt and spt.tgl_berangkat) else ""
+        spt_id_str = f"SPT #{spt.id}" if spt else ""
+        tahun_cell = f"{spt_year}\n{spt_id_str}".strip() if spt_year else spt_id_str
+
+        tgl_spt_str = pemberi.tanggal_spt.strftime("%d/%m/%Y") if getattr(pemberi, "tanggal_spt", None) else "-"
+        tgl_brk_str = spt.tgl_berangkat.strftime("%d/%m/%Y") if (spt and spt.tgl_berangkat) else "-"
+        tgl_kbl_str = spt.tgl_kembali.strftime("%d/%m/%Y") if (spt and spt.tgl_kembali) else "-"
+
+        tgl_pb_str = pb.tanggal_penerbangan.strftime("%d/%m/%Y") if getattr(pb, "tanggal_penerbangan", None) else "-"
+        tgl_pk_str = pk.tanggal_penerbangan.strftime("%d/%m/%Y") if getattr(pk, "tanggal_penerbangan", None) else "-"
+
+        tgl_chin_str = hotel.tanggal_checkin.strftime("%d/%m/%Y") if getattr(hotel, "tanggal_checkin", None) else "-"
+        tgl_chout_str = hotel.tanggal_checkout.strftime("%d/%m/%Y") if getattr(hotel, "tanggal_checkout", None) else "-"
+
+        hotel_nama_alamat = f"{getattr(hotel, 'nama_hotel', '')} {getattr(hotel, 'alamat_hotel', '')}".strip() or "-"
+
         return [
             idx,
-            spt.tgl_berangkat.year if spt.tgl_berangkat else "",
-            str(spt.jenis_kegiatan or ""),
+            tahun_cell,
+            str(spt.jenis_kegiatan or "") if spt else "-",
             pegawai.nama,
-            f"{pegawai.jabatan} / {pangkat} / {tingkat}",
+            f"{pegawai.jabatan or '-'} / {pangkat} / {tingkat}",
             getattr(pemberi, "nomor_spt", "") or "-",
-            getattr(pemberi, "tanggal_spt", "") or "",
-            spt.tujuan_perjalanan_display or "",
-            spt.lama_perjalanan,
-            spt.tgl_berangkat,
-            spt.tgl_kembali,
+            tgl_spt_str,
+            (spt.tujuan_perjalanan_display if spt else "") or "-",
+            spt.lama_perjalanan if spt else 0,
+            tgl_brk_str,
+            tgl_kbl_str,
             getattr(pemberi, "nomor_spd", "") or "-",
-            getattr(pemberi, "tanggal_spt", "") or "",
-            row["uang_harian_total"],
-            row["uang_harian_rincian"],
-            getattr(row["representasi"], "total_biaya", 0) or 0,
+            tgl_spt_str,
+            (spt.tujuan_perjalanan_display if spt else "") or "-",
+            spt.lama_perjalanan if spt else 0,
+            tgl_brk_str,
+            tgl_kbl_str,
+            float(row["uang_harian_total"] or 0),
+            str(row["uang_harian_rincian"] or ""),
+            float(getattr(row["representasi"], "total_biaya", 0) or 0),
             getattr(pb, "nama_maskapai", "") or "-",
             getattr(pb, "nomor_tiket", "") or "-",
             getattr(pb, "kode_booking", "") or "-",
-            getattr(pb, "tanggal_penerbangan", "") or "",
-            getattr(pb, "harga_tiket", 0) or 0,
+            tgl_pb_str,
+            float(getattr(pb, "harga_tiket", 0) or 0),
             getattr(pk, "nama_maskapai", "") or "-",
             getattr(pk, "nomor_tiket", "") or "-",
             getattr(pk, "kode_booking", "") or "-",
-            getattr(pk, "tanggal_penerbangan", "") or "",
-            getattr(pk, "harga_tiket", 0) or 0,
-            f"{getattr(hotel, 'nama_hotel', '')} {getattr(hotel, 'alamat_hotel', '')}".strip() or "-",
+            tgl_pk_str,
+            float(getattr(pk, "harga_tiket", 0) or 0),
+            hotel_nama_alamat,
             getattr(hotel, "tipe_kamar", "") or "-",
             getattr(hotel, "nomor_kamar", "") or "-",
-            getattr(hotel, "tanggal_checkin", "") or "",
-            getattr(hotel, "tanggal_checkout", "") or "",
+            tgl_chin_str,
+            tgl_chout_str,
             getattr(hotel, "lama_menginap", "") or "-",
-            getattr(hotel, "harga_per_malam", 0) or 0,
-            row["hotel_total"],
-            row["hotel_rincian"],
-            row["transport_berangkat_tujuan"],
-            row["transport_berangkat_tanggal"] or spt.tgl_berangkat,
-            row["transport_berangkat_total"],
-            row["transport_kembali_tujuan"],
-            row["transport_kembali_tanggal"] or spt.tgl_kembali,
-            row["transport_kembali_total"],
-            row["total"],
+            float(getattr(hotel, "harga_per_malam", 0) or 0),
+            float(row["hotel_total"] or 0),
+            str(row["hotel_rincian"] or ""),
+            str(row["transport_berangkat_tujuan"] or "-"),
+            str(row["transport_berangkat_tanggal"] or tgl_brk_str),
+            float(row["transport_berangkat_total"] or 0),
+            str(row["transport_kembali_tujuan"] or "-"),
+            str(row["transport_kembali_tanggal"] or tgl_kbl_str),
+            float(row["transport_kembali_total"] or 0),
+            float(row["total"] or 0),
         ]
 
-    def _excel_response(self, rows):
+    def _excel_response(self, rows, start_date=None, end_date=None, nama_pelaksana=""):
         wb = Workbook()
         ws = wb.active
-        ws.title = "Laporan Pengawas"
-        headers = [
-            "NO", "TAHUN", "JENIS PERJALANAN", "NAMA",
-            "JABATAN/GOL/TINGKAT BIAYA", "NO. SPT", "TANGGAL SPT",
-            "TEMPAT TUJUAN", "JUMLAH HARI", "TGL BERANGKAT", "TGL KEMBALI",
-            "NO. SPD", "TANGGAL SPD", "UANG HARIAN", "RINCIAN UANG HARIAN", "REPRESENTATIF",
-            "MASKAPAI BERANGKAT", "NO TIKET", "KODE BOOKING",
-            "TGL PENERBANGAN", "HARGA", "MASKAPAI KEMBALI", "NO TIKET",
-            "KODE BOOKING", "TGL PENERBANGAN", "HARGA",
-            "NAMA DAN LOKASI HOTEL", "TIPE KAMAR", "NOMOR KAMAR",
-            "TGL CHECKIN", "TGL CHECKOUT", "LAMA", "HARGA PER MALAM",
-            "TOTAL HOTEL", "RINCIAN HOTEL", "TRANSPORT BERANGKAT", "HARGA",
-            "TRANSPORT KEMBALI", "HARGA", "TOTAL",
-        ]
-        ws.append(headers)
-        for cell in ws[1]:
-            cell.font = Font(bold=True)
-            cell.fill = PatternFill("solid", fgColor="D9EAF7")
-            cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        ws.title = "Rekap SPJ"
+        ws.views.sheetView[0].showGridLines = True
 
+        font_title = Font(name="Arial", size=13, bold=True, color="1E3A8A")
+        font_sub = Font(name="Arial", size=10, bold=True, color="334155")
+        font_meta = Font(name="Arial", size=8.5, italic=True, color="64748B")
+
+        fill_h1 = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")
+        font_h1 = Font(name="Arial", size=9, bold=True, color="FFFFFF")
+
+        fill_h2 = PatternFill(start_color="2563EB", end_color="2563EB", fill_type="solid")
+        font_h2 = Font(name="Arial", size=8.5, bold=True, color="FFFFFF")
+
+        fill_h3 = PatternFill(start_color="F1F5F9", end_color="F1F5F9", fill_type="solid")
+        font_h3 = Font(name="Arial", size=8, bold=True, color="1E293B")
+
+        fill_even = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+        fill_odd = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+        fill_tot = PatternFill(start_color="E2E8F0", end_color="E2E8F0", fill_type="solid")
+
+        border_thin = Border(
+            left=Side(style='thin', color="CBD5E1"),
+            right=Side(style='thin', color="CBD5E1"),
+            top=Side(style='thin', color="CBD5E1"),
+            bottom=Side(style='thin', color="CBD5E1")
+        )
+        border_head = Border(
+            left=Side(style='thin', color="94A3B8"),
+            right=Side(style='thin', color="94A3B8"),
+            top=Side(style='thin', color="94A3B8"),
+            bottom=Side(style='thin', color="94A3B8")
+        )
+        border_grand = Border(
+            left=Side(style='thin', color="94A3B8"),
+            right=Side(style='thin', color="94A3B8"),
+            top=Side(style='medium', color="0F172A"),
+            bottom=Side(style='double', color="0F172A")
+        )
+
+        align_c = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        align_l = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        align_r = Alignment(horizontal="right", vertical="center")
+
+        # 1. Header Information
+        ws.merge_cells("A1:AT1")
+        ws["A1"] = "PEMERINTAH KABUPATEN ASAHAN - BADAN KEUANGAN DAN ASET DAERAH (BKAD)"
+        ws["A1"].font = font_sub
+        ws["A1"].alignment = Alignment(horizontal="center", vertical="center")
+        ws.row_dimensions[1].height = 20
+
+        ws.merge_cells("A2:AT2")
+        ws["A2"] = "LAPORAN REKAPITULASI PENGAWAS PERJALANAN DINAS (SPJ)"
+        ws["A2"].font = font_title
+        ws["A2"].alignment = Alignment(horizontal="center", vertical="center")
+        ws.row_dimensions[2].height = 24
+
+        meta_text = "Periode: "
+        if start_date and end_date:
+            meta_text += f"{start_date.strftime('%d/%m/%Y')} s.d. {end_date.strftime('%d/%m/%Y')}"
+        elif start_date:
+            meta_text += f"Mulai {start_date.strftime('%d/%m/%Y')}"
+        elif end_date:
+            meta_text += f"Sampai {end_date.strftime('%d/%m/%Y')}"
+        else:
+            meta_text += "Semua Tanggal"
+        if nama_pelaksana:
+            meta_text += f" | Pelaksana: {nama_pelaksana}"
+        meta_text += f" | Total: {len(rows)} data | Dicetak: {timezone.now().strftime('%d/%m/%Y %H:%M')} WIB"
+
+        ws.merge_cells("A3:AT3")
+        ws["A3"] = meta_text
+        ws["A3"].font = font_meta
+        ws["A3"].alignment = Alignment(horizontal="center", vertical="center")
+        ws.row_dimensions[3].height = 18
+        ws.row_dimensions[4].height = 8
+
+        # 2. Table Headers (Rows 5, 6, 7)
+        ws.row_dimensions[5].height = 24
+        ws.row_dimensions[6].height = 20
+        ws.row_dimensions[7].height = 26
+
+        # Row 5 (Top Level Categories)
+        ws.merge_cells("A5:A7"); ws["A5"] = "NO"
+        ws.merge_cells("B5:B7"); ws["B5"] = "TAHUN &\nID SPT"
+        ws.merge_cells("C5:C7"); ws["C5"] = "JENIS PERJALANAN"
+        ws.merge_cells("D5:D7"); ws["D5"] = "NAMA PELAKSANA"
+        ws.merge_cells("E5:E7"); ws["E5"] = "JABATAN / GOL / TINGKAT"
+        ws.merge_cells("F5:K6"); ws["F5"] = "SURAT PERINTAH TUGAS"
+        ws.merge_cells("L5:Q6"); ws["L5"] = "SURAT PERJALANAN DINAS"
+        ws.merge_cells("R5:T6"); ws["R5"] = "BIAYA PERJALANAN DINAS"
+        ws.merge_cells("U5:AD5"); ws["U5"] = "PESAWAT"
+        ws.merge_cells("AE5:AM6"); ws["AE5"] = "HOTEL / AKOMODASI"
+        ws.merge_cells("AN5:AS5"); ws["AN5"] = "TAKSI / TRANSPORT LOKAL"
+        ws.merge_cells("AT5:AT7"); ws["AT5"] = "TOTAL"
+
+        # Row 6 (Sub Groups)
+        ws.merge_cells("U6:Y6"); ws["U6"] = "BERANGKAT"
+        ws.merge_cells("Z6:AD6"); ws["Z6"] = "KEMBALI"
+        ws.merge_cells("AN6:AP6"); ws["AN6"] = "BERANGKAT"
+        ws.merge_cells("AQ6:AS6"); ws["AQ6"] = "KEMBALI"
+
+        # Row 7 (Column Names)
+        col_names = [
+            (6, "NO. SPT"), (7, "TANGGAL"), (8, "TEMPAT TUJUAN"), (9, "JUMLAH HARI"), (10, "TGL BERANGKAT"), (11, "TGL KEMBALI"),
+            (12, "NO. SPD"), (13, "TANGGAL"), (14, "TEMPAT TUJUAN"), (15, "JUMLAH HARI"), (16, "TGL BERANGKAT"), (17, "TGL KEMBALI"),
+            (18, "UANG HARIAN"), (19, "RINCIAN HARI"), (20, "REPRESENTATIF"),
+            (21, "MASKAPAI"), (22, "NO. TIKET"), (23, "KODE BOOKING"), (24, "TGL PENERBANGAN"), (25, "HARGA"),
+            (26, "MASKAPAI"), (27, "NO. TIKET"), (28, "KODE BOOKING"), (29, "TGL PENERBANGAN"), (30, "HARGA"),
+            (31, "NAMA & LOKASI HOTEL"), (32, "TIPE KAMAR"), (33, "NOMOR KAMAR"), (34, "TGL CHECKIN"), (35, "TGL CHECKOUT"), (36, "LAMA"), (37, "HARGA / MLM"), (38, "TOTAL HOTEL"), (39, "RINCIAN HARI"),
+            (40, "TUJUAN"), (41, "TGL BERANGKAT"), (42, "BIAYA"),
+            (43, "TUJUAN"), (44, "TGL KEMBALI"), (45, "BIAYA"),
+        ]
+        for col_idx, label in col_names:
+            ws.cell(row=7, column=col_idx, value=label)
+
+        # Style Header Cells
+        for r in range(5, 8):
+            for c in range(1, 47):
+                cell = ws.cell(row=r, column=c)
+                cell.border = border_head
+                if r == 5:
+                    cell.fill = fill_h1
+                    cell.font = font_h1
+                    cell.alignment = align_c
+                elif r == 6:
+                    if c in range(21, 31) or c in range(40, 46):
+                        cell.fill = fill_h2
+                        cell.font = font_h2
+                        cell.alignment = align_c
+                    elif not cell.fill.start_color.rgb:
+                        cell.fill = fill_h1
+                        cell.font = font_h1
+                elif r == 7:
+                    if not cell.fill.start_color.rgb:
+                        cell.fill = fill_h3
+                        cell.font = font_h3
+                        cell.alignment = align_c
+
+        # 3. Data Rows
+        currency_col_indices = {18, 20, 25, 30, 37, 38, 42, 45, 46}
+        center_col_indices = {1, 2, 7, 9, 10, 11, 13, 15, 16, 17, 24, 29, 33, 34, 35, 36, 41, 44}
+
+        start_data_row = 8
         for idx, row in enumerate(rows, start=1):
-            ws.append([
-                self._excel_value(value)
-                for value in self._row_values(idx, row)
-            ])
+            curr_row = start_data_row + idx - 1
+            ws.row_dimensions[curr_row].height = 22
+            row_fill = fill_even if idx % 2 == 0 else fill_odd
+            row_vals = self._row_values(idx, row)
+
+            for col_idx, val in enumerate(row_vals, start=1):
+                cell = ws.cell(row=curr_row, column=col_idx, value=val)
+                cell.fill = row_fill
+                cell.border = border_thin
+                cell.font = Font(name="Arial", size=8.5, color="0F172A")
+
+                if col_idx in currency_col_indices:
+                    cell.alignment = align_r
+                    cell.number_format = '#,##0'
+                elif col_idx in center_col_indices:
+                    cell.alignment = align_c
+                else:
+                    cell.alignment = align_l
+
+        # 4. Grand Total Row
+        total_row_num = start_data_row + len(rows)
+        ws.row_dimensions[total_row_num].height = 24
+        ws.merge_cells(f"A{total_row_num}:AS{total_row_num}")
+        ws[f"A{total_row_num}"] = "GRAND TOTAL BIAYA PERJALANAN DINAS"
+        ws[f"A{total_row_num}"].font = Font(name="Arial", size=9.5, bold=True, color="0F172A")
+        ws[f"A{total_row_num}"].alignment = Alignment(horizontal="right", vertical="center")
+
+        if rows:
+            ws[f"AT{total_row_num}"] = f"=SUM(AT{start_data_row}:AT{total_row_num-1})"
+        else:
+            ws[f"AT{total_row_num}"] = 0
+
+        ws[f"AT{total_row_num}"].font = Font(name="Arial", size=9.5, bold=True, color="1E3A8A")
+        ws[f"AT{total_row_num}"].alignment = align_r
+        ws[f"AT{total_row_num}"].number_format = '#,##0'
+
+        for c in range(1, 47):
+            tot_cell = ws.cell(row=total_row_num, column=c)
+            tot_cell.fill = fill_tot
+            tot_cell.border = border_grand
+
+        # 5. Column Widths
+        fixed_widths = {
+            1: 6,    # NO
+            2: 13,   # TAHUN & ID SPT
+            3: 18,   # JENIS
+            4: 25,   # NAMA
+            5: 28,   # JABATAN / GOL / TINGKAT
+            6: 22,   # NO SPT
+            7: 12,   # TGL SPT
+            8: 20,   # TUJUAN
+            9: 9,    # HARI
+            10: 12,  # TGL BRK
+            11: 12,  # TGL KBL
+            12: 22,  # NO SPD
+            13: 12,  # TGL SPD
+            14: 20,  # TUJUAN
+            15: 9,   # HARI
+            16: 12,  # TGL BRK
+            17: 12,  # TGL KBL
+            18: 15,  # UANG HARIAN
+            19: 20,  # RINCIAN HARIAN
+            20: 15,  # REPRESENTASI
+            21: 16,  # MASKAPAI BRK
+            22: 16,  # TIKET BRK
+            23: 14,  # BOOKING BRK
+            24: 12,  # TGL PENERB BRK
+            25: 14,  # HARGA BRK
+            26: 16,  # MASKAPAI KBL
+            27: 16,  # TIKET KBL
+            28: 14,  # BOOKING KBL
+            29: 12,  # TGL PENERB KBL
+            30: 14,  # HARGA KBL
+            31: 28,  # NAMA & LOKASI HOTEL
+            32: 14,  # TIPE KAMAR
+            33: 12,  # NO KAMAR
+            34: 12,  # CHECKIN
+            35: 12,  # CHECKOUT
+            36: 8,   # LAMA
+            37: 14,  # HARGA/MLM
+            38: 15,  # TOTAL HOTEL
+            39: 20,  # RINCIAN HOTEL
+            40: 18,  # TUJUAN TR BRK
+            41: 12,  # TGL TR BRK
+            42: 14,  # BIAYA TR BRK
+            43: 18,  # TUJUAN TR KBL
+            44: 12,  # TGL TR KBL
+            45: 14,  # BIAYA TR KBL
+            46: 17,  # TOTAL
+        }
+        for col_idx in range(1, 47):
+            col_letter = get_column_letter(col_idx)
+            ws.column_dimensions[col_letter].width = fixed_widths.get(col_idx, 15)
+
         stream = BytesIO()
         wb.save(stream)
         response = HttpResponse(
             stream.getvalue(),
             content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
-        response["Content-Disposition"] = 'attachment; filename="laporan-pengawas.xlsx"'
+        response["Content-Disposition"] = 'attachment; filename="laporan-rekap-spj.xlsx"'
         return response
 
-    def _pdf_response(self, rows):
+    def _pdf_response(self, request, rows, start_date=None, end_date=None, nama_pelaksana=""):
         grand_total = sum((row["total"] for row in rows), Decimal("0"))
-        response = render(self.request, "spj/report_print.html", {
-            "title": "Laporan Pengawas",
+        response = render(request, "spj/report_print.html", {
+            "title": "Laporan Rekapitulasi Pengawas Perjalanan Dinas",
             "rows": rows,
             "grand_total": grand_total,
+            "start_date": start_date,
+            "end_date": end_date,
+            "nama_pelaksana": nama_pelaksana,
             "auto_print": True,
         })
         response["X-Frame-Options"] = "SAMEORIGIN"
         return response
 
-    @staticmethod
-    def _excel_value(value):
-        if hasattr(value, "strftime"):
-            return value
-        if isinstance(value, (int, float, Decimal)) or value is None:
-            return value
-        return str(value)
-
     def get(self, request):
         rows, start_date, end_date, nama_pelaksana = self._build_rows(request)
         export = request.GET.get("export")
         if export == "excel":
-            return self._excel_response(rows)
+            return self._excel_response(rows, start_date, end_date, nama_pelaksana)
         if export == "pdf":
-            return self._pdf_response(rows)
+            return self._pdf_response(request, rows, start_date, end_date, nama_pelaksana)
 
         grand_total = sum((row["total"] for row in rows), Decimal("0"))
         return render(request, self.template_name, {

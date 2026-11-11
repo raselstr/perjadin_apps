@@ -162,7 +162,7 @@ class SptView(BaseMasterDetailCRUDView):
             "jenis_kegiatan",
         ).prefetch_related(
             "pelaksana__nama",
-        ).order_by("-id")
+        ).order_by("-tgl_berangkat", "-id")
 
         queryset = filter_queryset_by_pengguna_or_active_opd(
             queryset,
@@ -282,7 +282,7 @@ class PemberiTugasView(BaseCRUDView):
             "penandatangan__tugas",
             "penandatangan__jenis_jabatan",
             "penandatangan__opd",
-        ).order_by("-tanggal_spt", "-id")
+        ).order_by("-spt__tgl_berangkat", "-id")
 
         queryset = filter_queryset_by_pengguna_or_active_opd(
             queryset,
@@ -402,7 +402,7 @@ class TtdSptSpdView(BaseCRUDView):
             "pemberi_tugas__penandatangan__tugas",
             "pemberi_tugas__penandatangan__jenis_jabatan",
             "pemberi_tugas__penandatangan__opd",
-        ).order_by("-pemberi_tugas__tanggal_spt", "-id")
+        ).order_by("-pemberi_tugas__spt__tgl_berangkat", "-id")
 
         queryset = queryset.filter(pemberi_tugas_id__in=pemberi_tugas_ids)
         return queryset.distinct()
@@ -788,8 +788,9 @@ class TtdSptSpdPdfView(TtdSptSpdViewModalView):
             filename=ttd.hardcopy.name.rsplit("/", 1)[-1],
         )
         response["X-Frame-Options"] = "SAMEORIGIN"
+        response["Accept-Ranges"] = "bytes"
         response["Content-Security-Policy"] = (
-            "default-src 'self'; frame-ancestors 'self'; object-src 'none'"
+            "default-src 'self' data: blob:; frame-ancestors 'self';"
         )
         return response
 

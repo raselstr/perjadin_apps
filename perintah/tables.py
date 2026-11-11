@@ -253,10 +253,12 @@ class TtdSptSpdTable(BaseTable):
                 Upload
             </button>
             {% if record.hardcopy %}
-                <button class="btn btn-sm btn-outline-info"
+                <button class="btn btn-sm btn-outline-info view-pdf-btn"
+                        type="button"
                         hx-get="{% url 'ttd_spt_spd_view_modal' record.id %}"
                         hx-target="#modal-body"
-                        hx-trigger="click">
+                        hx-swap="innerHTML"
+                        title="Lihat Berkas PDF">
                     Lihat
                 </button>
             {% endif %}

@@ -1,112 +1,264 @@
+{% load formatting %}
 <!doctype html>
 <html lang="id">
 <head>
   <meta charset="utf-8">
   <title>{{ title }}</title>
   <style>
-    @page { size: A4 landscape; margin: 8mm; }
-    * { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; font-size: 7px; color: #111827; }
-    h1 { text-align: center; font-size: 13px; margin: 0 0 8px; }
-    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-    th, td { border: 1px solid #111827; padding: 2px; vertical-align: top; word-break: break-word; }
-    th { text-align: center; background: #eef2f7; font-weight: 700; }
+    @page { 
+      size: A4 landscape; 
+      margin: 6mm 4mm; 
+    }
+    * { 
+      box-sizing: border-box; 
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      font-size: 6.8px; 
+      color: #0f172a; 
+      background: #ffffff;
+      margin: 0;
+      padding: 0;
+    }
+    
+    .report-header {
+      text-align: center;
+      margin-bottom: 6px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid #1e3a8a;
+    }
+    .report-header .instansi {
+      font-size: 9px;
+      font-weight: 700;
+      color: #334155;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+    .report-header .opd {
+      font-size: 11px;
+      font-weight: 800;
+      color: #1e3a8a;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin: 1px 0;
+    }
+    .report-header .title {
+      font-size: 12px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 2px 0 3px;
+      letter-spacing: 0.3px;
+    }
+    .report-header .meta {
+      font-size: 7.5px;
+      color: #475569;
+      font-weight: 500;
+    }
+    
+    table { 
+      width: 100%; 
+      border-collapse: collapse; 
+      table-layout: fixed; 
+      page-break-inside: auto;
+    }
+    tr {
+      page-break-inside: avoid;
+      page-break-after: auto;
+    }
+    th, td { 
+      border: 1px solid #cbd5e1; 
+      padding: 2px 2.5px; 
+      vertical-align: middle; 
+      word-break: break-word; 
+      line-height: 1.15;
+    }
+    
+    thead th { 
+      text-align: center; 
+      font-weight: 700; 
+      border-color: #94a3b8;
+    }
+    .th-main {
+      background: #1e3a8a !important;
+      color: #ffffff !important;
+      font-size: 7px;
+      letter-spacing: 0.2px;
+    }
+    .th-sub {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      font-size: 6.8px;
+    }
+    .th-col {
+      background: #f1f5f9 !important;
+      color: #1e293b !important;
+      font-size: 6.5px;
+    }
+    
+    tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+    tbody tr:hover {
+      background-color: #f1f5f9;
+    }
+    
     .text-end { text-align: right; }
     .text-center { text-align: center; }
+    .text-start { text-align: left; }
+    .fw-bold { font-weight: 700; }
+    
+    .spt-tag {
+      font-size: 5.8px;
+      font-weight: 700;
+      color: #1e40af;
+      background: #dbeafe;
+      border: 0.5px solid #bfdbfe;
+      padding: 0.5px 2px;
+      border-radius: 2px;
+      display: inline-block;
+      margin-top: 1px;
+      white-space: nowrap;
+    }
+    
+    tfoot th {
+      background: #e2e8f0 !important;
+      color: #0f172a;
+      font-size: 7.5px;
+      border-top: 2px solid #0f172a;
+      border-bottom: 2px double #0f172a;
+      padding: 3px;
+    }
+    
+    @media print {
+      body { margin: 0; }
+      thead { display: table-header-group; }
+      tfoot { display: table-footer-group; }
+    }
   </style>
 </head>
 <body>
-  <h1>LAPORAN PENGAWAS PERJALANAN DINAS</h1>
+  <div class="report-header">
+    <div class="instansi">Pemerintah Kabupaten Asahan</div>
+    <div class="opd">Badan Keuangan dan Aset Daerah (BKAD)</div>
+    <div class="title">LAPORAN REKAPITULASI PENGAWAS PERJALANAN DINAS (SPJ)</div>
+    <div class="meta">
+      Periode: 
+      {% if start_date and end_date %}
+        {{ start_date|date:"d F Y" }} s.d. {{ end_date|date:"d F Y" }}
+      {% elif start_date %}
+        Mulai {{ start_date|date:"d F Y" }}
+      {% elif end_date %}
+        Sampai dengan {{ end_date|date:"d F Y" }}
+      {% else %}
+        Semua Tanggal
+      {% endif %}
+      {% if nama_pelaksana %} | Pelaksana: <strong>{{ nama_pelaksana }}</strong>{% endif %}
+      | Total Data: <strong>{{ rows|length }}</strong>
+      | Dicetak: {% now "d/m/Y H:i" %} WIB
+    </div>
+  </div>
+
   <table>
     <thead>
       <tr>
-        <th rowspan="3">NO</th>
-        <th rowspan="3">TAHUN</th>
-        <th rowspan="3">JENIS PERJALANAN</th>
-        <th rowspan="3">NAMA</th>
-        <th rowspan="3">JABATAN/GOL/TINGKAT BIAYA</th>
-        <th colspan="6" rowspan="2">SURAT PERINTAH TUGAS</th>
-        <th colspan="6" rowspan="2">SURAT PERJALANAN DINAS</th>
-        <th colspan="3" rowspan="2">BIAYA PERJALANAN DINAS</th>
-        <th colspan="10">PESAWAT</th>
-        <th colspan="9" rowspan="2">HOTEL</th>
-        <th colspan="6">TAKSI/TRANSPORT LOKAL</th>
-        <th rowspan="3">TOTAL</th>
+        <th rowspan="3" class="th-main" style="width: 14px;">NO</th>
+        <th rowspan="3" class="th-main" style="width: 25px;">TAHUN</th>
+        <th rowspan="3" class="th-main" style="width: 38px;">JENIS PERJALANAN</th>
+        <th rowspan="3" class="th-main" style="width: 48px;">NAMA</th>
+        <th rowspan="3" class="th-main" style="width: 52px;">JABATAN / GOL / TINGKAT</th>
+        <th colspan="6" rowspan="2" class="th-main">SURAT PERINTAH TUGAS</th>
+        <th colspan="6" rowspan="2" class="th-main">SURAT PERJALANAN DINAS</th>
+        <th colspan="3" rowspan="2" class="th-main">BIAYA PERJALANAN DINAS</th>
+        <th colspan="10" class="th-main">PESAWAT</th>
+        <th colspan="9" rowspan="2" class="th-main">HOTEL</th>
+        <th colspan="6" class="th-main">TAKSI / TRANSPORT LOKAL</th>
+        <th rowspan="3" class="th-main" style="width: 42px;">TOTAL</th>
       </tr>
       <tr>
-        <th colspan="5">BERANGKAT</th>
-        <th colspan="5">KEMBALI</th>
-        <th colspan="3">BERANGKAT</th>
-        <th colspan="3">KEMBALI</th>
+        <th colspan="5" class="th-sub">BERANGKAT</th>
+        <th colspan="5" class="th-sub">KEMBALI</th>
+        <th colspan="3" class="th-sub">BERANGKAT</th>
+        <th colspan="3" class="th-sub">KEMBALI</th>
       </tr>
       <tr>
-        <th>NO. SPT</th><th>TANGGAL</th><th>TEMPAT TUJUAN</th><th>JUMLAH HARI</th><th>TGL BERANGKAT</th><th>TGL KEMBALI</th>
-        <th>NO. SPD</th><th>TANGGAL</th><th>TEMPAT TUJUAN</th><th>JUMLAH HARI</th><th>TGL BERANGKAT</th><th>TGL KEMBALI</th>
-        <th>UANG HARIAN</th><th>RINCIAN HARI</th><th>REPRESENTATIF</th>
-        <th>MASKAPAI</th><th>NO. TIKET</th><th>KODE BOOKING</th><th>TGL PENERBANGAN</th><th>HARGA</th>
-        <th>MASKAPAI</th><th>NO. TIKET</th><th>KODE BOOKING</th><th>TGL PENERBANGAN</th><th>HARGA</th>
-        <th>NAMA DAN LOKASI HOTEL</th><th>TIPE KAMAR</th><th>NOMOR KAMAR</th><th>TGL CHECKIN</th><th>TGL CHECKOUT</th><th>LAMA</th><th>HARGA/MALAM</th><th>TOTAL</th><th>RINCIAN HARI</th>
-        <th>TUJUAN</th><th>TGL BERANGKAT</th><th>HARGA</th><th>TUJUAN</th><th>TGL BERANGKAT</th><th>HARGA</th>
+        <th class="th-col">NO. SPT</th><th class="th-col">TGL</th><th class="th-col">TUJUAN</th><th class="th-col">HARI</th><th class="th-col">TGL BRK</th><th class="th-col">TGL KBL</th>
+        <th class="th-col">NO. SPD</th><th class="th-col">TGL</th><th class="th-col">TUJUAN</th><th class="th-col">HARI</th><th class="th-col">TGL BRK</th><th class="th-col">TGL KBL</th>
+        <th class="th-col">UANG HARIAN</th><th class="th-col">RINCIAN</th><th class="th-col">REPRESENTATIF</th>
+        <th class="th-col">MASKAPAI</th><th class="th-col">NO. TIKET</th><th class="th-col">BOOKING</th><th class="th-col">TGL PENERB.</th><th class="th-col">HARGA</th>
+        <th class="th-col">MASKAPAI</th><th class="th-col">NO. TIKET</th><th class="th-col">BOOKING</th><th class="th-col">TGL PENERB.</th><th class="th-col">HARGA</th>
+        <th class="th-col">NAMA & ALAMAT HOTEL</th><th class="th-col">TIPE</th><th class="th-col">NO. KMR</th><th class="th-col">CHECKIN</th><th class="th-col">CHECKOUT</th><th class="th-col">LAMA</th><th class="th-col">HARGA/MLM</th><th class="th-col">TOTAL HOTEL</th><th class="th-col">RINCIAN</th>
+        <th class="th-col">TUJUAN</th><th class="th-col">TGL</th><th class="th-col">BIAYA</th><th class="th-col">TUJUAN</th><th class="th-col">TGL</th><th class="th-col">BIAYA</th>
       </tr>
     </thead>
     <tbody>
       {% for row in rows %}
         <tr>
           <td class="text-center">{{ forloop.counter }}</td>
-          <td>{{ row.spt.tgl_berangkat|date:"Y" }}</td>
+          <td class="text-center" style="white-space: nowrap;">
+            <div class="fw-bold">{{ row.spt.tgl_berangkat|date:"Y"|default:"-" }}</div>
+            <span class="spt-tag">SPT #{{ row.spt.id }}</span>
+          </td>
           <td>{{ row.spt.jenis_kegiatan|default:"-" }}</td>
-          <td>{{ row.pelaksana.nama.nama }}</td>
+          <td class="fw-bold">{{ row.pelaksana.nama.nama }}</td>
           <td>{{ row.pelaksana.nama.jabatan|default:"-" }} / {{ row.pelaksana.nama.pangkat|default:"-" }} / {{ row.pelaksana.nama.tingkat|default:"-" }}</td>
           <td>{{ row.pemberi.nomor_spt|default:"-" }}</td>
-          <td>{{ row.pemberi.tanggal_spt|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-center">{{ row.pemberi.tanggal_spt|date:"d/m/Y"|default:"-" }}</td>
           <td>{{ row.spt.tujuan_perjalanan_display|default:"-" }}</td>
-          <td>{{ row.spt.lama_perjalanan }}</td>
-          <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
-          <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
+          <td class="text-center">{{ row.spt.lama_perjalanan }}</td>
+          <td class="text-center">{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
+          <td class="text-center">{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
           <td>{{ row.pemberi.nomor_spd|default:"-" }}</td>
-          <td>{{ row.pemberi.tanggal_spt|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-center">{{ row.pemberi.tanggal_spt|date:"d/m/Y"|default:"-" }}</td>
           <td>{{ row.spt.tujuan_perjalanan_display|default:"-" }}</td>
-          <td>{{ row.spt.lama_perjalanan }}</td>
-          <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
-          <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
-          <td class="text-end">{{ row.uang_harian_total|floatformat:2 }}</td>
+          <td class="text-center">{{ row.spt.lama_perjalanan }}</td>
+          <td class="text-center">{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
+          <td class="text-center">{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
+          <td class="text-end">{{ row.uang_harian_total|format_indonesian_number }}</td>
           <td>{{ row.uang_harian_rincian }}</td>
-          <td class="text-end">{{ row.representasi.total_biaya|default:0|floatformat:2 }}</td>
+          <td class="text-end">{{ row.representasi.total_biaya|default:0|format_indonesian_number }}</td>
           <td>{{ row.pesawat_berangkat.nama_maskapai|default:"-" }}</td>
           <td>{{ row.pesawat_berangkat.nomor_tiket|default:"-" }}</td>
           <td>{{ row.pesawat_berangkat.kode_booking|default:"-" }}</td>
-          <td>{{ row.pesawat_berangkat.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
-          <td class="text-end">{{ row.pesawat_berangkat.harga_tiket|default:0|floatformat:2 }}</td>
+          <td class="text-center">{{ row.pesawat_berangkat.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-end">{{ row.pesawat_berangkat.harga_tiket|default:0|format_indonesian_number }}</td>
           <td>{{ row.pesawat_kembali.nama_maskapai|default:"-" }}</td>
           <td>{{ row.pesawat_kembali.nomor_tiket|default:"-" }}</td>
           <td>{{ row.pesawat_kembali.kode_booking|default:"-" }}</td>
-          <td>{{ row.pesawat_kembali.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
-          <td class="text-end">{{ row.pesawat_kembali.harga_tiket|default:0|floatformat:2 }}</td>
-          <td>{{ row.hotel.nama_hotel|default:"-" }} {{ row.hotel.alamat_hotel|default:"" }}</td>
+          <td class="text-center">{{ row.pesawat_kembali.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-end">{{ row.pesawat_kembali.harga_tiket|default:0|format_indonesian_number }}</td>
+          <td>
+            {{ row.hotel.nama_hotel|default:"-" }}
+            {% if row.hotel.alamat_hotel %}<div style="color: #64748b; font-size: 5.8px;">{{ row.hotel.alamat_hotel }}</div>{% endif %}
+          </td>
           <td>{{ row.hotel.tipe_kamar|default:"-" }}</td>
-          <td>{{ row.hotel.nomor_kamar|default:"-" }}</td>
-          <td>{{ row.hotel.tanggal_checkin|date:"d/m/Y"|default:"-" }}</td>
-          <td>{{ row.hotel.tanggal_checkout|date:"d/m/Y"|default:"-" }}</td>
-          <td>{{ row.hotel.lama_menginap|default:"-" }}</td>
-          <td class="text-end">{{ row.hotel.harga_per_malam|default:0|floatformat:2 }}</td>
-          <td class="text-end">{{ row.hotel_total|floatformat:2 }}</td>
+          <td class="text-center">{{ row.hotel.nomor_kamar|default:"-" }}</td>
+          <td class="text-center">{{ row.hotel.tanggal_checkin|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-center">{{ row.hotel.tanggal_checkout|date:"d/m/Y"|default:"-" }}</td>
+          <td class="text-center">{{ row.hotel.lama_menginap|default:"-" }}</td>
+          <td class="text-end">{{ row.hotel.harga_per_malam|default:0|format_indonesian_number }}</td>
+          <td class="text-end fw-bold">{{ row.hotel_total|format_indonesian_number }}</td>
           <td>{{ row.hotel_rincian }}</td>
           <td>{{ row.transport_berangkat_tujuan|linebreaksbr }}</td>
-          <td>{{ row.transport_berangkat_tanggal|linebreaksbr }}</td>
-          <td class="text-end">{{ row.transport_berangkat_total|default:0|floatformat:2 }}</td>
+          <td class="text-center">{{ row.transport_berangkat_tanggal|linebreaksbr }}</td>
+          <td class="text-end">{{ row.transport_berangkat_total|default:0|format_indonesian_number }}</td>
           <td>{{ row.transport_kembali_tujuan|linebreaksbr }}</td>
-          <td>{{ row.transport_kembali_tanggal|linebreaksbr }}</td>
-          <td class="text-end">{{ row.transport_kembali_total|default:0|floatformat:2 }}</td>
-          <td class="text-end">{{ row.total|floatformat:2 }}</td>
+          <td class="text-center">{{ row.transport_kembali_tanggal|linebreaksbr }}</td>
+          <td class="text-end">{{ row.transport_kembali_total|default:0|format_indonesian_number }}</td>
+          <td class="text-end fw-bold" style="color: #0f172a;">{{ row.total|format_indonesian_number }}</td>
         </tr>
       {% empty %}
-        <tr><td colspan="42" class="text-center">Belum ada data.</td></tr>
+        <tr>
+          <td colspan="46" class="text-center" style="padding: 15px; color: #64748b;">Belum ada data perjalanan dinas pada kriteria pencarian ini.</td>
+        </tr>
       {% endfor %}
     </tbody>
     <tfoot>
       <tr>
-        <th colspan="41" class="text-end">Grand Total</th>
-        <th class="text-end">{{ grand_total|floatformat:2 }}</th>
+        <th colspan="45" class="text-end">GRAND TOTAL BIAYA PERJALANAN DINAS:</th>
+        <th class="text-end">{{ grand_total|format_indonesian_number }}</th>
       </tr>
     </tfoot>
   </table>

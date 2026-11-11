@@ -1,4 +1,5 @@
 {% extends 'layouts/base.html' %}
+{% load formatting %}
 
 {% block title %}{{ title }}{% endblock title %}
 
@@ -84,7 +85,12 @@
               {% for row in rows %}
                 <tr>
                   <td class="text-center">{{ forloop.counter }}</td>
-                  <td>{{ row.spt.tgl_berangkat|date:"Y" }}</td>
+                  <td class="text-center text-nowrap">
+                    <span class="fw-bold text-dark">{{ row.spt.tgl_berangkat|date:"Y"|default:"-" }}</span>
+                    <div class="mt-1">
+                      <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-0" style="font-size: 0.72rem;">SPT #{{ row.spt.id }}</span>
+                    </div>
+                  </td>
                   <td>{{ row.spt.jenis_kegiatan|default:"-" }}</td>
                   <td>{{ row.pelaksana.nama.nama }}</td>
                   <td>{{ row.pelaksana.nama.jabatan|default:"-" }} / {{ row.pelaksana.nama.pangkat|default:"-" }} / {{ row.pelaksana.nama.tingkat|default:"-" }}</td>
@@ -100,19 +106,19 @@
                   <td>{{ row.spt.lama_perjalanan }}</td>
                   <td>{{ row.spt.tgl_berangkat|date:"d/m/Y" }}</td>
                   <td>{{ row.spt.tgl_kembali|date:"d/m/Y" }}</td>
-                  <td class="text-end">{{ row.uang_harian_total|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.uang_harian_total|format_indonesian_number }}</td>
                   <td>{{ row.uang_harian_rincian }}</td>
-                  <td class="text-end">{{ row.representasi.total_biaya|default:0|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.representasi.total_biaya|default:0|format_indonesian_number }}</td>
                   <td>{{ row.pesawat_berangkat.nama_maskapai|default:"-" }}</td>
                   <td>{{ row.pesawat_berangkat.nomor_tiket|default:"-" }}</td>
                   <td>{{ row.pesawat_berangkat.kode_booking|default:"-" }}</td>
                   <td>{{ row.pesawat_berangkat.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
-                  <td class="text-end">{{ row.pesawat_berangkat.harga_tiket|default:0|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.pesawat_berangkat.harga_tiket|default:0|format_indonesian_number }}</td>
                   <td>{{ row.pesawat_kembali.nama_maskapai|default:"-" }}</td>
                   <td>{{ row.pesawat_kembali.nomor_tiket|default:"-" }}</td>
                   <td>{{ row.pesawat_kembali.kode_booking|default:"-" }}</td>
                   <td>{{ row.pesawat_kembali.tanggal_penerbangan|date:"d/m/Y"|default:"-" }}</td>
-                  <td class="text-end">{{ row.pesawat_kembali.harga_tiket|default:0|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.pesawat_kembali.harga_tiket|default:0|format_indonesian_number }}</td>
                   <td>
                     {{ row.hotel.nama_hotel|default:"-" }}
                     {% if row.hotel.alamat_hotel %}<div class="text-muted small">{{ row.hotel.alamat_hotel }}</div>{% endif %}
@@ -122,27 +128,27 @@
                   <td>{{ row.hotel.tanggal_checkin|date:"d/m/Y"|default:"-" }}</td>
                   <td>{{ row.hotel.tanggal_checkout|date:"d/m/Y"|default:"-" }}</td>
                   <td>{{ row.hotel.lama_menginap|default:"-" }}</td>
-                  <td class="text-end">{{ row.hotel.harga_per_malam|default:0|floatformat:2 }}</td>
-                  <td class="text-end">{{ row.hotel_total|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.hotel.harga_per_malam|default:0|format_indonesian_number }}</td>
+                  <td class="text-end">{{ row.hotel_total|format_indonesian_number }}</td>
                   <td>{{ row.hotel_rincian }}</td>
                   <td>{{ row.transport_berangkat_tujuan|linebreaksbr }}</td>
                   <td>{{ row.transport_berangkat_tanggal|linebreaksbr }}</td>
-                  <td class="text-end">{{ row.transport_berangkat_total|default:0|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.transport_berangkat_total|default:0|format_indonesian_number }}</td>
                   <td>{{ row.transport_kembali_tujuan|linebreaksbr }}</td>
                   <td>{{ row.transport_kembali_tanggal|linebreaksbr }}</td>
-                  <td class="text-end">{{ row.transport_kembali_total|default:0|floatformat:2 }}</td>
-                  <td class="text-end fw-semibold">{{ row.total|floatformat:2 }}</td>
+                  <td class="text-end">{{ row.transport_kembali_total|default:0|format_indonesian_number }}</td>
+                  <td class="text-end fw-semibold">{{ row.total|format_indonesian_number }}</td>
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="42" class="text-center text-muted py-4">Belum ada data pada rentang tanggal ini.</td>
+                  <td colspan="46" class="text-center text-muted py-4">Belum ada data pada rentang tanggal ini.</td>
                 </tr>
               {% endfor %}
             </tbody>
             <tfoot>
               <tr>
-                <th colspan="41" class="text-end">Grand Total</th>
-                <th class="text-end">{{ grand_total|floatformat:2 }}</th>
+                <th colspan="45" class="text-end">Grand Total</th>
+                <th class="text-end">{{ grand_total|format_indonesian_number }}</th>
               </tr>
             </tfoot>
           </table>

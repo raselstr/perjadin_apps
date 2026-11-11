@@ -18,6 +18,61 @@
 <script src="{% static 'assets/js/config.js' %}"></script>
 <script src="{% static 'assets/js/pcoded.js' %}"></script>
 <script src="{% static 'assets/js/layoutTheme.js' %}"></script>
+<script src="{% static 'assets/js/pdf.min.js' %}"></script>
+<script>
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "{% static 'assets/js/pdf.worker.min.js' %}";
+  }
+
+  // Reliable Sidebar Submenu Toggle Handler
+  // Overrides fragile tagName === 'SPAN' check in pcoded.js by handling clicks on any child (<i>, <span>, <a>)
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest('.pc-sidebar .pc-navbar .pc-hasmenu > .pc-link');
+    if (!link) return;
+
+    var parentLi = link.closest('.pc-hasmenu');
+    if (!parentLi) return;
+
+    var submenu = parentLi.querySelector(':scope > .pc-submenu');
+    if (!submenu) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    var isOpen = parentLi.classList.contains('pc-trigger');
+
+    if (isOpen) {
+      parentLi.classList.remove('pc-trigger');
+      if (typeof slideUp === 'function') {
+        slideUp(submenu, 200);
+      } else {
+        submenu.style.display = 'none';
+      }
+    } else {
+      var siblings = parentLi.parentElement.querySelectorAll(':scope > .pc-hasmenu.pc-trigger');
+      siblings.forEach(function (sib) {
+        if (sib !== parentLi) {
+          sib.classList.remove('pc-trigger');
+          var sibSub = sib.querySelector(':scope > .pc-submenu');
+          if (sibSub) {
+            if (typeof slideUp === 'function') {
+              slideUp(sibSub, 200);
+            } else {
+              sibSub.style.display = 'none';
+            }
+          }
+        }
+      });
+
+      parentLi.classList.add('pc-trigger');
+      if (typeof slideDown === 'function') {
+        slideDown(submenu, 200);
+      } else {
+        submenu.style.display = 'block';
+      }
+    }
+  }, true);
+</script>
 
 <script>
 (function () {

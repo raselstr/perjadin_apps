@@ -1,22 +1,249 @@
-<div class="modal-header">
-    <h5 class="modal-title">Lihat PDF Hardcopy - {{ pemberi_tugas_name }}</h5>
-    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+{% load static %}
+<div class="modal-header bg-light py-2 px-3 border-bottom d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center text-truncate pe-2">
+        <i class="ti ti-file-text fs-4 text-primary me-2 flex-shrink-0"></i>
+        <div class="text-truncate">
+            <h6 class="modal-title mb-0 fw-bold text-dark text-truncate" title="{{ pemberi_tugas_name }}">
+                Berkas Hardcopy: {{ pemberi_tugas_name }}
+            </h6>
+            <small class="text-muted" style="font-size: 11px;">Pratinjau Dokumen PDF</small>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-1 flex-shrink-0">
+        <a href="{{ download_url|default:pdf_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Buka Tab Baru">
+            <i class="ti ti-external-link"></i> <span class="d-none d-sm-inline ms-1">Tab Baru</span>
+        </a>
+        <a href="{{ download_url|default:pdf_url }}" download class="btn btn-sm btn-outline-primary py-1 px-2" title="Unduh File">
+            <i class="ti ti-download"></i> <span class="d-none d-sm-inline ms-1">Unduh</span>
+        </a>
+        <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
+    </div>
 </div>
-<div class="modal-body p-0" style="height: 600px; overflow: hidden;">
-    <iframe 
-        src="{{ pdf_url }}" 
-        style="width: 100%; height: 100%; border: none;"
-        title="PDF Viewer">
-    </iframe>
+
+<!-- Toolbar Navigasi & Zoom (Khusus PDF.js Canvas) -->
+<div id="pdfjs-toolbar" class="bg-white border-bottom px-3 py-1 d-flex flex-wrap align-items-center justify-content-between gap-2" style="font-size: 13px;">
+    <div class="d-flex align-items-center gap-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="pdf-prev-page" title="Halaman Sebelumnya">
+            <i class="ti ti-chevron-left"></i>
+        </button>
+        <span class="px-2 text-muted">
+            Hal <strong id="pdf-page-num" class="text-dark">1</strong> dari <strong id="pdf-page-count" class="text-dark">-</strong>
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="pdf-next-page" title="Halaman Berikutnya">
+            <i class="ti ti-chevron-right"></i>
+        </button>
+    </div>
+    <div class="d-flex align-items-center gap-1">
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="pdf-zoom-out" title="Perkecil">
+            <i class="ti ti-zoom-out"></i>
+        </button>
+        <span id="pdf-zoom-level" class="small text-muted px-1" style="min-width: 45px; text-align: center;">100%</span>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="pdf-zoom-in" title="Perbesar">
+            <i class="ti ti-zoom-in"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 ms-1" id="pdf-fit-width" title="Sesuaikan Lebar">
+            <i class="ti ti-arrows-horizontal"></i> Pas Lebar
+        </button>
+    </div>
 </div>
-<div class="modal-footer">
-    <a href="{{ download_url|default:pdf_url }}" target="_blank" class="btn btn-sm btn-outline-secondary">
-        Buka Tab Baru
-    </a>
-    <a href="{{ download_url|default:pdf_url }}" download class="btn btn-sm btn-primary">
-        <i class="fas fa-download"></i> Download
-    </a>
-    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
-        Tutup
-    </button>
+
+<div class="modal-body p-0 position-relative" style="min-height: 480px; max-height: calc(85vh - 130px); overflow: auto; background: #525659;" id="pdf-scroll-container">
+    <!-- Loading spinner -->
+    <div id="pdf-loading-spinner" class="d-flex flex-column align-items-center justify-content-center py-5 text-white" style="min-height: 380px;">
+        <div class="spinner-border text-light mb-3" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
+        <div class="fw-semibold">Memuat Berkas PDF...</div>
+        <div class="text-white-50 small mt-1">Menyiapkan pratinjau halaman</div>
+    </div>
+
+    <!-- Error / Fallback Container -->
+    <div id="pdf-error-container" class="d-none text-center p-4 m-3 bg-white rounded shadow-sm">
+        <i class="ti ti-alert-triangle fs-1 text-warning mb-2"></i>
+        <h6 class="fw-bold text-dark mb-1">Pratinjau PDF Tidak Dapat Ditampilkan Langsung</h6>
+        <p class="text-muted small mb-3">
+            Browser pada perangkat ini tidak mendukung rendering langsung atau berkas PDF memiliki format khusus.
+            Silakan buka atau unduh berkas melalui tombol di bawah:
+        </p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+            <a href="{{ download_url|default:pdf_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm">
+                <i class="ti ti-external-link me-1"></i> Buka File PDF di Tab Baru
+            </a>
+            <a href="{{ download_url|default:pdf_url }}" download class="btn btn-outline-secondary btn-sm">
+                <i class="ti ti-download me-1"></i> Unduh File PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Canvas Container -->
+    <div id="pdf-canvas-wrapper" class="d-flex justify-content-center p-2 p-md-3" style="min-height: 100%;">
+        <canvas id="pdf-render-canvas" class="shadow-sm border rounded bg-white" style="max-width: 100%; height: auto; display: none;"></canvas>
+    </div>
 </div>
+
+<div class="modal-footer py-2 px-3 bg-light border-top d-flex justify-content-between align-items-center">
+    <div class="text-muted small d-none d-sm-block">
+        <i class="ti ti-info-circle me-1"></i> Gunakan tombol navigasi di atas untuk berpindah halaman atau zoom.
+    </div>
+    <div class="d-flex gap-2 ms-auto">
+        <a href="{{ download_url|default:pdf_url }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-secondary">
+            <i class="ti ti-external-link me-1"></i> Buka Tab Baru
+        </a>
+        <a href="{{ download_url|default:pdf_url }}" download class="btn btn-sm btn-primary">
+            <i class="ti ti-download me-1"></i> Unduh PDF
+        </a>
+        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">
+            Tutup
+        </button>
+    </div>
+</div>
+
+<script>
+(function() {
+    var pdfUrl = "{{ pdf_url }}";
+    var pdfDoc = null;
+    var pageNum = 1;
+    var pageRendering = false;
+    var pageNumPending = null;
+    var scale = 1.25;
+    var canvas = document.getElementById('pdf-render-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var container = document.getElementById('pdf-scroll-container');
+    var loadingSpinner = document.getElementById('pdf-loading-spinner');
+    var errorContainer = document.getElementById('pdf-error-container');
+    var pageNumSpan = document.getElementById('pdf-page-num');
+    var pageCountSpan = document.getElementById('pdf-page-count');
+    var zoomLevelSpan = document.getElementById('pdf-zoom-level');
+
+    function renderPage(num) {
+        if (!pdfDoc) return;
+        pageRendering = true;
+        
+        pdfDoc.getPage(num).then(function(page) {
+            var containerWidth = (container ? container.clientWidth : window.innerWidth) - 32;
+            if (containerWidth < 300) containerWidth = 300;
+            
+            var unscaledViewport = page.getViewport({ scale: 1.0 });
+            var fitScale = containerWidth / unscaledViewport.width;
+            
+            var effectiveScale = scale;
+            if (window.innerWidth <= 768 && scale === 1.25) {
+                effectiveScale = Math.min(1.5, Math.max(0.8, fitScale));
+                scale = effectiveScale;
+            }
+
+            var viewport = page.getViewport({ scale: effectiveScale });
+            var outputScale = window.devicePixelRatio || 1;
+
+            canvas.width = Math.floor(viewport.width * outputScale);
+            canvas.height = Math.floor(viewport.height * outputScale);
+            canvas.style.width = Math.floor(viewport.width) + 'px';
+            canvas.style.height = Math.floor(viewport.height) + 'px';
+
+            var transform = outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null;
+
+            var renderContext = {
+                canvasContext: ctx,
+                transform: transform,
+                viewport: viewport
+            };
+
+            var renderTask = page.render(renderContext);
+            renderTask.promise.then(function() {
+                pageRendering = false;
+                if (loadingSpinner) loadingSpinner.classList.add('d-none');
+                canvas.style.display = 'block';
+                if (zoomLevelSpan) zoomLevelSpan.textContent = Math.round(scale * 100) + '%';
+                
+                if (pageNumPending !== null) {
+                    renderPage(pageNumPending);
+                    pageNumPending = null;
+                }
+            }).catch(function(err) {
+                console.error("Error rendering PDF page:", err);
+                pageRendering = false;
+            });
+        }).catch(function(err) {
+            console.error("Error getting PDF page:", err);
+            pageRendering = false;
+        });
+
+        if (pageNumSpan) pageNumSpan.textContent = num;
+    }
+
+    function queueRenderPage(num) {
+        if (pageRendering) {
+            pageNumPending = num;
+        } else {
+            renderPage(num);
+        }
+    }
+
+    function onPrevPage() {
+        if (pageNum <= 1) return;
+        pageNum--;
+        queueRenderPage(pageNum);
+    }
+
+    function onNextPage() {
+        if (!pdfDoc || pageNum >= pdfDoc.numPages) return;
+        pageNum++;
+        queueRenderPage(pageNum);
+    }
+
+    function onZoomIn() {
+        if (scale >= 3.0) return;
+        scale = Math.round((scale + 0.25) * 100) / 100;
+        queueRenderPage(pageNum);
+    }
+
+    function onZoomOut() {
+        if (scale <= 0.5) return;
+        scale = Math.round((scale - 0.25) * 100) / 100;
+        queueRenderPage(pageNum);
+    }
+
+    function onFitWidth() {
+        if (!pdfDoc) return;
+        pdfDoc.getPage(pageNum).then(function(page) {
+            var containerWidth = (container ? container.clientWidth : window.innerWidth) - 40;
+            var unscaledViewport = page.getViewport({ scale: 1.0 });
+            scale = Math.round((containerWidth / unscaledViewport.width) * 100) / 100;
+            if (scale < 0.4) scale = 0.4;
+            if (scale > 3.0) scale = 3.0;
+            queueRenderPage(pageNum);
+        });
+    }
+
+    document.getElementById('pdf-prev-page')?.addEventListener('click', onPrevPage);
+    document.getElementById('pdf-next-page')?.addEventListener('click', onNextPage);
+    document.getElementById('pdf-zoom-in')?.addEventListener('click', onZoomIn);
+    document.getElementById('pdf-zoom-out')?.addEventListener('click', onZoomOut);
+    document.getElementById('pdf-fit-width')?.addEventListener('click', onFitWidth);
+
+    function initPdf() {
+        if (!window.pdfjsLib) {
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
+            if (errorContainer) errorContainer.classList.remove('d-none');
+            return;
+        }
+
+        var loadingTask = pdfjsLib.getDocument({
+            url: pdfUrl,
+            withCredentials: true
+        });
+
+        loadingTask.promise.then(function(doc) {
+            pdfDoc = doc;
+            if (pageCountSpan) pageCountSpan.textContent = doc.numPages;
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
+            renderPage(pageNum);
+        }).catch(function(reason) {
+            console.error("PDF.js loading error: ", reason);
+            if (loadingSpinner) loadingSpinner.classList.add('d-none');
+            if (errorContainer) errorContainer.classList.remove('d-none');
+        });
+    }
+
+    setTimeout(initPdf, 50);
+})();
+</script>

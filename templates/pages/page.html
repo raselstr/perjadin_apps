@@ -155,10 +155,14 @@
       return;
     }
 
-    const modalInstance = bootstrap.Modal.getOrCreateInstance(modalEl);
-    if (!modalEl.classList.contains('show')) {
-      modalInstance.show();
+    let modalInstance = bootstrap.Modal.getInstance(modalEl);
+    if (!modalInstance) {
+      modalInstance = new bootstrap.Modal(modalEl);
+    } else {
+      modalInstance._isTransitioning = false;
+      modalInstance._isShown = false;
     }
+    modalInstance.show();
   }
 
   function clearModalContentById(contentId) {
@@ -915,6 +919,11 @@ document.body.addEventListener('htmx:afterSwap', function (evt) {
 
     if (evt.target.id === 'modal') {
       clearModalContentById('modal-body');
+      const inst = bootstrap.Modal.getInstance(evt.target);
+      if (inst) {
+        inst._isTransitioning = false;
+        inst._isShown = false;
+      }
       document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
       document.body.classList.remove('modal-open');
       document.body.style.removeProperty('padding-right');

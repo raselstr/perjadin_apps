@@ -79,7 +79,7 @@
         <!-- 🔥 parent aktif jika salah satu submenu aktif -->
         <li class="pc-item pc-hasmenu 
           {% for sub in item.submenus %}
-            {% if active_submenu == sub.url %}active{% endif %}
+            {% if active_submenu == sub.url %}active pc-trigger{% endif %}
           {% endfor %}">
 
           <a href="#!" class="pc-link">
@@ -93,7 +93,7 @@
           </a>
 
           {% if item.submenus %}
-          <ul class="pc-submenu">
+          <ul class="pc-submenu" style="{% for sub in item.submenus %}{% if active_submenu == sub.url %}display: block;{% endif %}{% endfor %}">
             {% for sub in item.submenus %}
               {% safe_url sub.url as url %}
               <li class="pc-item">
