@@ -143,11 +143,6 @@
 
   window.AppLoader = AppLoader;
 
-  // Reset spinner saat halaman selesai dimuat (setelah navigasi penuh)
-  window.addEventListener('pageshow', function () {
-    AppLoader.forceReset();
-  });
-
   // 4. Deteksi Konteks & Pesan Animasi Otomatis
   function detectActionContext(elt) {
     if (!elt) {
@@ -276,46 +271,89 @@
     });
   });
 
-  // 8. Spinner saat navigasi ke halaman laporan / berat via link <a>
-  //    (non-HTMX full-page navigation)
-  var REPORT_URL_PATTERNS = [
-    '/laporan-perjalanan/',
-    '/laporan/',
-    '/data-perjalanan-per-orang/',
-    '/kwitansi/',
-    '/laporan-perjalanan/cetak/',
-    '/laporan-perjalanan/preview/',
-  ];
+  // 8. Spinner cerdas untuk SEMUA navigasi link <a> (non-HTMX full-page navigation)
+  //    - Spinner hanya muncul jika koneksi/server membutuhkan waktu (delay 300ms)
+  //    - Dibatalkan otomatis jika halaman dimuat cepat (di bawah 300ms)
 
+  var navSpinnerTimer = null;
+  var navSpinnerAnchor = null;
+
+  // Pesan spinner berdasarkan URL — fallback ke pesan generik
   function getNavLoaderOptions(href) {
     if (!href || href.startsWith('#') || href.startsWith('javascript')) return null;
+
+    // Khusus laporan & dokumen berat
     if (href.includes('/laporan-perjalanan/cetak/') || href.includes('/laporan-perjalanan/preview/')) {
       return { overlay: true, title: 'Memuat Dokumen Laporan', desc: 'Menyiapkan dokumen perjalanan dinas' };
     }
     if (href.includes('/laporan-perjalanan/')) {
       return { overlay: true, title: 'Memuat Laporan Perjalanan', desc: 'Mengambil data laporan dari server' };
     }
-    if (href.includes('/laporan/') && href.includes('/data-perjalanan-per-orang/')) {
+    if (href.includes('/data-perjalanan-per-orang/')) {
       return { overlay: true, title: 'Memuat Data Perjalanan', desc: 'Mengambil data perjalanan per pegawai' };
     }
     if (href.includes('/laporan/') || href.endsWith('/laporan')) {
       return { overlay: true, title: 'Memuat Rekap SPJ', desc: 'Mengambil data rekap seluruh SPJ dari server' };
     }
-    return null;
+    if (href.includes('/kwitansi/')) {
+      return { overlay: true, title: 'Memuat Kwitansi', desc: 'Menyiapkan data kwitansi' };
+    }
+
+    // Halaman umum — pesan generik, cukup progress bar + overlay ringan
+    return { overlay: true, title: 'Memuat Halaman', desc: 'Mengambil data dari server' };
+  }
+
+  // Batalkan spinner nav yang belum sempat muncul (navigasi cepat / bfcache)
+  function cancelNavSpinner() {
+    if (navSpinnerTimer) {
+      window.clearTimeout(navSpinnerTimer);
+      navSpinnerTimer = null;
+    }
+    if (navSpinnerAnchor) {
+      navSpinnerAnchor.classList.remove('is-btn-loading');
+      navSpinnerAnchor = null;
+    }
   }
 
   document.addEventListener('click', function (evt) {
     var anchor = evt.target.closest('a[href]');
     if (!anchor) return;
+
+    // Skip HTMX-handled links, javascript:, # links, download links, external links, disabled links
     if (anchor.hasAttribute('hx-get') || anchor.hasAttribute('hx-post')) return;
+    if (anchor.classList.contains('disabled') || anchor.getAttribute('aria-disabled') === 'true') return;
     var href = anchor.getAttribute('href') || '';
-    // Skip external, hash, download links
-    if (href.startsWith('http') || href.startsWith('#') || anchor.hasAttribute('download')) return;
+    if (!href || href === '#' || href.startsWith('#') || href.startsWith('javascript')) return;
+    if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) return;
+    if (anchor.hasAttribute('download') || anchor.getAttribute('target') === '_blank') return;
+
     var opts = getNavLoaderOptions(href);
-    if (opts) {
-      AppLoader.start(opts);
-      anchor.classList.add('is-btn-loading');
-    }
+    if (!opts) return;
+
+    // Selalu mulai progress bar segera (ringan, tidak mengganggu)
+    AppLoader.startProgress();
+
+    // Overlay spinner hanya muncul setelah 300ms (jika server lambat)
+    cancelNavSpinner();
+    navSpinnerAnchor = anchor;
+    anchor.classList.add('is-btn-loading');
+
+    navSpinnerTimer = window.setTimeout(function () {
+      navSpinnerTimer = null;
+      AppLoader.showActionOverlay(opts.title, opts.desc);
+    }, 300);
+  });
+
+  // Bersihkan spinner ketika halaman sudah selesai dimuat
+  window.addEventListener('pageshow', function (evt) {
+    cancelNavSpinner();
+    AppLoader.forceReset();
+  });
+
+  // Bersihkan spinner saat user menekan tombol Back/Forward browser
+  window.addEventListener('popstate', function () {
+    cancelNavSpinner();
+    AppLoader.forceReset();
   });
 })();
 </script>

@@ -163,6 +163,107 @@
                 inset 0 2px 4px rgba(0, 0, 0, 0.18);
         }
 
+        /* ======= Login Spinner Overlay ======= */
+        #login-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: rgba(2, 44, 34, 0.55);
+            backdrop-filter: blur(8px) saturate(160%);
+            -webkit-backdrop-filter: blur(8px) saturate(160%);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #login-overlay.show {
+            display: flex;
+        }
+        .login-spinner-card {
+            background: rgba(255, 255, 255, 0.98);
+            border: 1.5px solid rgba(5, 150, 105, 0.4);
+            border-radius: 24px;
+            box-shadow:
+                0 32px 64px -12px rgba(6, 78, 59, 0.45),
+                0 0 0 1.5px rgba(245, 158, 11, 0.3),
+                0 0 40px rgba(16, 185, 129, 0.15);
+            padding: 36px 48px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 300px;
+            animation: loginCardIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+        @keyframes loginCardIn {
+            from { transform: scale(0.88) translateY(16px); opacity: 0; }
+            to   { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        /* Orbit Spinner */
+        .l-orbit { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
+        .l-outer {
+            position: absolute; inset: 0; border-radius: 50%;
+            border: 5px solid transparent;
+            border-top-color: #059669; border-right-color: #10B981;
+            animation: lSpinCW 1.1s cubic-bezier(0.5,0.1,0.5,0.9) infinite;
+            filter: drop-shadow(0 0 10px rgba(16,185,129,0.75));
+        }
+        .l-inner {
+            position: absolute; top: 12px; left: 12px; width: 56px; height: 56px; border-radius: 50%;
+            border: 4px solid transparent;
+            border-bottom-color: #F59E0B; border-left-color: #D97706;
+            animation: lSpinCCW 0.85s cubic-bezier(0.5,0.1,0.5,0.9) infinite;
+            filter: drop-shadow(0 0 8px rgba(245,158,11,0.7));
+        }
+        .l-core {
+            width: 20px; height: 20px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #6EE7B7 0%, #059669 65%, #064E3B 100%);
+            box-shadow: 0 0 18px rgba(52,211,153,0.9), inset 0 1px 2px rgba(255,255,255,0.9);
+            animation: lPulse 1.6s ease-in-out infinite;
+        }
+        @keyframes lSpinCW  { to { transform: rotate(360deg); } }
+        @keyframes lSpinCCW { to { transform: rotate(-360deg); } }
+        @keyframes lPulse {
+            0%,100% { transform: scale(0.88); opacity: 0.85; }
+            50%      { transform: scale(1.15); opacity: 1; }
+        }
+        .l-title {
+            font-size: 15px; font-weight: 700; color: #064E3B;
+            margin-top: 18px; margin-bottom: 4px; text-align: center;
+        }
+        .l-desc {
+            font-size: 12.5px; font-weight: 500; color: #64748B;
+            display: flex; align-items: center; gap: 3px;
+        }
+        .l-dot {
+            display: inline-block; width: 4px; height: 4px; border-radius: 50%;
+            background: #059669; animation: lDot 1.4s infinite ease-in-out both;
+        }
+        .l-dot:nth-child(1) { animation-delay: -0.32s; }
+        .l-dot:nth-child(2) { animation-delay: -0.16s; }
+        .l-dot:nth-child(3) { animation-delay: 0s; }
+        @keyframes lDot {
+            0%,80%,100% { transform: scale(0.5); opacity: 0.3; }
+            40%          { transform: scale(1.3); opacity: 1; background: #F59E0B; }
+        }
+        /* Loading state tombol */
+        .btn-primary.is-loading {
+            pointer-events: none;
+            color: transparent !important;
+            position: relative;
+        }
+        .btn-primary.is-loading::after {
+            content: "";
+            position: absolute;
+            width: 20px; height: 20px;
+            top: 50%; left: 50%;
+            margin: -10px 0 0 -10px;
+            border-radius: 50%;
+            border: 3px solid rgba(2, 44, 34, 0.25);
+            border-top-color: #022C22;
+            animation: lSpinCW 0.65s linear infinite;
+            box-sizing: border-box;
+        }
+
         .copyright {
             text-align: center;
             margin-top: 2rem;
@@ -212,6 +313,24 @@
     </style>
 </head>
 <body>
+
+<!-- [ Login Spinner Overlay ] -->
+<div id="login-overlay" role="status" aria-live="polite" aria-label="Memproses login">
+  <div class="login-spinner-card">
+    <div class="l-orbit">
+      <div class="l-outer"></div>
+      <div class="l-inner"></div>
+      <div class="l-core"></div>
+    </div>
+    <div class="l-title">Memverifikasi Akun</div>
+    <p class="l-desc">
+      <span>Mohon tunggu sebentar</span>
+      <span class="l-dot"></span>
+      <span class="l-dot"></span>
+      <span class="l-dot"></span>
+    </p>
+  </div>
+</div>
 
 <div class="container d-flex flex-column align-items-center">
 
@@ -284,13 +403,41 @@
 </div>
 
 <script>
+    // ===== Login Spinner =====
+    (function () {
+        var overlay = document.getElementById('login-overlay');
+        var form    = document.querySelector('form');
+        var btn     = form ? form.querySelector('button[type="submit"]') : null;
+        var spinnerTimer = null;
+
+        function showOverlay() {
+            if (overlay) overlay.classList.add('show');
+            if (btn)     btn.classList.add('is-loading');
+        }
+
+        if (form) {
+            form.addEventListener('submit', function () {
+                // Delay 300ms — jika login cepat, spinner tidak sempat muncul
+                spinnerTimer = setTimeout(showOverlay, 300);
+            });
+        }
+
+        // Jika halaman dimuat dari bfcache (Back button), sembunyikan spinner
+        window.addEventListener('pageshow', function (evt) {
+            if (evt.persisted) {
+                // bfcache → reload untuk CSRF segar
+                window.location.reload();
+            } else {
+                clearTimeout(spinnerTimer);
+                if (overlay) overlay.classList.remove('show');
+                if (btn)     btn.classList.remove('is-loading');
+            }
+        });
+    })();
+
     // Jika halaman dibuka kembali dari Back-Forward cache (bfcache),
     // reload otomatis agar mendapatkan token CSRF segar dan tidak bentrok dengan cookie baru.
-    window.addEventListener('pageshow', function (event) {
-        if (event.persisted) {
-            window.location.reload();
-        }
-    });
+    // (sudah ditangani di pageshow di atas — handler lama dipertahankan sebagai fallback)
 
     try {
         localStorage.clear();
