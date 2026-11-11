@@ -332,13 +332,20 @@
     }
     if (navSpinnerAnchor) {
       navSpinnerAnchor.classList.remove('is-btn-loading');
+      navSpinnerAnchor.classList.remove('is-sidebar-loading');
       navSpinnerAnchor = null;
     }
+    document.querySelectorAll('.is-sidebar-loading').forEach(function (el) {
+      el.classList.remove('is-sidebar-loading');
+    });
   }
 
   document.addEventListener('click', function (evt) {
     var anchor = evt.target.closest('a[href]');
     if (!anchor) return;
+
+    // Abaikan jika modifier keys ditekan (Ctrl/Cmd/Shift/Alt click untuk buka di tab baru)
+    if (evt.ctrlKey || evt.metaKey || evt.shiftKey || evt.altKey || evt.button !== 0) return;
 
     // Skip HTMX-handled links, javascript:, # links, download links, external links, disabled links
     if (anchor.hasAttribute('hx-get') || anchor.hasAttribute('hx-post')) return;
@@ -348,17 +355,52 @@
     if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) return;
     if (anchor.hasAttribute('download') || anchor.getAttribute('target') === '_blank') return;
 
+    var isSidebarLink = !!anchor.closest('.pc-sidebar');
+    var isSubmenuLink = !!anchor.closest('.pc-sidebar .pc-submenu');
+
     var opts = getNavLoaderOptions(href);
-    if (!opts) return;
+    if (!opts && !isSidebarLink) return;
 
-    // Selalu mulai progress bar segera (ringan, tidak mengganggu)
-    AppLoader.startProgress();
-
-    // Overlay spinner hanya muncul setelah 300ms (jika server lambat)
+    // Bersihkan spinner aktif sebelumnya jika ada
     cancelNavSpinner();
     navSpinnerAnchor = anchor;
-    anchor.classList.add('is-btn-loading');
 
+    // Selalu mulai top progress bar segera
+    AppLoader.startProgress();
+
+    // JIKA DIKLIK DARI SUBMENU SIDEBAR (atau link navigasi sidebar):
+    if (isSubmenuLink || isSidebarLink) {
+      anchor.classList.add('is-sidebar-loading');
+
+      // Ambil nama submenu untuk ditampilkan pada judul loader
+      var label = (anchor.querySelector('.pc-mtext')?.textContent || anchor.textContent || '').trim();
+      label = label.replace(/\s+/g, ' ');
+
+      var title = label ? ('Memuat ' + label) : (opts ? opts.title : 'Memuat Halaman');
+      var desc = 'Mengambil data dari server, mohon tunggu sebentar...';
+
+      // Efek visual redup pada container konten utama agar jelas sedang proses muat
+      var mainContainer = document.querySelector('.pc-container') || document.getElementById('main-content');
+      if (mainContainer) {
+        mainContainer.style.transition = 'opacity 0.25s ease';
+        mainContainer.style.opacity = '0.45';
+        mainContainer.style.pointerEvents = 'none';
+      }
+
+      // Tutup menu drawer mobile di HP jika sedang terbuka
+      if (typeof remove_menu === 'function' && document.querySelector('.pc-sidebar.mob-sidebar-active')) {
+        setTimeout(function () {
+          remove_menu();
+        }, 120);
+      }
+
+      // TAMPILKAN SPINNER OVERLAY LANGSUNG (0ms delay)
+      AppLoader.showActionOverlay(title, desc);
+      return;
+    }
+
+    // Untuk link navigasi umum lainnya di luar sidebar (delay 300ms)
+    anchor.classList.add('is-btn-loading');
     navSpinnerTimer = window.setTimeout(function () {
       navSpinnerTimer = null;
       AppLoader.showActionOverlay(opts.title, opts.desc);
@@ -369,12 +411,22 @@
   window.addEventListener('pageshow', function (evt) {
     cancelNavSpinner();
     AppLoader.forceReset();
+    var mainContainer = document.querySelector('.pc-container') || document.getElementById('main-content');
+    if (mainContainer) {
+      mainContainer.style.opacity = '';
+      mainContainer.style.pointerEvents = '';
+    }
   });
 
   // Bersihkan spinner saat user menekan tombol Back/Forward browser
   window.addEventListener('popstate', function () {
     cancelNavSpinner();
     AppLoader.forceReset();
+    var mainContainer = document.querySelector('.pc-container') || document.getElementById('main-content');
+    if (mainContainer) {
+      mainContainer.style.opacity = '';
+      mainContainer.style.pointerEvents = '';
+    }
   });
 })();
 </script>

@@ -2135,6 +2135,38 @@ h6:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *) {
   pointer-events: none;
 }
 
+/* 8. Sidebar Nav & Submenu Loading State */
+.pc-sidebar .pc-link.is-sidebar-loading {
+  position: relative !important;
+  color: var(--emerald-950, #022C22) !important;
+  background: var(--emerald-100, #D1FAE5) !important;
+  font-weight: 700 !important;
+}
+
+.pc-sidebar .pc-submenu .pc-link.is-sidebar-loading {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: relative !important;
+  color: var(--emerald-950, #022C22) !important;
+  background: var(--emerald-100, #D1FAE5) !important;
+  font-weight: 700 !important;
+}
+
+.pc-sidebar .pc-submenu .pc-link.is-sidebar-loading::after {
+  content: "";
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(5, 150, 105, 0.25);
+  border-top-color: var(--emerald-600, #059669);
+  animation: appSpinClockwise 0.65s linear infinite;
+  box-sizing: border-box;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
 /* ============================================================================
    15. PRINT PREVIEW MODAL STYLING (SPT, SPD, KWITANSI, LAPORAN)
    ============================================================================ */
