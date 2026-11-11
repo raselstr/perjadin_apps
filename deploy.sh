@@ -83,8 +83,8 @@ echo "✔ Container 'perjadin_apps' telah berjalan."
 sleep 2
 
 # 7. Penanganan Static Files untuk Production
-echo "📦 Menangani static files (collectstatic --clear)..."
-$DOCKER_CMD compose exec -T web python manage.py collectstatic --noinput --clear
+echo "📦 Menangani static files (collectstatic)..."
+$DOCKER_CMD compose exec -T web python manage.py collectstatic --noinput
 echo "✔ Static files berhasil dikumpulkan ke volume perjadin_static."
 
 # Opsional: Salin staticfiles dari container ke host jika direktori host dapat ditulisi
