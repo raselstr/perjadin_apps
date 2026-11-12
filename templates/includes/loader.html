@@ -320,8 +320,8 @@
       return { overlay: true, title: 'Memuat Kwitansi', desc: 'Menyiapkan data kwitansi' };
     }
 
-    // Halaman umum — pesan generik, cukup progress bar + overlay ringan
-    return { overlay: true, title: 'Memuat Halaman', desc: 'Mengambil data dari server' };
+    // Halaman umum (SPT, SPD, Berkas, Profil, dll) → hanya progress bar, TIDAK overlay
+    return { overlay: false, title: null, desc: null };
   }
 
   // Batalkan spinner nav yang belum sempat muncul (navigasi cepat / bfcache)
@@ -372,21 +372,6 @@
     if (isSubmenuLink || isSidebarLink) {
       anchor.classList.add('is-sidebar-loading');
 
-      // Ambil nama submenu untuk ditampilkan pada judul loader
-      var label = (anchor.querySelector('.pc-mtext')?.textContent || anchor.textContent || '').trim();
-      label = label.replace(/\s+/g, ' ');
-
-      var title = label ? ('Memuat ' + label) : (opts ? opts.title : 'Memuat Halaman');
-      var desc = 'Mengambil data dari server, mohon tunggu sebentar...';
-
-      // Efek visual redup pada container konten utama agar jelas sedang proses muat
-      var mainContainer = document.querySelector('.pc-container') || document.getElementById('main-content');
-      if (mainContainer) {
-        mainContainer.style.transition = 'opacity 0.25s ease';
-        mainContainer.style.opacity = '0.45';
-        mainContainer.style.pointerEvents = 'none';
-      }
-
       // Tutup menu drawer mobile di HP jika sedang terbuka
       if (typeof remove_menu === 'function' && document.querySelector('.pc-sidebar.mob-sidebar-active')) {
         setTimeout(function () {
@@ -394,17 +379,37 @@
         }, 120);
       }
 
-      // TAMPILKAN SPINNER OVERLAY LANGSUNG (0ms delay)
-      AppLoader.showActionOverlay(title, desc);
+      // Hanya tampilkan overlay + redup konten jika halaman ini termasuk "berat" (opts.overlay === true)
+      if (opts && opts.overlay) {
+        // Ambil nama submenu untuk judul loader
+        var label = (anchor.querySelector('.pc-mtext')?.textContent || anchor.textContent || '').trim();
+        label = label.replace(/\s+/g, ' ');
+        var title = label ? ('Memuat ' + label) : (opts.title || 'Memuat Halaman');
+        var desc = opts.desc || 'Mengambil data dari server, mohon tunggu sebentar...';
+
+        // Efek visual redup pada container konten utama
+        var mainContainer = document.querySelector('.pc-container') || document.getElementById('main-content');
+        if (mainContainer) {
+          mainContainer.style.transition = 'opacity 0.25s ease';
+          mainContainer.style.opacity = '0.45';
+          mainContainer.style.pointerEvents = 'none';
+        }
+
+        // Tampilkan spinner overlay langsung (0ms delay) untuk halaman berat
+        AppLoader.showActionOverlay(title, desc);
+      }
+      // Untuk halaman ringan (SPT, SPD, dll): hanya progress bar, tidak ada overlay
       return;
     }
 
-    // Untuk link navigasi umum lainnya di luar sidebar (delay 300ms)
-    anchor.classList.add('is-btn-loading');
-    navSpinnerTimer = window.setTimeout(function () {
-      navSpinnerTimer = null;
-      AppLoader.showActionOverlay(opts.title, opts.desc);
-    }, 300);
+    // Untuk link navigasi umum lainnya di luar sidebar — hanya tampilkan overlay jika ditandai berat
+    if (opts && opts.overlay) {
+      anchor.classList.add('is-btn-loading');
+      navSpinnerTimer = window.setTimeout(function () {
+        navSpinnerTimer = null;
+        AppLoader.showActionOverlay(opts.title, opts.desc);
+      }, 300);
+    }
   });
 
   // Bersihkan spinner ketika halaman sudah selesai dimuat
