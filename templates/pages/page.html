@@ -732,11 +732,9 @@
     if (window.jQuery) {
       $('.select2, .select2-ajax').each(function () {
         const $field = $(this);
-        const $dropdownParent = $field.closest('.modal-content, .modal');
-
         $field.select2({
           width: '100%',
-          dropdownParent: $dropdownParent.length ? $dropdownParent : $(document.body),
+          dropdownParent: $(document.body),
           theme: 'bootstrap-5'
         });
       });

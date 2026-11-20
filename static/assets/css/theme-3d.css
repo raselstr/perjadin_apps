@@ -2443,3 +2443,12 @@ h6:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *) {
   border: 0;
   background: #eef2f7;
 }
+
+/* ============================================================================
+   Select2 — dropdown di atas modal Bootstrap
+   dropdownParent: document.body → z-index default Select2 (1051) lebih
+   rendah dari modal Bootstrap (1055). Override agar dropdown selalu terlihat.
+   ============================================================================ */
+body > .select2-container .select2-dropdown {
+  z-index: 1056 !important;
+}
