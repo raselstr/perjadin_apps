@@ -1415,7 +1415,23 @@ body {
   border: 1px solid rgba(5, 150, 105, 0.3) !important;
   border-radius: 16px !important;
   box-shadow: 0 20px 48px -4px rgba(6, 78, 59, 0.25) !important;
-  overflow: hidden;
+  /* overflow: visible agar Select2 dropdown tidak terpotong di dalam modal */
+  overflow: visible !important;
+}
+
+/* Jaga border-radius pada header dan footer agar sudut tetap membulat */
+.modal-content > .modal-header:first-child {
+  border-top-left-radius: 15px !important;
+  border-top-right-radius: 15px !important;
+}
+.modal-content > .modal-footer:last-child {
+  border-bottom-left-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
+}
+/* Fallback: modal-body jika tidak ada footer */
+.modal-content > .modal-body:last-child {
+  border-bottom-left-radius: 15px !important;
+  border-bottom-right-radius: 15px !important;
 }
 
 .modal-header {
@@ -2445,10 +2461,10 @@ h6:not(.card *):not(.modal *):not(.pc-sidebar *):not(.pc-header *) {
 }
 
 /* ============================================================================
-   Select2 — dropdown di atas modal Bootstrap
-   dropdownParent: document.body → z-index default Select2 (1051) lebih
-   rendah dari modal Bootstrap (1055). Override agar dropdown selalu terlihat.
+   Select2 — dropdown di dalam modal (.modal-content sebagai dropdownParent)
+   .modal-content sekarang overflow: visible sehingga dropdown tidak terpotong.
+   z-index tetap lebih tinggi dari backdrop (1050) untuk keamanan.
    ============================================================================ */
-body > .select2-container .select2-dropdown {
-  z-index: 1056 !important;
+.select2-container--open .select2-dropdown {
+  z-index: 1060 !important;
 }

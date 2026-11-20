@@ -486,9 +486,12 @@
         window.jQuery(row).find(".select2, .select2-ajax").each(function () {
             const $field = window.jQuery(this);
 
-            // Selalu render dropdown di document.body agar tidak terpotong
-            // oleh overflow:hidden pada .modal-content atau .pelaksana-item
-            const $dropdownParent = window.jQuery(document.body);
+            // Render dropdown ke .modal-content sebagai parent (bukan document.body)
+            // agar posisi kalkulasi Select2 tepat; overflow diatasi lewat CSS.
+            const $modalContent = $field.closest(".modal-content");
+            const $dropdownParent = $modalContent.length
+                ? $modalContent
+                : window.jQuery(document.body);
 
             if ($field.hasClass("select2-hidden-accessible")) {
                 $field.select2("destroy");
